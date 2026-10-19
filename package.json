@@ -1,0 +1,15 @@
+{
+  "name": "weles",
+  "version": "0.1.0",
+  "description": "Veles — słowiański bóg wiedzy. Asystent spotkań który zna kontekst.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron ."
+  },
+  "author": "Renata Lesko-Gebczyk",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^44.9.0"
+  }
+}
