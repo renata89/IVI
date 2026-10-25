@@ -487,21 +487,31 @@ body {
             <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
               <span style="font-size:10px;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:4px">
                 <span style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Spec_API_v2.pdf</span>
-                <span style="cursor:default;opacity:0.6;font-size:12px;line-height:1" onclick="removeDoc('Spec_API_v2.pdf')" title="Remove">×</span>
+                <span style="cursor:default;opacity:0.6;font-size:11px;line-height:1" onclick="downloadDoc('Spec_API_v2.pdf')" title="Download">⬇</span>
               </span>
               <span style="font-size:10px;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:4px">
                 <span style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Q4_goals.pptx</span>
-                <span style="cursor:default;opacity:0.6;font-size:12px;line-height:1" onclick="removeDoc('Q4_goals.pptx')" title="Remove">×</span>
+                <span style="cursor:default;opacity:0.6;font-size:11px;line-height:1" onclick="downloadDoc('Q4_goals.pptx')" title="Download">⬇</span>
               </span>
             </div>
-          </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:4px">
-            <span>📄 AI summary ready</span>
-            <span style="font-size:9px;color:var(--emerald);cursor:default" onclick="openSummaryPdf()">View</span>
           </div>
           <div style="margin-top:auto;padding-top:10px;display:flex;gap:6px">
             <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
             <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()">Add context</span>
+          </div>
+          <div style="padding-top:10px;border-top:1px solid var(--card-border);margin-top:8px">
+            <div style="font-size:10px;font-weight:600;color:var(--text-muted);margin-bottom:6px">AI summary:</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px">
+                <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Spec_API_v2.pdf</span>
+                <span style="font-size:9px;color:var(--emerald);cursor:default;margin-left:auto" onclick="openSummaryPdf()">View summary</span>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px">
+                <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Q4_goals.pptx</span>
+                <span style="font-size:9px;color:var(--emerald);cursor:default;margin-left:auto" onclick="openSummaryPdf()">View summary</span>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--emerald);cursor:default;margin-top:6px;font-weight:500" onclick="openSummaryPdf()">Download full summary (PDF) →</div>
           </div>
         </div>
 
@@ -1415,45 +1425,8 @@ body {
     { name: 'Q4_goals.pptx', summary: 'Q4 business goals, KPIs, and team resource allocation' }
   ];
 
-  function removeDoc(name) {
-    // Remove from data
-    const idx = loadedDocs.findIndex(d => d.name === name);
-    if (idx !== -1) loadedDocs.splice(idx, 1);
-
-    // Remove from card
-    document.querySelectorAll('.card-value[style*="font-size:16px"]').forEach(tag => {
-      if (tag.textContent === 'Product Sprint Review') {
-        const parent = tag.closest('.card');
-        parent.querySelectorAll('[onclick*="removeDoc"]').forEach(d => {
-          const clicked = d.closest('span[style*="background:#e0e7ff"]');
-          if (clicked && clicked.textContent.includes(name)) {
-            clicked.style.display = 'none';
-          }
-        });
-      }
-    });
-
-    // Remove from modal "Already loaded" list
-    const modalLoaded = document.querySelector('#detail-docs .badge');
-    if (modalLoaded) {
-      const badges = document.querySelectorAll('#detail-docs .badge');
-      badges.forEach(b => {
-        if (b.textContent.includes(name)) {
-          b.remove();
-        }
-      });
-      // If no badges left, remove the "Already loaded" line entirely
-      if (document.querySelectorAll('#detail-docs .badge').length === 0) {
-        const label = document.querySelector('#detail-docs .badge')?.parentElement;
-        if (label) label.remove();
-      }
-    }
-
-    // Update summary display if needed
-    if (loadedDocs.length === 0) {
-      document.querySelector('.card-value[style*="font-size:16px"]')?.closest('.card')
-        ?.querySelector('[onclick*="openSummaryPdf"]')?.closest('div')?.remove();
-    }
+  function downloadDoc(name) {
+    alert('Downloading: ' + name);
   }
 
   function openSummaryPdf() {
