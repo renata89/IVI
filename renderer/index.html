@@ -1635,7 +1635,8 @@ body {
       }
 
       html += `<div style="display:flex;gap:8px;margin-top:12px">
-        <span class="btn btn-primary btn-sm" onclick="closeNoteDetail()">Close</span>
+        <span class="btn btn-primary btn-sm" onclick="playNoteTTS('${meetingId}')">Listen 🔊</span>
+        <span class="btn btn-ghost btn-sm" onclick="closeNoteDetail()">Close</span>
       </div></div></div>`;
 
       const detailDiv = document.createElement('div');
@@ -1652,6 +1653,29 @@ body {
   function closeNoteDetail() {
     const el = document.getElementById('note-detail-overlay');
     if (el) el.remove();
+  }
+
+  // ---------- TTS Playback ----------
+  async function playNoteTTS(meetingId) {
+    try {
+      const btn = event?.target || document.querySelector('.btn-primary');
+      if (btn) btn.textContent = 'Playing... 🎵';
+
+      const notesData = await window.ivi.fetchAPI(`/meetings/${meetingId}/notes`);
+      const notes = notesData.notes || [];
+      const note = notes.length > 0 ? notes[0] : null;
+      if (!note || !note.summary) return;
+
+      const text = encodeURIComponent(note.summary.slice(0, 2000));
+      const audioUrl = `http://127.0.0.1:8765/api/tts?text=${text}&voice=pl-PL-AvaNeural`;
+
+      const audio = new Audio(audioUrl);
+      audio.onended = () => { if (btn) btn.textContent = 'Listen 🔊'; };
+      audio.onerror = () => { if (btn) btn.textContent = 'Listen 🔊'; };
+      audio.play();
+    } catch (err) {
+      console.error('TTS error:', err);
+    }
   }
 
   // Load notes when Notes page is active

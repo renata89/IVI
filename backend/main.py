@@ -126,6 +126,35 @@ async def add_document(data: dict):
     return {"document_id": doc_id}
 
 
+# --- Text-to-Speech ---
+
+from fastapi.responses import StreamingResponse
+
+@app.get("/api/tts")
+async def text_to_speech(text: str, voice: str = "pl-PL-AvaNeural"):
+    """Generate speech audio from text using edge-tts."""
+    try:
+        import edge_tts
+        communicate = edge_tts.Communicate(text, voice)
+        audio_stream = b""
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_stream += chunk["data"]
+
+        return StreamingResponse(
+            iter([audio_stream]),
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline",
+                "Cache-Control": "no-cache",
+            },
+        )
+    except Exception as e:
+        logger.error(f"TTS error: {e}")
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 # --- Audio / WebSocket ---
 
 @app.websocket("/ws/audio")
