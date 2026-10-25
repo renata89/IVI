@@ -452,7 +452,7 @@ body {
         <span class="page-title" id="page-title">Dashboard</span>
         <span class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-size:11px;padding:3px 8px;color:var(--text-muted)" title="Refresh app (dev)"><i data-lucide="refresh-cw" style="width:14px;height:14px"></i></span>
       </div>
-      <div style="font-size:13px;color:var(--text-muted);font-weight:500" id="topbar-datetime"></div>
+      <div style="font-size:19px;color:var(--text-muted);font-weight:500" id="topbar-datetime"></div>
       <div class="topbar-right">
         <span class="topbar-icon"><i data-lucide="bell"></i></span>
         <span>Alex Kowalski</span>
@@ -940,8 +940,8 @@ body {
   // ---------- Topbar clock ----------
   function updateClock() {
     const now = new Date();
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const day = days[now.getDay()];
     const month = months[now.getMonth()];
     const date = now.getDate();
