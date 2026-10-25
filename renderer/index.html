@@ -1026,13 +1026,17 @@ body {
   // Initial render
   renderConflictCard();
 
-  function buildMeetingColumn(meeting, meetingId, borderColor, isLeft) {
+  function buildMeetingColumn(meeting, meetingId, borderColor, isLeft, showSpacer) {
     const borderRight = isLeft ? 'border-right:1px solid #f3f4f6;' : '';
 
+    // Spacer div only if the OTHER column has a badge but this one doesn't
+    const spacerHtml = (!meeting.createdByMe && showSpacer) ? '<div style="height:15px"></div>' : '';
+    const badgeHtml = meeting.createdByMe ? '<div style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-bottom:2px;width:fit-content">Your event</div>' : '';
+    const topHtml = badgeHtml || spacerHtml;
+
     if (meeting.type === 'video') {
-      const ownedBadge = meeting.createdByMe ? '<div style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-bottom:2px;width:fit-content">Your event</div>' : '<div style="height:15px"></div>';
       return `<div style="border-top:4px solid ${borderColor};${borderRight}padding:14px 10px;display:flex;flex-direction:column;gap:10px">
-        ${ownedBadge}
+        ${topHtml}
         <div style="font-size:15px;font-weight:700;color:#111827;display:flex;align-items:flex-start">${meeting.title}</div>
         <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📹 Video Call (${meeting.platform})</div>
@@ -1052,9 +1056,8 @@ body {
     }
 
     // In-person
-    const ownedBadge = meeting.createdByMe ? '<div style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-bottom:2px;width:fit-content">Your event</div>' : '<div style="height:15px"></div>';
     return `<div style="border-top:4px solid ${borderColor};${borderRight}padding:14px 10px;display:flex;flex-direction:column;gap:10px">
-      ${ownedBadge}
+      ${topHtml}
       <div style="font-size:15px;font-weight:700;color:#111827;display:flex;align-items:flex-start">${meeting.title}</div>
       <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
       <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📍 In-person Meeting</div>
@@ -1077,8 +1080,8 @@ body {
     document.getElementById('conflict-counter').textContent = `Conflict ${currentConflictIndex + 1} of ${total}`;
 
     document.getElementById('conflict-meetings-grid').innerHTML =
-      buildMeetingColumn(conflict.left, 'm' + conflict.id, '#3b82f6', true) +
-      buildMeetingColumn(conflict.right, 'm' + conflict.id + 'r', '#8b5cf6', false);
+      buildMeetingColumn(conflict.left, 'm' + conflict.id, '#3b82f6', true, conflict.right.createdByMe) +
+      buildMeetingColumn(conflict.right, 'm' + conflict.id + 'r', '#8b5cf6', false, conflict.left.createdByMe);
 
     // Show/hide "IVI covers both" based on both being video calls
     const bothVideo = conflict.left.type === 'video' && conflict.right.type === 'video';
