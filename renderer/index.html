@@ -1030,9 +1030,10 @@ body {
     const borderRight = isLeft ? 'border-right:1px solid #f3f4f6;' : '';
 
     if (meeting.type === 'video') {
-      const ownedBadge = meeting.createdByMe ? '<span style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;margin-left:6px;white-space:nowrap">Your event</span>' : '';
+      const ownedBadge = meeting.createdByMe ? '<div style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-bottom:2px;width:fit-content">Your event</div>' : '<div style="height:15px"></div>';
       return `<div style="border-top:4px solid ${borderColor};${borderRight}padding:14px 10px;display:flex;flex-direction:column;gap:10px">
-        <div style="font-size:15px;font-weight:700;color:#111827;min-height:3em;display:flex;align-items:flex-start;gap:4px">${meeting.title}${ownedBadge}</div>
+        ${ownedBadge}
+        <div style="font-size:15px;font-weight:700;color:#111827;display:flex;align-items:flex-start">${meeting.title}</div>
         <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📹 Video Call (${meeting.platform})</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">👥 ${meeting.participants} participants</div>
@@ -1051,9 +1052,10 @@ body {
     }
 
     // In-person
-    const ownedBadge = meeting.createdByMe ? '<span style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;margin-left:6px;white-space:nowrap">Your event</span>' : '';
+    const ownedBadge = meeting.createdByMe ? '<div style="font-size:9px;background:#e0e7ff;color:#4338ca;padding:1px 6px;border-radius:4px;font-weight:600;display:inline-block;margin-bottom:2px;width:fit-content">Your event</div>' : '<div style="height:15px"></div>';
     return `<div style="border-top:4px solid ${borderColor};${borderRight}padding:14px 10px;display:flex;flex-direction:column;gap:10px">
-      <div style="font-size:15px;font-weight:700;color:#111827;min-height:3em;display:flex;align-items:flex-start;gap:4px">${meeting.title}${ownedBadge}</div>
+      ${ownedBadge}
+      <div style="font-size:15px;font-weight:700;color:#111827;display:flex;align-items:flex-start">${meeting.title}</div>
       <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
       <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📍 In-person Meeting</div>
       <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">👥 ${meeting.participants} participants</div>
