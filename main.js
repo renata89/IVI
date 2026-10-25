@@ -156,6 +156,8 @@ function stopBackend() {
 }
 
 // --------------- IPC Handlers ---------------
+const { globalShortcut } = require('electron');
+
 ipcMain.handle('get-upcoming-meetings', () => getUpcomingMeetings());
 ipcMain.handle('get-app-version', () => app.getVersion());
 ipcMain.handle('get-backend-status', () => ({
@@ -178,6 +180,14 @@ app.whenReady().then(() => {
   createTray();
   createWindow();
   startBackend();
+
+  // Push-to-talk hotkey
+  const PTT_HOTKEY = 'CmdOrCtrl+Shift+I';
+  globalShortcut.register(PTT_HOTKEY, () => {
+    if (mainWindow) {
+      mainWindow.webContents.send('push-to-talk', { hotkey: PTT_HOTKEY });
+    }
+  });
 
   // Start background tracker
   startTracker((event) => {

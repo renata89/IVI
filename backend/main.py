@@ -215,6 +215,83 @@ async def calendar_oauth_callback(code: str = ""):
     return {"status": "error", "message": token.get("error_description", "OAuth failed")}
 
 
+# --- Push-to-Talk ---
+
+_PTT_CONTEXT = ""
+
+
+@app.websocket("/ws/ptt")
+async def ptt_websocket(websocket: WebSocket):
+    """Receive short mic audio clip, return transcription."""
+    await websocket.accept()
+    from .stt import TranscriptionEngine
+    engine = TranscriptionEngine()
+    import tempfile, os, json
+
+    audio_buffer = bytearray()
+
+    try:
+        while True:
+            msg = await websocket.receive()
+            if msg["type"] == "websocket.disconnect":
+                break
+            if msg["type"] == "websocket.receive":
+                data = msg.get("text") or msg.get("bytes")
+                if isinstance(data, bytes):
+                    audio_buffer.extend(data)
+                elif isinstance(data, str):
+                    try:
+                        ctrl = json.loads(data)
+                        if ctrl.get("type") == "end":
+                            if audio_buffer:
+                                tmp = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
+                                tmp.write(audio_buffer)
+                                tmp.close()
+                                text = await engine.transcribe(tmp.name)
+                                os.unlink(tmp.name)
+                            else:
+                                text = ""
+                            await websocket.send_json({"text": text, "type": "ptt_result"})
+                            break
+                    except json.JSONDecodeError:
+                        pass
+    except Exception as e:
+        logger.error(f"PTT WS error: {e}")
+    finally:
+        await engine.cleanup()
+
+
+@app.get("/api/ptt")
+async def ptt_query(q: str = ""):
+    """Answer a voice query using meeting context + LLM."""
+    if not q:
+        return {"answer": "Nie usłyszałem pytania."}
+
+    from .llm import LLMPipeline
+    llm = LLMPipeline()
+
+    prompt = f"""Jesteś IVI — asystentem meetingowym. Odpowiadasz na pytanie
+użytkownika na podstawie notatek ze spotkań.
+
+Kontekst (notatki z ostatnich spotkań):
+{_PTT_CONTEXT or "Brak kontekstu."}
+
+Pytanie użytkownika: {q}
+
+Odpowiedz krótko (max 2-3 zdania), po polsku, tylko na podstawie faktów.
+Jeśli nie znasz odpowiedzi, powiedz to."""
+
+    try:
+        result = await llm._call_llm(prompt)
+        if isinstance(result, dict):
+            answer = result.get("summary", result.get("answer", str(result)))
+        else:
+            answer = str(result)
+        return {"answer": answer}
+    except Exception as e:
+        return {"answer": f"Błąd: {e}"}
+
+
 # --- Audio / WebSocket ---
 
 @app.websocket("/ws/audio")

@@ -1782,6 +1782,136 @@ body {
   });
   // Also check on initial load
   setTimeout(checkCalendarStatus, 2000);
+
+  // ---------- Push-to-Talk ----------
+  let pttRecorder = null;
+  let pttStream = null;
+  let pttChunks = [];
+
+  // Listen for hotkey from main process
+  window.ivi.onPushToTalk((data) => {
+    console.log('[PTT] Hotkey pressed:', data.hotkey);
+    startPTT();
+  });
+
+  async function startPTT() {
+    try {
+      // Show mic indicator
+      showPTTIndicator(true);
+
+      // Capture microphone audio
+      pttStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      pttChunks = [];
+      pttRecorder = new MediaRecorder(pttStream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus' : 'audio/webm'
+      });
+
+      pttRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) pttChunks.push(e.data);
+      };
+
+      pttRecorder.onstop = async () => {
+        showPTTIndicator(false);
+        pttStream.getTracks().forEach(t => t.stop());
+
+        // Send captured audio to backend
+        const blob = new Blob(pttChunks, { type: 'audio/webm' });
+        const text = await sendPTTAudio(blob);
+        if (text) {
+          // Query LLM with the transcribed question
+          await askIVI(text);
+        }
+      };
+
+      // Auto-stop after 5 seconds of silence
+      pttRecorder.start();
+      setTimeout(() => {
+        if (pttRecorder && pttRecorder.state === 'recording') {
+          pttRecorder.stop();
+        }
+      }, 5000);
+    } catch (err) {
+      console.error('[PTT] Error:', err);
+      showPTTIndicator(false);
+    }
+  }
+
+  function showPTTIndicator(active) {
+    let el = document.getElementById('ptt-indicator');
+    if (!el && active) {
+      el = document.createElement('div');
+      el.id = 'ptt-indicator';
+      el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#7c3aed;color:#fff;padding:8px 14px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(124,58,237,0.4);display:flex;align-items:center;gap:6px';
+      el.innerHTML = '🎤 Listening...';
+      document.body.appendChild(el);
+    } else if (!active && el) {
+      el.remove();
+    }
+  }
+
+  async function sendPTTAudio(blob) {
+    try {
+      // Send via WebSocket — use existing ws endpoint
+      const ws = new WebSocket('ws://127.0.0.1:8765/ws/ptt');
+      await new Promise((resolve, reject) => {
+        ws.onopen = resolve;
+        ws.onerror = reject;
+      });
+
+      // Send audio data
+      const buffer = await blob.arrayBuffer();
+      ws.send(buffer);
+      ws.send(JSON.stringify({ type: 'end' }));
+
+      // Wait for response
+      const response = await new Promise((resolve) => {
+        ws.onmessage = (e) => resolve(e.data);
+        setTimeout(() => resolve(null), 10000);
+      });
+
+      ws.close();
+      if (response) {
+        const data = JSON.parse(response);
+        return data.text;
+      }
+      return null;
+    } catch (err) {
+      console.error('[PTT] WS error:', err);
+      return null;
+    }
+  }
+
+  async function askIVI(question) {
+    try {
+      showPTTIndicator(true);
+      const indicator = document.getElementById('ptt-indicator');
+      if (indicator) indicator.innerHTML = '🧠 Thinking...';
+
+      // Encode question and send to backend
+      const resp = await window.ivi.fetchAPI(`/api/ptt?q=${encodeURIComponent(question)}`);
+      if (resp && resp.answer) {
+        // Play TTS response
+        const audioUrl = `http://127.0.0.1:8765/api/tts?text=${encodeURIComponent(resp.answer.slice(0, 1000))}&voice=pl-PL-ZofiaNeural`;
+        const audio = new Audio(audioUrl);
+        audio.onended = () => showPTTIndicator(false);
+        audio.play();
+        if (indicator) indicator.innerHTML = '🔊 Speaking...';
+      } else {
+        showPTTIndicator(false);
+      }
+    } catch (err) {
+      console.error('[PTT] ask error:', err);
+      showPTTIndicator(false);
+    }
+  }
+
+  // Keyboard shortcut: Cmd+Shift+I triggers push-to-talk manually (for testing)
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'I') {
+      // main.js handles this via globalShortcut, this is a fallback
+    }
+  });
 </script>
 </body>
 </html>

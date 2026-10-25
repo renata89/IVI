@@ -30,6 +30,11 @@ contextBridge.exposeInMainWorld('ivi', {
     ipcRenderer.on('notification', (_event, data) => callback(data));
   },
 
+  // Listen for push-to-talk hotkey
+  onPushToTalk: (callback) => {
+    ipcRenderer.on('push-to-talk', (_event, data) => callback(data));
+  },
+
   // App info
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 
