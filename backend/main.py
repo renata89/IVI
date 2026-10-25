@@ -131,7 +131,7 @@ async def add_document(data: dict):
 from fastapi.responses import StreamingResponse
 
 @app.get("/api/tts")
-async def text_to_speech(text: str, voice: str = "pl-PL-AvaNeural"):
+async def text_to_speech(text: str, voice: str = "pl-PL-ZofiaNeural"):
     """Generate speech audio from text using edge-tts."""
     try:
         import edge_tts

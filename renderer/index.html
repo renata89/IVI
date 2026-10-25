@@ -1667,7 +1667,7 @@ body {
       if (!note || !note.summary) return;
 
       const text = encodeURIComponent(note.summary.slice(0, 2000));
-      const audioUrl = `http://127.0.0.1:8765/api/tts?text=${text}&voice=pl-PL-AvaNeural`;
+      const audioUrl = `http://127.0.0.1:8765/api/tts?text=${text}&voice=pl-PL-ZofiaNeural`;
 
       const audio = new Audio(audioUrl);
       audio.onended = () => { if (btn) btn.textContent = 'Listen 🔊'; };
