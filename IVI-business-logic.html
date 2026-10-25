@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 20mm 22mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Calibri', 'Helvetica', Arial, sans-serif;
+    color: #1a1a2e;
+    line-height: 1.6;
+    font-size: 11pt;
+  }
+  h1 { font-size: 24pt; font-weight: 700; margin-bottom: 4pt; color: #0f172a; }
+  .subtitle { font-size: 12pt; color: #64748b; margin-bottom: 24pt; border-bottom: 2px solid #0f172a; padding-bottom: 12pt; }
+  h2 {
+    font-size: 15pt; font-weight: 700; margin-top: 28pt; margin-bottom: 10pt;
+    background: #f1f5f9; padding: 8pt 12pt; border-radius: 4pt;
+    page-break-before: auto;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h3 { font-size: 12pt; font-weight: 700; margin-top: 18pt; margin-bottom: 6pt; color: #334155; }
+
+  .phase-info {
+    background: #f8fafc; padding: 10pt 14pt; margin-bottom: 6pt;
+    border-left: 4px solid #0f172a; border-radius: 2pt;
+    font-size: 10pt;
+  }
+  .phase-info strong { color: #0f172a; }
+
+  p { margin-bottom: 8pt; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 10pt 0 14pt;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #1e293b; color: #fff; padding: 6pt 8pt;
+    text-align: left; font-weight: 600;
+  }
+  td { padding: 5pt 8pt; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  .decision-table td:first-child { width: 35%; }
+  .task-table td:first-child { width: 30%; }
+  .task-table td:nth-child(2) { width: 45%; }
+
+  ul { margin: 6pt 0 10pt 16pt; }
+  li { margin-bottom: 3pt; }
+
+  .flow-box {
+    border: 1.5px solid #cbd5e1; border-radius: 6pt;
+    padding: 12pt 14pt; margin: 10pt 0;
+    background: #fafafa;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+    line-height: 1.8;
+  }
+
+  .badge { display: inline-block; padding: 1pt 6pt; border-radius: 3pt; font-size: 8pt; font-weight: 700; }
+  .badge-done { background: #dcfce7; color: #166534; }
+  .badge-wip { background: #dbeafe; color: #1e40af; }
+  .badge-todo { background: #f1f5f9; color: #64748b; }
+
+  .footer { margin-top: 30pt; padding-top: 10pt; border-top: 1px solid #cbd5e1; font-size: 8.5pt; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<h1>IVI — Business Logic Document</h1>
+<p class="subtitle">Meeting Assistant AI | Notatnik zamiast nagrywania | v0.1.0 | Testigo</p>
+
+<!-- ============================================================ -->
+<h2>1. Fundamenty (założenia architektoniczne)</h2>
+
+<table>
+  <tr><th>Założenie</th><th>Opis</th><th>Konsekwencje</th></tr>
+  <tr>
+    <td>Brak nagrywania audio</td>
+    <td>IVI nie przechowuje surowego pliku audio. Audio streamowane live → Whisper STT → notatka → audio zapomniane.</td>
+    <td>RODO: zerowe ryzyko. Podstawa: art. 6.1.f (prawnie uzasadniony interes).</td>
+  </tr>
+  <tr>
+    <td>Desktop audio capture</td>
+    <td>IVI przechwytuje dźwięk systemowy (z Teams/Zoom/Meet) na poziomie OS — nie jako bot API.</td>
+    <td>Zero integracji z API platform. Działa z każdą aplikacją. Użytkownik nie musi logować bota.</td>
+  </tr>
+  <tr>
+    <td>Desktop app + local backend</td>
+    <td>Electron (frontend) + Python/FastAPI (backend) jako child process. Wszystko lokalnie.</td>
+    <td>Prywatność danych. Brak zależności od chmury (oprócz LLM API).</td>
+  </tr>
+  <tr>
+    <td>Cross-platform</td>
+    <td>Mac + Windows z jednego codebase Electrona.</td>
+    <td>electron-builder produkuje .dmg i .exe. Wszędzie widoczne jako "IVI".</td>
+  </tr>
+  <tr>
+    <td>Meeting Series</td>
+    <td>Użytkownik może łączyć spotkania w wątki/projekty. IVI śledzi ciągłość zobowiązań.</td>
+    <td>Prep session, cross-meeting checklista, tracking commitments.</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>2. Główny przepływ biznesowy (krok po kroku)</h2>
+
+<h3>Faza 0 — Uruchomienie aplikacji</h3>
+<div class="phase-info">
+  <strong>Wejście:</strong> Użytkownik otwiera IVI<br>
+  <strong>Status:</strong> <span class="badge badge-wip">W TRAKCIE</span> (częściowo zaimplementowane — Electron działa, brak backendu)<br>
+  <strong>Czas:</strong> ~1 dzień
+</div>
+
+<table class="task-table">
+  <tr><th>Krok</th><th>Opis</th><th>Status</th></tr>
+  <tr><td>0.1</td><td>Electron uruchamia się (okno, tray, dock icon)</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+  <tr><td>0.2</td><td>Tracker startuje (pętla co 30s)</td><td><span class="badge badge-wip">CZĘŚCIOWO</span> (mock data)</td></tr>
+  <tr><td>0.3</td><td>Sprawdź czy kalendarz podłączony (Google OAuth)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>0.4</td><td>Jeśli NIE → ekran "Połącz kalendarz"</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>0.5</td><td>Jeśli TAK → start właściwego trackera z realnymi danymi</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>0.6</td><td>Uruchom Python backend jako child process (FastAPI localhost)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+</table>
+
+<h3>Faza 1 — Przed spotkaniem (Pre-meeting)</h3>
+<div class="phase-info">
+  <strong>Wejście:</strong> Tracker wykrywa spotkanie za 5 minut<br>
+  <strong>Czas:</strong> ~3-4 dni
+</div>
+
+<table class="task-table">
+  <tr><th>Krok</th><th>Opis</th><th>Status</th></tr>
+  <tr><td>1.1</td><td>Wyślij notyfikację: "📅 Meeting za 5 min" + tytuł spotkania</td><td><span class="badge badge-done">GOTOWE</span> (main.js linia 133)</td></tr>
+  <tr><td>1.2</td><td>Sprawdź: czy użytkownik załadował dokumenty kontekstowe?</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>1.3</td><td>Jeśli NIE → notyfikacja "Brak dokumentów ⚠️"</td><td><span class="badge badge-done">GOTOWE</span> (tracker.js już ma mock hasContext)</td></tr>
+  <tr><td>1.4</td><td>Sprawdź: czy to spotkanie należy do serii (Meeting Series)?</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>1.5</td><td>Jeśli TAK → wygeneruj checklistę zobowiązań z poprzednich spotkań</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>1.6</td><td>Jeśli TAK → wygeneruj brief z notatek z poprzednich spotkań</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>1.7</td><td>Sprawdź: czy są konflikty terminów (dwa spotkania na tę samą godzinę)?</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>1.8</td><td>Jeśli TAK → pokaż UI konfliktu (mockup już istnieje w renderer)</td><td><span class="badge badge-wip">CZĘŚCIOWO</span> (UI jest, backend nie)</td></tr>
+  <tr><td>1.9</td><td>Opcja: IVI auto-scheduluje 15-min "Meeting Prep" w kalendarzu (dla serii)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+</table>
+
+<h3>Faza 2 — W trakcie spotkania</h3>
+<div class="phase-info">
+  <strong>Wejście:</strong> Spotkanie rozpoczęte (detekcja czasu z kalendarza)<br>
+  <strong>Czas:</strong> ~3-4 dni
+</div>
+
+<table class="task-table">
+  <tr><th>Krok</th><th>Opis</th><th>Status</th></tr>
+  <tr><td>2.1</td><td>Uruchom przechwyt audio systemowego (desktopCapturer API)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.2</td><td>Stream audio przez WebSocket do backendu Python</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.3</td><td>Whisper STT transkrypcja na żywo (model base/small lokalnie)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.4</td><td>Speaker diarization — rozpoznawanie mówców</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.5</td><td>Jeśli użytkownik ma załadowane dokumenty → RAG matching</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.6</td><td>Live suggestions wyświetlane na ekranie użytkownika</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.7</td><td>Push-to-talk: użytkownik trzyma hotkey + mówi pytanie</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.8</td><td>IVI odpowiada TTS w słuchawkach (nikt nie słyszy)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>2.9</td><td>Generowanie notatek w czasie rzeczywistym</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+</table>
+
+<p><strong>Decyzje w F2 (diagram logiczny):</strong></p>
+<div class="flow-box">
+Z 2.3 → czy są dokumenty użytkownika?<br>
+&nbsp;&nbsp;TAK → 2.5 RAG matching → 2.6 Live suggestions → 2.9<br>
+&nbsp;&nbsp;NIE → 2.9 Notatki (bez live suggestions)<br>
+│<br>
+Z 2.9 → czy użytkownik nacisnął hotkey (push-to-talk)?<br>
+&nbsp;&nbsp;TAK → 2.7 mikrofon → LLM → 2.8 TTS odpowiedź → powrót do 2.9<br>
+&nbsp;&nbsp;NIE → kontynuuj 2.9
+</div>
+
+<h3>Faza 3 — Po spotkaniu</h3>
+<div class="phase-info">
+  <strong>Wejście:</strong> Spotkanie zakończone (wg czasu z kalendarza lub manualnie)<br>
+  <strong>Czas:</strong> ~3-4 dni
+</div>
+
+<table class="task-table">
+  <tr><th>Krok</th><th>Opis</th><th>Status</th></tr>
+  <tr><td>3.1</td><td>Finalizacja notatek przez LLM (podsumowanie, decyzje, taski)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.2</td><td>Ekstrakcja action items (lista zobowiązań)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.3</td><td>Zapis do lokalnej bazy SQLite</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.4</td><td>Notyfikacja: "📝 Notatki gotowe" z tytułem spotkania</td><td><span class="badge badge-done">GOTOWE</span> (main.js linia 144)</td></tr>
+  <tr><td>3.5</td><td>Opcja: odtwórz notatki przez TTS (edge-tts)</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.6</td><td>Sprawdź: czy to część serii spotkań?</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.7</td><td>Jeśli TAK → dopisz notatki do serii + zaktualizuj cross-meeting tracking</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.8</td><td>Opcja: draft follow-up maila na podstawie action items</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+  <tr><td>3.9</td><td>Koniec cyklu. Powrót do trackera (Faza 1).</td><td><span class="badge badge-todo">DO ZROBIENIA</span></td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>3. Meeting Series — logika szczegółowa</h2>
+
+<p>Meeting Series (seria spotkań) to kluczowa funkcja wyróżniająca IVI. Poniżej pełna logika:</p>
+
+<h3>3.1 Tworzenie serii</h3>
+<ul>
+  <li><strong>Ręczne:</strong> Użytkownik wybiera "Utwórz serię" → nazywa projekt → dodaje spotkania z kalendarza</li>
+  <li><strong>Automatyczne (sugestia):</strong> Jeśli 2+ spotkania w krótkim czasie mają podobny tytuł ("Sprint Review 1", "Sprint Review 2") → IVI proponuje: "Połączyć w serię?"</li>
+  <li><strong>Parametry serii:</strong> nazwa, lista spotkań (ID), lista dokumentów, lista uczestników</li>
+</ul>
+
+<h3>3.2 Cross-meeting tracking</h3>
+<ul>
+  <li>IVI analizuje wszystkie notatki w serii i wyciąga <strong>zobowiązania</strong> (kto, co, na kiedy)</li>
+  <li>Przed każdym kolejnym spotkaniem w serii → generuje <strong>checklistę zaległych zobowiązań</strong></li>
+  <li>Status: ✔️ zrobione / ⏳ czeka / ❌ przekroczony termin</li>
+</ul>
+
+<h3>3.3 Prep session</h3>
+<ul>
+  <li>IVI proponuje: "Dodać 15-min Meeting Prep przed spotkaniem?"</li>
+  <li>Jeśli tak → auto-wrzutka do kalendarza Google</li>
+  <li>Prep = interaktywna rozmowa z AI: IVI przedstawia fakty z poprzednich notatek, użytkownik dopyta, AI trzyma się ściśle faktów (cytuje notatki, nie halucynuje)</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>4. RODO / Zgodność prawna</h2>
+
+<table>
+  <tr><th>Obszar</th><th>Rozwiązanie IVI</th></tr>
+  <tr><td>Podstawa prawna</td><td>Art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes) — dokumentowanie ustaleń biznesowych. Nie opieramy się na zgodzie (krucha w relacjach służbowych).</td></tr>
+  <tr><td>Zakres danych</td><td>Tylko notatka (tekst). Zero przechowywanego audio. Zero wizerunku. Zero biometrii głosowej.</td></tr>
+  <tr><td>Obowiązek informacyjny</td><td>W zaproszeniu: "IVI dołączy, by sporządzić notatkę ze spotkania." Cel, okres retencji notatek, administrator danych.</td></tr>
+  <tr><td>Bot widoczny</td><td>IVI nie jest botem API — to desktop audio capture. Nie pojawia się na liście uczestników = mniej komunikatów, zero pytania "kto to?"</td></tr>
+  <tr><td>Retencja notatek</td><td>SQLite lokalnie. Określona polityka (domyślnie 90 dni, potem auto-archiwizacja). Użytkownik może usunąć.</td></tr>
+  <tr><td>Hosting</td><td>Wszystko lokalnie. LLM API to jedyne połączenie zewnętrzne (OpenAI/Claude/Gemini).</td></tr>
+  <tr><td>RODO compliance report</td><td>Opcja: IVI generuje raport "Przetworzono Xh audio, zapisano Y kB notatek, zero przechowywanego audio."</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>5. Plan faz (kolejność implementacji)</h2>
+
+<table>
+  <tr><th>Faza</th><th>Zakres</th><th>Czas</th><th>Zależności</th></tr>
+  <tr><td><strong>0. Setup</strong></td><td>Backend Python scaffold, Electron→Python bridge, fix "records"→"notes", zależności</td><td>1 dzień</td><td>—</td></tr>
+  <tr><td><strong>1. Audio + STT</strong></td><td>Desktop audio capture, Whisper, WebSocket, diarization</td><td>3-4 dni</td><td>Faza 0</td></tr>
+  <tr><td><strong>2. Notatki + AI</strong></td><td>LLM summary, SQLite, UI notatek, TTS, checklista</td><td>3-4 dni</td><td>Faza 1</td></tr>
+  <tr><td><strong>3. Kalendarz</strong></td><td>Google Calendar OAuth, realne dane, conflict detection, Meeting Series, prep</td><td>3-4 dni</td><td>Faza 0</td></tr>
+  <tr><td><strong>4. Teams + Voice</strong></td><td>Audio capture dla Teams, process detection, push-to-talk, notyfikacje</td><td>4-5 dni</td><td>Faza 1, 2</td></tr>
+  <tr><td><strong>5. Pakowanie</strong></td><td>electron-builder, instalatory .dmg/.exe, testy Mac+Win</td><td>2 dni</td><td>Wszystkie powyższe</td></tr>
+  <tr><td style="font-weight:700">Razem</td><td></td><td><strong>~16-20 dni</strong></td><td></td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>6. Macierz decyzji (yes/no flow — tekstowo)</h2>
+
+<div class="flow-box">
+START → Kalendarz podłączony?<br>
+&nbsp;&nbsp;NIE → Ekran "Połącz kalendarz" → START<br>
+&nbsp;&nbsp;TAK → Tracker: sprawdzaj spotkania co 30s<br>
+│<br>
+Tracker → Spotkanie za ≤5 min?<br>
+&nbsp;&nbsp;NIE → czekaj 30s → powtórz<br>
+&nbsp;&nbsp;TAK → Notyfikacja "Meeting za 5 min"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;→ Dokumenty załadowane?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIE → Notyfikacja "Brak dokumentów ⚠️"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;→ Część serii spotkań?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TAK → Generuj checklistę zobowiązań<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TAK → Generuj brief z poprzednich notatek<br>
+&nbsp;&nbsp;&nbsp;&nbsp;→ Konflikt terminów?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TAK → UI konfliktu (IVI covers / Reschedule / Ignore)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIE → czekaj na start spotkania<br>
+│<br>
+Spotkanie rozpoczęte → Audio capture start<br>
+&nbsp;&nbsp;→ Transkrypcja Whisper (live)<br>
+&nbsp;&nbsp;→ Dokumenty użytkownika?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TAK → RAG matching → Live suggestions<br>
+&nbsp;&nbsp;→ Użytkownik nacisnął hotkey (push-to-talk)?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TAK → Mikrofon → LLM → TTS odpowiedź w słuchawkach<br>
+&nbsp;&nbsp;→ Notatki generowane w czasie rzeczywistym<br>
+│<br>
+Spotkanie zakończone → Finalizuj notatki (LLM)<br>
+&nbsp;&nbsp;→ Wyciągnij action items<br>
+&nbsp;&nbsp;→ Zapisz do SQLite<br>
+&nbsp;&nbsp;→ Część serii?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TAK → Dopisz do serii + update cross-tracking<br>
+&nbsp;&nbsp;→ Odtworzyć TTS?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TAK → edge-tts → playback<br>
+&nbsp;&nbsp;→ Wyślij draft follow-up maila?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TAK → Generuj draft na podstawie action items<br>
+&nbsp;&nbsp;→ Koniec. Powrót do trackera.
+</div>
+
+<!-- ============================================================ -->
+<h2>7. Pliki projektu (stan na start)</h2>
+
+<table>
+  <tr><th>Plik</th><th>Rola</th><th>Status</th></tr>
+  <tr><td>main.js</td><td>Proces główny Electrona (okno, tray, IPC, child process)</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+  <tr><td>preload.js</td><td>Bridge (window.ivi API)</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+  <tr><td>tracker.js</td><td>Detekcja spotkań, poll co 30s</td><td><span class="badge badge-wip">CZĘŚCIOWO</span> (mocki)</td></tr>
+  <tr><td>renderer/index.html</td><td>Pełne UI (dashboard, sidebar, kalendarz, konflikty)</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+  <tr><td>package.json</td><td>Elektron 44.x</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+  <tr><td>assets/</td><td>Ikony, loga, tray icons</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+  <tr><td>backend/</td><td>FastAPI + Whisper + LLM pipeline</td><td><span class="badge badge-todo">DO STWORZENIA</span></td></tr>
+  <tr><td>IVI-ROADMAP.html</td><td>Checklista postępu (interaktywna)</td><td><span class="badge badge-done">GOTOWE</span></td></tr>
+</table>
+
+<div class="footer">
+  IVI v0.1.0 — Dokument biznesowy | Testigo | Renata Lesko-Gebczyk<br>
+  Repozytorium: github.com/renata89/IVI.git
+</div>
+
+</body>
+</html>
