@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, desktopCapturer } = require('electron');
 
 contextBridge.exposeInMainWorld('ivi', {
   // Get upcoming meetings from tracker
@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('ivi', {
 
   // Get backend status
   getBackendStatus: () => ipcRenderer.invoke('get-backend-status'),
+
+  // Desktop capturer for system audio
+  desktopCapturer: desktopCapturer,
 
   // Minimize to tray
   minimizeToTray: () => ipcRenderer.send('minimize-to-tray'),

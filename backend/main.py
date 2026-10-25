@@ -135,17 +135,53 @@ async def audio_websocket(websocket: WebSocket):
     logger.info("Audio WebSocket connected")
 
     from .stt import TranscriptionEngine
-
     engine = TranscriptionEngine()
-    meeting_id: str | None = None
+    import tempfile, os, json
+
+    audio_buffer = bytearray()
+    meeting_id = None
 
     try:
         while True:
-            msg = websocket.receive()
-            # ... audio streaming logic will go here in Phase 1
-            pass
+            msg = await websocket.receive()
+
+            if msg["type"] == "websocket.disconnect":
+                logger.info("Client disconnected")
+                break
+
+            if msg["type"] == "websocket.receive":
+                data = msg.get("text") or msg.get("bytes")
+                if data is None:
+                    continue
+
+                if isinstance(data, str):
+                    try:
+                        ctrl = json.loads(data)
+                        if ctrl.get("type") == "start":
+                            meeting_id = ctrl.get("meeting_id", "unknown")
+                            logger.info(f"Transcription started: {meeting_id}")
+                            audio_buffer.clear()
+                        elif ctrl.get("type") == "end":
+                            logger.info(f"Transcription ended: {meeting_id}")
+                            text = "[mock - Whisper w trakcie ladowania]"
+                            if audio_buffer:
+                                tmp = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
+                                tmp.write(audio_buffer)
+                                tmp.close()
+                                text = await engine.transcribe(tmp.name)
+                                os.unlink(tmp.name)
+                            await websocket.send_json({
+                                "type": "transcription_final",
+                                "text": text,
+                                "meeting_id": meeting_id,
+                            })
+                            logger.info(f"Transcription sent ({len(text)} chars)")
+                    except json.JSONDecodeError:
+                        pass
+                elif isinstance(data, bytes):
+                    audio_buffer.extend(data)
     except WebSocketDisconnect:
-        logger.info("Audio WebSocket disconnected")
+        logger.info("WebSocket disconnected")
     finally:
         await engine.cleanup()
 
