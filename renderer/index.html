@@ -417,7 +417,7 @@ body {
         <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> Dashboard
       </a>
       <a class="nav-item" data-page="meetings">
-        <span class="nav-icon"><i data-lucide="calendar"></i></span> Meetings
+        <span class="nav-icon"><i data-lucide="calendar"></i></span> Calendar
       </a>
       <a class="nav-item" data-page="library">
         <span class="nav-icon"><i data-lucide="file-text"></i></span> Library
@@ -990,7 +990,7 @@ body {
       this.classList.add('active');
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + page)?.classList.add('active');
-      const titles = { dashboard: 'Dashboard', meetings: 'Meetings', library: 'Library', settings: 'Settings' };
+      const titles = { dashboard: 'Dashboard', meetings: 'Calendar', library: 'Library', settings: 'Settings' };
       document.getElementById('page-title').textContent = titles[page] || page;
       lucide.createIcons();
     });
