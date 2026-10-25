@@ -1,3 +1,4 @@
 release/*.dmg filter=lfs diff=lfs merge=lfs -text
 release/*.zip filter=lfs diff=lfs merge=lfs -text
 release/**/Electron[[:space:]]Framework filter=lfs diff=lfs merge=lfs -text
+release/**/*.dylib filter=lfs diff=lfs merge=lfs -text
