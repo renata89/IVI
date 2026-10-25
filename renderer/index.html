@@ -506,7 +506,7 @@ body {
                 <span class="btn" style="display:flex;width:100%;background:#15803d;color:#fff;border:none;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;align-items:center;justify-content:center;gap:6px;cursor:default" onclick="coverBoth()">✓ IVI covers both</span>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <span class="btn" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:8px;border-radius:12px;font-size:13px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap" onclick="rescheduleConflict()">Reschedule</span>
+                <span class="btn btn-reschedule" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:8px;border-radius:12px;font-size:13px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap" onclick="rescheduleConflict()">Reschedule</span>
                 <span class="btn" style="border:1px solid #9ca3af;background:transparent;color:#374151;padding:8px;border-radius:12px;font-size:13px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap" onclick="ignoreConflict()">Ignore Conflict</span>
               </div>
             </div>
@@ -866,6 +866,34 @@ body {
   </div>
 </div>
 
+<!-- Reschedule Modal -->
+<div class="modal-overlay" id="reschedule-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <div style="flex:1;min-width:0">
+        <div class="modal-title" id="reschedule-modal-title">Reschedule: Client Sync</div>
+      </div>
+      <span class="modal-close" onclick="document.getElementById('reschedule-modal').classList.remove('active')"><i data-lucide="x" style="width:18px;height:18px"></i></span>
+    </div>
+    <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#374151;margin-bottom:6px">New time</div>
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
+          <input type="time" id="reschedule-time-start" value="10:00"
+            style="padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
+          <span style="color:var(--text-muted);font-size:13px">to</span>
+          <input type="time" id="reschedule-time-end" value="11:30"
+            style="padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <span class="btn btn-ghost btn-sm" onclick="document.getElementById('reschedule-modal').classList.remove('active')">Cancel</span>
+        <span class="btn btn-primary btn-sm" onclick="applyReschedule()">Save changes</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   lucide.createIcons();
 
@@ -927,6 +955,11 @@ body {
   });
   document.getElementById('modal-close').addEventListener('click', closeMeetingModal);
 
+  // Reschedule modal - close on overlay click
+  document.getElementById('reschedule-modal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+
   // Choice button toggle
   function setChoice(el, meeting) {
     const container = el.parentElement;
@@ -945,18 +978,18 @@ body {
   const conflictData = [
     {
       id: 'c1',
-      left: { title: 'Client Sync', time: '10:00 - 11:30', type: 'video', platform: 'Teams', participants: 3 },
-      right: { title: 'Project Review', time: '10:30 - 12:00', type: 'video', platform: 'Zoom', participants: 4 }
+      left: { title: 'Client Sync', time: '10:00 - 11:30', type: 'video', platform: 'Teams', participants: 3, createdByMe: true },
+      right: { title: 'Project Review', time: '10:30 - 12:00', type: 'video', platform: 'Zoom', participants: 4, createdByMe: false }
     },
     {
       id: 'c2',
-      left: { title: 'Sprint Demo', time: '10:00 - 12:00', type: 'video', platform: 'Teams', participants: 8 },
-      right: { title: 'Quarterly Sync', time: '10:30 - 11:30', type: 'inperson', participants: 5 }
+      left: { title: 'Sprint Demo', time: '10:00 - 12:00', type: 'video', platform: 'Teams', participants: 8, createdByMe: false },
+      right: { title: 'Quarterly Sync', time: '10:30 - 11:30', type: 'inperson', participants: 5, createdByMe: false }
     },
     {
       id: 'c3',
-      left: { title: '1:1 with Anna', time: '09:00 - 09:30', type: 'video', platform: 'Zoom', participants: 2 },
-      right: { title: 'Team standup', time: '09:00 - 10:00', type: 'video', platform: 'Teams', participants: 6 }
+      left: { title: '1:1 with Anna', time: '09:00 - 09:30', type: 'video', platform: 'Zoom', participants: 2, createdByMe: true },
+      right: { title: 'Team standup', time: '09:00 - 10:00', type: 'video', platform: 'Teams', participants: 6, createdByMe: true }
     }
   ];
 
@@ -1020,6 +1053,10 @@ body {
     const bothVideo = conflict.left.type === 'video' && conflict.right.type === 'video';
     document.getElementById('ivi-covers-both-row').style.display = bothVideo ? 'flex' : 'none';
 
+    // Show/hide Reschedule button based on whether user created any meeting in this conflict
+    const canReschedule = conflict.left.createdByMe || conflict.right.createdByMe;
+    document.querySelector('.btn-reschedule').style.display = canReschedule ? 'flex' : 'none';
+
     document.getElementById('conflict-active-content').style.display = 'block';
     document.getElementById('conflict-none').style.display = 'none';
     document.getElementById('conflict-card').classList.add('conflict-active');
@@ -1035,8 +1072,38 @@ body {
   }
 
   function rescheduleConflict() {
-    // Same behavior: remove this conflict, show next
-    ignoreConflict();
+    const conflict = activeConflicts[currentConflictIndex];
+    if (!conflict) return;
+    // Find the meeting(s) created by user
+    const userMeetings = [];
+    if (conflict.left.createdByMe) userMeetings.push({ side: 'left', ...conflict.left });
+    if (conflict.right.createdByMe) userMeetings.push({ side: 'right', ...conflict.right });
+    if (userMeetings.length === 0) return;
+
+    const m = userMeetings[0]; // Open editor for first user-created meeting
+    const [startStr, endStr] = m.time.split(' - ');
+
+    document.getElementById('reschedule-modal-title').textContent = 'Reschedule: ' + m.title;
+    document.getElementById('reschedule-time-start').value = startStr || '09:00';
+    document.getElementById('reschedule-time-end').value = endStr || '10:00';
+    document.getElementById('reschedule-modal').classList.add('active');
+    lucide.createIcons();
+  }
+
+  function applyReschedule() {
+    const conflict = activeConflicts[currentConflictIndex];
+    if (!conflict) return;
+
+    const newStart = document.getElementById('reschedule-time-start').value;
+    const newEnd = document.getElementById('reschedule-time-end').value;
+    const newTime = newStart + ' - ' + newEnd;
+
+    // Update the first user-created meeting's time
+    if (conflict.left.createdByMe) conflict.left.time = newTime;
+    else if (conflict.right.createdByMe) conflict.right.time = newTime;
+
+    document.getElementById('reschedule-modal').classList.remove('active');
+    renderConflictCard();
   }
 
   // Cover both meetings with IVI
