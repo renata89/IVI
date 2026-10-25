@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld('ivi', {
   // Get context documents
   getContextDocuments: () => ipcRenderer.invoke('get-context-documents'),
 
+  // Get backend status
+  getBackendStatus: () => ipcRenderer.invoke('get-backend-status'),
+
   // Minimize to tray
   minimizeToTray: () => ipcRenderer.send('minimize-to-tray'),
 

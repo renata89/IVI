@@ -1,10 +1,12 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, Notification, ipcMain } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
 const { startTracker, stopTracker, getUpcomingMeetings } = require('./tracker');
 
 let mainWindow = null;
 let tray = null;
 let isQuitting = false;
+let backendProcess = null;
 
 // --------------- Tray icon ---------------
 function createTrayIcon() {
@@ -108,9 +110,58 @@ function sendNotification(title, body) {
   notif.show();
 }
 
+// --------------- Backend ---------------
+const BACKEND_PORT = 8765;
+
+function startBackend() {
+  const backendPath = path.join(__dirname, 'venv', 'bin', 'python3');
+  const mainPath = path.join(__dirname, 'backend', 'main.py');
+
+  console.log(`[IVI] Starting backend: ${backendPath} ${mainPath}`);
+
+  backendProcess = spawn(backendPath, ['-m', 'backend.main'], {
+    cwd: __dirname,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: { ...process.env, IVI_BACKEND_PORT: String(BACKEND_PORT) }
+  });
+
+  backendProcess.stdout.on('data', (data) => {
+    console.log(`[backend] ${data.toString().trim()}`);
+  });
+
+  backendProcess.stderr.on('data', (data) => {
+    console.log(`[backend] ${data.toString().trim()}`);
+  });
+
+  backendProcess.on('error', (err) => {
+    console.error(`[IVI] Backend error: ${err.message}`);
+  });
+
+  backendProcess.on('close', (code) => {
+    console.log(`[IVI] Backend exited with code ${code}`);
+    backendProcess = null;
+  });
+}
+
+function stopBackend() {
+  if (backendProcess) {
+    console.log('[IVI] Stopping backend...');
+    backendProcess.kill('SIGTERM');
+    setTimeout(() => {
+      if (backendProcess) {
+        backendProcess.kill('SIGKILL');
+      }
+    }, 3000);
+  }
+}
+
 // --------------- IPC Handlers ---------------
 ipcMain.handle('get-upcoming-meetings', () => getUpcomingMeetings());
 ipcMain.handle('get-app-version', () => app.getVersion());
+ipcMain.handle('get-backend-status', () => ({
+  running: backendProcess !== null,
+  port: BACKEND_PORT
+}));
 ipcMain.on('minimize-to-tray', () => {
   if (mainWindow) mainWindow.hide();
 });
@@ -126,6 +177,7 @@ app.whenReady().then(() => {
   }
   createTray();
   createWindow();
+  startBackend();
 
   // Start background tracker
   startTracker((event) => {
@@ -172,4 +224,5 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   isQuitting = true;
   stopTracker();
+  stopBackend();
 });
