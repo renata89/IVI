@@ -1,5 +1,7 @@
-node_modules/
+# IVI
 .DS_Store
-*.log
-Gemini_Generated_*
-*.png
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.env

@@ -1,0 +1,18 @@
+# IVI Backend — Python dependencies
+# FastAPI + Whisper (STT) + LLM clients
+
+# Backend framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+websockets>=12.0
+pydantic>=2.0
+
+# Speech-to-Text (local)
+openai-whisper>=20240930
+
+# LLM clients (optional — one is enough)
+openai>=1.0
+google-generativeai>=0.8.0
+
+# Database
+aiosqlite>=0.20.0
