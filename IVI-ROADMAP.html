@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IVI — Roadmap & Checklist</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #f4f5f7;
+    color: #0f172a;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+  }
+  .container { max-width: 880px; width: 100%; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  .subtitle { font-size: 14px; color: #64748b; margin-bottom: 32px; }
+  .phase {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    border: 1px solid #e2e8f0;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .phase-num {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #fff;
+  }
+  .phase-num.p0 { background: #64748b; }
+  .phase-num.p1 { background: #a855f7; }
+  .phase-num.p2 { background: #7c3aed; }
+  .phase-num.p3 { background: #2563eb; }
+  .phase-num.p4 { background: #059669; }
+  .phase-num.p5 { background: #d97706; }
+  .phase-title { font-size: 18px; font-weight: 600; flex: 1; }
+  .phase-status {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .phase-status.active { background: #dbeafe; color: #2563eb; }
+  .phase-status.pending { background: #f1f5f9; color: #64748b; }
+  .phase-status.done { background: #dcfce7; color: #16a34a; }
+  .phase-days { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 8px 8px 4px;
+    border-radius: 8px;
+    transition: background .1s;
+  }
+  .task:hover { background: #f8fafc; }
+  .task-checkbox {
+    width: 18px; height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: default;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .task-checkbox.done {
+    background: #16a34a;
+    border-color: #16a34a;
+  }
+  .task-checkbox.done::after {
+    content: "✓";
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .task-checkbox.in-progress {
+    border-color: #2563eb;
+    background: #dbeafe;
+  }
+  .task-checkbox.in-progress::after {
+    content: "→";
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .task-content { flex: 1; }
+  .task-title { font-size: 14px; font-weight: 500; }
+  .task-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 24px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #64748b;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-box {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .legend-box.green { background: #16a34a; }
+  .legend-box.blue { background: #dbeafe; border: 2px solid #2563eb; }
+  .legend-box.gray { border: 2px solid #cbd5e1; }
+
+  .repo-info {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #334155;
+    text-align: center;
+  }
+  .repo-info code {
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .badge-status {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-done { background: #dcfce7; color: #166534; }
+  .badge-wip { background: #dbeafe; color: #1e40af; }
+  .badge-todo { background: #f1f5f9; color: #64748b; }
+
+  .file-list {
+    margin-top: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .file-list-title { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+  .file-item { font-size: 12px; color: #334155; padding: 2px 0; display: flex; align-items: center; gap: 8px; }
+  .file-item code { background: #e2e8f0; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>
+    IVI Roadmap
+    <span class="badge-status badge-wip">v0.1.0</span>
+  </h1>
+  <p class="subtitle">Pełen plan budowy IVI — asystenta spotkań AI. Cel: MVP w 2-3 tygodnie.</p>
+
+  <!-- PHASE 0 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num p0">0</div>
+      <div class="phase-title">Setup & Foundation</div>
+      <span class="phase-status active">IN PROGRESS</span>
+      <span class="phase-days">~1 dzień</span>
+    </div>
+    <div class="task">
+      <div class="task-checkbox done"></div>
+      <div class="task-content">
+        <div class="task-title">Audyt istniejącego kodu IVI</div>
+        <div class="task-desc">main.js, preload.js, renderer, tracker.js — sprawdzone i gotowe</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox done"></div>
+      <div class="task-content">
+        <div class="task-title">Diagram biznesowy (Excalidraw)</div>
+        <div class="task-desc">business-logic.excalidraw — kompletny przepływ: start → prep → spotkanie → notatki</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox done"></div>
+      <div class="task-content">
+        <div class="task-title">Roadmap + checklist (HTML)</div>
+        <div class="task-desc">Ten plik — IVI-ROADMAP.html</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox in-progress"></div>
+      <div class="task-content">
+        <div class="task-title">Push do GitHub (repo IVI)</div>
+        <div class="task-desc">git add + commit + push na main</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Fix: "IVI records" → "IVI notes"</div>
+        <div class="task-desc">Zmiana w renderer/index.html (linia 433)</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Backend: FastAPI scaffold</div>
+        <div class="task-desc">backend/ — struktura katalogów, main.py, requirements.txt</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Electron → Python child process</div>
+        <div class="task-desc">main.js uruchamia backend jako subprocess przy starcie</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Instalacja zależności Python</div>
+        <div class="task-desc">Whisper, FastAPI, uvicorn, websockets, edge-tts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num p1">1</div>
+      <div class="phase-title">Audio Capture + Transkrypcja</div>
+      <span class="phase-status pending">PENDING</span>
+      <span class="phase-days">~3-4 dni</span>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Przechwyt audio systemowego</div>
+        <div class="task-desc">Electron desktopCapturer → strumień audio z systemu</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">WebSocket: Electron ↔ Python</div>
+        <div class="task-desc">Strumieniowanie audio w czasie rzeczywistym do backendu</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Whisper STT lokalnie</div>
+        <div class="task-desc">Transkrypcja speech-to-text w Pythonie, model base/small</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Speaker diarization</div>
+        <div class="task-desc">Rozpoznawanie kto mówi (WhisperX lub pyannote)</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Test: przechwyć audio z Teams</div>
+        <div class="task-desc">Otwórz Teams → IVI słyszy i transkrybuje</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num p2">2</div>
+      <div class="phase-title">Notatki + Podsumowania</div>
+      <span class="phase-status pending">PENDING</span>
+      <span class="phase-days">~3-4 dni</span>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">LLM pipeline do podsumowań</div>
+        <div class="task-desc">Transkrypcja → LLM → podsumowanie z decyzjami i taskami</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">SQLite — lokalna baza notatek</div>
+        <div class="task-desc">Przechowywanie notatek, serii, metadanych</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Widok notatek w UI IVI</div>
+        <div class="task-desc">Lista notatek z dashboardu + szczegóły</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">TTS odsłuch (edge-tts)</div>
+        <div class="task-desc">Generowanie audio z notatek, odtwarzanie w aplikacji</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Checklista zobowiązań</div>
+        <div class="task-desc">Extract action items → lista checkboxów "do odhaczenia"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num p3">3</div>
+      <div class="phase-title">Kalendarz + Meeting Series</div>
+      <span class="phase-status pending">PENDING</span>
+      <span class="phase-days">~3-4 dni</span>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Google Calendar API</div>
+        <div class="task-desc">Logowanie przez OAuth, pobieranie wydarzeń</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Detekcja spotkań (zamiast mocków)</div>
+        <div class="task-desc">Tracker łączy się z realnym kalendarzem</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Wykrywanie konfliktów</div>
+        <div class="task-desc">UI konfliktu (mockup już gotowy w renderer)</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Meeting Series (łączenie w wątki)</div>
+        <div class="task-desc">Grupowanie spotkań w projekty/sesje</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Prep session — auto kalendarz</div>
+        <div class="task-desc">IVI wrzuca 15-min spotkanie prep przed meetingiem w serii</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num p4">4</div>
+      <div class="phase-title">Integracja Teams + Voice</div>
+      <span class="phase-status pending">PENDING</span>
+      <span class="phase-days">~4-5 dni</span>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Desktop audio capture (Teams-ready)</div>
+        <div class="task-desc">Przechwyć audio z dowolnej aplikacji (nie bot API)</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Process detection (pgrep/tasklist)</div>
+        <div class="task-desc">Czy Teams/Chrome/Zoom działa? tracker.js już ma mock</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Push-to-talk (globalShortcut)</div>
+        <div class="task-desc">Hotkey + mikrofon → "IVI, co ustaliliśmy?"</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Odpowiedź głosowa IVI</div>
+        <div class="task-desc">TTS w słuchawkach, nikt inny nie słyszy</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Notyfikacje: "notatki gotowe"</div>
+        <div class="task-desc">Automatyczne powiadomienie po zakończeniu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num p5">5</div>
+      <div class="phase-title">Pakowanie + Instalator</div>
+      <span class="phase-status pending">PENDING</span>
+      <span class="phase-days">~2 dni</span>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">electron-builder konfiguracja</div>
+        <div class="task-desc">productName: "IVI", appId: com.testigo.ivi</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Instalator macOS (.dmg)</div>
+        <div class="task-desc">Prawdziwy plik .dmg do dystrybucji</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Instalator Windows (.exe)</div>
+        <div class="task-desc">Standardowy NSIS installer (na Winie sprawdź potem)</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox"></div>
+      <div class="task-content">
+        <div class="task-title">Testy na Mac + Windows</div>
+        <div class="task-desc">Działa instalacja, uruchomienie, audio capture</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box green"></div> Wykonane</div>
+    <div class="legend-item"><div class="legend-box blue"></div> W trakcie</div>
+    <div class="legend-item"><div class="legend-box gray"></div> Do zrobienia</div>
+  </div>
+
+  <div class="file-list">
+    <div class="file-list-title">Pliki projektu (stan aktualny)</div>
+    <div class="file-item">📄 <code>main.js</code> — Proces główny Electrona (okno, tray, IPC)</div>
+    <div class="file-item">📄 <code>preload.js</code> — Bridge: window.ivi API</div>
+    <div class="file-item">📄 <code>tracker.js</code> — Detekcja spotkań + mock danych</div>
+    <div class="file-item">📄 <code>renderer/index.html</code> — Pełne UI (dashboard, sidebar, kalendarz)</div>
+    <div class="file-item">📄 <code>package.json</code> — Elektron 44.x, start/dev scripts</div>
+    <div class="file-item">📄 <code>assets/</code> — Ikony, loga, tray icons</div>
+    <div class="file-item">✨ <code>IVI-ROADMAP.html</code> — Ten plik (checklista)</div>
+    <div class="file-item">✨ <code>business-logic.excalidraw</code> — Diagram przepływu</div>
+    <div class="file-item">⬜ <code>backend/</code> — Backend Python (do stworzenia)</div>
+  </div>
+
+  <div class="repo-info">
+    Repozytorium: <code>github.com/renata89/IVI.git</code> &nbsp;|&nbsp; Branch: <code>main</code>
+  </div>
+</div>
+</body>
+</html>
