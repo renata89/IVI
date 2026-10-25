@@ -625,8 +625,9 @@ body {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
         <div class="card">
           <div class="card-label">Calendar Status</div>
-          <div class="card-value" style="font-size:15px;color:var(--emerald)">Synced</div>
-          <div class="card-sub">Google Calendar connected · 12 meetings this week</div>
+          <div class="card-value" style="font-size:15px;color:var(--emerald)" id="cal-status-text">Checking...</div>
+          <div class="card-sub" id="cal-status-sub">Click to connect your Google Calendar</div>
+          <div style="margin-top:8px"><span class="btn btn-ghost btn-sm" id="cal-connect-btn" onclick="connectCalendar()" style="display:none">Connect Calendar</span></div>
         </div>
         <div class="card">
           <div class="card-label">Recordings</div>
@@ -656,6 +657,17 @@ body {
         <div style="margin-top:12px;font-size:12px;color:var(--text-muted)">
           <i data-lucide="info" style="width:12px;height:12px;display:inline;vertical-align:middle"></i>
           8 meetings in this period · <span class="badge" style="font-size:10px">6 processed</span> · <span class="badge badge-amber" style="font-size:10px">2 unprocessed</span>
+        </div>
+      </div>
+
+      <!-- COMMITMENTS CHECKLIST -->
+      <div class="card" style="margin-bottom:16px;display:none" id="checklist-card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:14px;font-weight:600">📋 Zaległe zobowiązania</h3>
+          <span class="badge badge-amber" id="checklist-count" style="font-size:10px">0 pending</span>
+        </div>
+        <div id="checklist-items">
+          <div style="font-size:12px;color:var(--text-muted);padding:8px 0" id="checklist-empty">Brak zaległych zobowiązań.</div>
         </div>
       </div>
 
@@ -1691,8 +1703,85 @@ body {
   document.querySelectorAll('.nav-item[data-page="dashboard"]').forEach(el => {
     el.addEventListener('click', () => {
       if (notesRefreshInterval) clearInterval(notesRefreshInterval);
+      loadChecklist();
     });
   });
+
+  // ---------- Commitments checklist ----------
+  async function loadChecklist() {
+    try {
+      const data = await window.ivi.fetchAPI('/api/upcoming/checklist');
+      const card = document.getElementById('checklist-card');
+      const itemsDiv = document.getElementById('checklist-items');
+      const emptyDiv = document.getElementById('checklist-empty');
+      const countSpan = document.getElementById('checklist-count');
+
+      if (!data.meeting || !data.commitments || data.commitments.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+
+      card.style.display = 'block';
+      countSpan.textContent = data.commitments.length + ' pending';
+
+      let html = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Dot. spotkania: <strong>${data.meeting.title}</strong></div>`;
+      data.commitments.forEach((c, i) => {
+        const status = c.status === 'done' ? 'checked' : '';
+        html += `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--card-border)">
+          <input type="checkbox" ${status} style="accent-color:var(--emerald);width:14px;height:14px;margin-top:2px" data-id="${c.id}">
+          <div style="flex:1;font-size:13px">
+            <strong>${c.person || '?'}</strong>: ${c.description}
+            ${c.due_date ? `<span style="font-size:10px;color:var(--text-muted);margin-left:6px">📅 ${c.due_date}</span>` : ''}
+          </div>
+        </div>`;
+      });
+      itemsDiv.innerHTML = html;
+      emptyDiv.style.display = 'none';
+    } catch (err) {
+      console.error('Checklist error:', err);
+    }
+  }
+
+  // ---------- Calendar connection ----------
+  async function checkCalendarStatus() {
+    try {
+      const data = await window.ivi.fetchAPI('/api/calendar/status');
+      const statusText = document.getElementById('cal-status-text');
+      const statusSub = document.getElementById('cal-status-sub');
+      const connectBtn = document.getElementById('cal-connect-btn');
+
+      if (data && data.connected) {
+        statusText.textContent = 'Connected ✅';
+        statusText.style.color = '#16a34a';
+        statusSub.textContent = `${data.events.length} meetings this week`;
+        connectBtn.style.display = 'none';
+      } else {
+        statusText.textContent = 'Not connected ⚠️';
+        statusText.style.color = '#ef4444';
+        if (data && data.auth_url) {
+          statusSub.textContent = 'Click to connect';
+          connectBtn.style.display = 'inline-flex';
+          connectBtn.dataset.authUrl = data.auth_url;
+        }
+      }
+    } catch (err) {
+      console.error('Calendar check error:', err);
+    }
+  }
+
+  function connectCalendar() {
+    const btn = document.getElementById('cal-connect-btn');
+    if (btn && btn.dataset.authUrl) {
+      window.open(btn.dataset.authUrl, '_blank');
+    }
+  }
+
+  // Check calendar status on dashboard load
+  document.querySelectorAll('.nav-item[data-page="dashboard"]').forEach(el => {
+    el.addEventListener('click', checkCalendarStatus);
+  });
+  // Also check on initial load
+  setTimeout(checkCalendarStatus, 2000);
 </script>
 </body>
 </html>

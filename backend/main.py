@@ -155,6 +155,66 @@ async def text_to_speech(text: str, voice: str = "pl-PL-ZofiaNeural"):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+# --- Commitments / Checklist ---
+
+@app.get("/api/upcoming/checklist")
+async def upcoming_checklist():
+    """Get pending commitments for the next upcoming meeting (if any)."""
+    if not db:
+        return {"meeting": None, "commitments": []}
+
+    meetings = await db.get_meetings(limit=5)
+    if not meetings:
+        return {"meeting": None, "commitments": []}
+
+    # Find the first meeting with a series
+    for m in meetings:
+        if m.get("series_id"):
+            commitments = await db.get_commitments(m["series_id"])
+            if commitments:
+                return {
+                    "meeting": {"id": m["id"], "title": m["title"]},
+                    "commitments": commitments,
+                }
+
+    return {"meeting": None, "commitments": []}
+
+
+# --- Calendar (Google) ---
+
+from .calendar import CalendarClient
+
+_calendar: CalendarClient | None = None
+
+
+@app.get("/api/calendar/status")
+async def calendar_status():
+    """Check if calendar is connected and get upcoming events."""
+    global _calendar
+    if _calendar is None:
+        _calendar = CalendarClient()
+
+    connected = await _calendar.load_token()
+    if not connected:
+        return {"connected": False, "events": [], "auth_url": _calendar.get_auth_url()}
+
+    events = await _calendar.get_upcoming_events(max_results=10)
+    return {"connected": True, "events": events, "auth_url": ""}
+
+
+@app.get("/api/calendar/oauth/callback")
+async def calendar_oauth_callback(code: str = ""):
+    """OAuth callback — exchange code for token."""
+    global _calendar
+    if _calendar is None:
+        _calendar = CalendarClient()
+
+    token = await _calendar.exchange_code(code)
+    if "access_token" in token:
+        return {"status": "ok", "message": "Calendar connected! You can close this tab."}
+    return {"status": "error", "message": token.get("error_description", "OAuth failed")}
+
+
 # --- Audio / WebSocket ---
 
 @app.websocket("/ws/audio")
