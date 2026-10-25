@@ -473,8 +473,8 @@ body {
             <span class="badge badge-amber">No context yet</span>
           </div>
           <div style="margin-top:auto;padding-top:10px;display:flex;gap:6px">
-            <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
-            <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="openPrepareContext()">Add context</span>
+            <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
+            <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()">Add context</span>
           </div>
         </div>
 
@@ -1090,6 +1090,8 @@ body {
       document.getElementById('conflict-count').style.display = 'none';
       document.getElementById('conflict-label').style.color = 'var(--text-muted)';
       document.getElementById('conflict-label').style.fontSize = '11px';
+      document.getElementById('conflict-card').style.gap = '8px';
+      document.getElementById('conflict-card').style.minHeight = '';
       return;
     }
 
@@ -1099,6 +1101,8 @@ body {
     document.getElementById('conflict-count').style.display = 'block';
     document.getElementById('conflict-label').style.color = '#7a2020';
     document.getElementById('conflict-label').style.fontSize = '13px';
+    document.getElementById('conflict-card').style.gap = '14px';
+    document.getElementById('conflict-card').style.minHeight = '370px';
 
     document.getElementById('conflict-counter').textContent = `Conflict ${currentConflictIndex + 1} of ${total}`;
 
