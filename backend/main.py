@@ -130,16 +130,19 @@ async def add_document(data: dict):
 
 @app.websocket("/ws/audio")
 async def audio_websocket(websocket: WebSocket):
-    """Receive audio chunks from Electron, return transcription."""
+    """Receive audio chunks from Electron, return transcription + notes."""
     await websocket.accept()
     logger.info("Audio WebSocket connected")
 
     from .stt import TranscriptionEngine
+    from .llm import LLMPipeline
     engine = TranscriptionEngine()
+    llm = LLMPipeline()
     import tempfile, os, json
 
     audio_buffer = bytearray()
     meeting_id = None
+    meeting_title = "Untitled Meeting"
 
     try:
         while True:
@@ -159,23 +162,58 @@ async def audio_websocket(websocket: WebSocket):
                         ctrl = json.loads(data)
                         if ctrl.get("type") == "start":
                             meeting_id = ctrl.get("meeting_id", "unknown")
-                            logger.info(f"Transcription started: {meeting_id}")
+                            meeting_title = ctrl.get("title", "Untitled Meeting")
+                            logger.info(f"Transcription started: {meeting_title} ({meeting_id})")
                             audio_buffer.clear()
                         elif ctrl.get("type") == "end":
-                            logger.info(f"Transcription ended: {meeting_id}")
-                            text = "[mock - Whisper w trakcie ladowania]"
+                            logger.info(f"Transcription ended: {meeting_title}")
+                            text = "[mock - Whisper laduje]"
                             if audio_buffer:
                                 tmp = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
                                 tmp.write(audio_buffer)
                                 tmp.close()
                                 text = await engine.transcribe(tmp.name)
                                 os.unlink(tmp.name)
+
+                            logger.info(f"Transcribed {len(text)} chars — generating notes...")
+
+                            # LLM: generate structured notes from transcription
+                            notes = await llm.summarize(text)
+
+                            # Save to database
+                            if db:
+                                await db.create_meeting(
+                                    meeting_id=meeting_id,
+                                    title=meeting_title,
+                                    start_time=ctrl.get("start_time"),
+                                    duration_min=ctrl.get("duration_min", 0),
+                                )
+                                note_id = await db.save_notes(
+                                    meeting_id=meeting_id,
+                                    summary=notes.get("summary", ""),
+                                    decisions=notes.get("decisions", []),
+                                    action_items=notes.get("action_items", []),
+                                    raw_transcript=text,
+                                )
+                                # Save action items as commitments
+                                for ai in notes.get("action_items", []):
+                                    await db.add_commitment(
+                                        meeting_id=meeting_id,
+                                        series_id=None,
+                                        person=ai.get("who", ""),
+                                        description=ai.get("what", ""),
+                                        due_date=ai.get("when", ""),
+                                    )
+
                             await websocket.send_json({
-                                "type": "transcription_final",
-                                "text": text,
+                                "type": "notes_ready",
                                 "meeting_id": meeting_id,
+                                "meeting_title": meeting_title,
+                                "summary": notes.get("summary", ""),
+                                "decisions": notes.get("decisions", []),
+                                "action_items": notes.get("action_items", []),
                             })
-                            logger.info(f"Transcription sent ({len(text)} chars)")
+                            logger.info(f"Notes for '{meeting_title}' ready")
                     except json.JSONDecodeError:
                         pass
                 elif isinstance(data, bytes):
