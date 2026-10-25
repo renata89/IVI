@@ -1566,7 +1566,7 @@ body {
             <td style="font-weight:500">${m.title}</td>
             <td>${date}</td>
             <td style="font-size:12px;color:var(--text-muted)">${summary}</td>
-            <td><span class="btn btn-ghost btn-sm" onclick="alert('Open notes viewer soon')">View</span></td>
+            <td><span class="btn btn-ghost btn-sm" onclick="showNoteDetail('${m.id}', '${m.title.replace(/'/g, "\\'")}')">View</span></td>
           </tr>`;
         }
         html += '</table></div>';
@@ -1591,6 +1591,67 @@ body {
       statusText.style.color = '#ef4444';
       document.getElementById('backend-status-sub').textContent = err.message;
     }
+  }
+
+  // ---------- Note detail viewer ----------
+  async function showNoteDetail(meetingId, meetingTitle) {
+    try {
+      const notesData = await window.ivi.fetchAPI(`/meetings/${meetingId}/notes`);
+      const notes = notesData.notes || [];
+      const note = notes.length > 0 ? notes[0] : null;
+
+      if (!note) {
+        alert('No notes for this meeting yet.');
+        return;
+      }
+
+      const decisions = typeof note.decisions === 'string' ? JSON.parse(note.decisions || '[]') : (note.decisions || []);
+      const actions = typeof note.action_items === 'string' ? JSON.parse(note.action_items || '[]') : (note.action_items || []);
+
+      let html = `<div style="padding:0">
+        <div style="border-bottom:1px solid var(--card-border);padding:16px 20px">
+          <div style="font-size:18px;font-weight:600">${meetingTitle}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Notatki ze spotkania</div>
+        </div>
+        <div style="padding:16px 20px">
+          <div style="font-weight:600;font-size:14px;margin-bottom:8px">Podsumowanie</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:20px">${note.summary || 'Brak podsumowania.'}</div>`;
+
+      if (decisions.length > 0) {
+        html += `<div style="font-weight:600;font-size:14px;margin-bottom:8px">Decyzje</div><ul style="margin-bottom:20px">`;
+        decisions.forEach(d => {
+          html += `<li style="font-size:13px;margin-bottom:4px"><strong>${d.by_whom || '?'}:</strong> ${d.what || d}</li>`;
+        });
+        html += `</ul>`;
+      }
+
+      if (actions.length > 0) {
+        html += `<div style="font-weight:600;font-size:14px;margin-bottom:8px">Action Items</div>
+        <table class="table" style="margin-bottom:20px"><tr><th>Kto</th><th>Co</th><th>Na kiedy</th></tr>`;
+        actions.forEach(a => {
+          html += `<tr><td>${a.who || '—'}</td><td>${a.what || ''}</td><td>${a.when || '—'}</td></tr>`;
+        });
+        html += `</table>`;
+      }
+
+      html += `<div style="display:flex;gap:8px;margin-top:12px">
+        <span class="btn btn-primary btn-sm" onclick="closeNoteDetail()">Close</span>
+      </div></div></div>`;
+
+      const detailDiv = document.createElement('div');
+      detailDiv.id = 'note-detail-overlay';
+      detailDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)';
+      detailDiv.innerHTML = `<div style="background:#fff;border-radius:20px;width:600px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)">${html}</div>`;
+      detailDiv.addEventListener('click', (e) => { if (e.target === detailDiv) closeNoteDetail(); });
+      document.body.appendChild(detailDiv);
+    } catch (err) {
+      alert('Error loading notes: ' + err.message);
+    }
+  }
+
+  function closeNoteDetail() {
+    const el = document.getElementById('note-detail-overlay');
+    if (el) el.remove();
   }
 
   // Load notes when Notes page is active
