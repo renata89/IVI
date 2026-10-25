@@ -172,7 +172,7 @@
     <div class="phase-header">
       <div class="phase-num p0">0</div>
       <div class="phase-title">Setup & Foundation</div>
-      <span class="phase-status active">IN PROGRESS</span>
+      <span class="phase-status done">DONE</span>
       <span class="phase-days">~1 dzień</span>
     </div>
     <div class="task">
@@ -197,38 +197,45 @@
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox in-progress"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Push do GitHub (repo IVI)</div>
-        <div class="task-desc">git add + commit + push na main</div>
+        <div class="task-desc">Wszystkie zmiany commitowane i pushnięte na main</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Fix: "IVI records" → "IVI notes"</div>
-        <div class="task-desc">Zmiana w renderer/index.html (linia 433)</div>
+        <div class="task-desc">Zmiana w renderer/index.html (3 miejsca: sidebar, conflict note, komentarz JS)</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Backend: FastAPI scaffold</div>
-        <div class="task-desc">backend/ — struktura katalogów, main.py, requirements.txt</div>
+        <div class="task-desc">backend/ — main.py, db.py, stt.py, llm.py, requirements.txt</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
-      <div class="task-content">
-        <div class="task-title">Electron → Python child process</div>
-        <div class="task-desc">main.js uruchamia backend jako subprocess przy starcie</div>
-      </div>
-    </div>
-    <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Instalacja zależności Python</div>
-        <div class="task-desc">Whisper, FastAPI, uvicorn, websockets, edge-tts</div>
+        <div class="task-desc">FastAPI, uvicorn, websockets, pydantic — zainstalowane w venv. Backend działa i odpowiada na health check.</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox done"></div>
+      <div class="task-content">
+        <div class="task-title">Business Logic PDF</div>
+        <div class="task-desc">IVI-Business-Logic.pdf — 7 sekcji, tabele, macierz decyzji, RODO</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox in-progress"></div>
+      <div class="task-content">
+        <div class="task-title">Electron → Python child process</div>
+        <div class="task-desc">main.js: uruchamianie backendu jako subprocess przy starcie IVI</div>
       </div>
     </div>
   </div>
@@ -465,9 +472,14 @@
     <div class="file-item">📄 <code>renderer/index.html</code> — Pełne UI (dashboard, sidebar, kalendarz)</div>
     <div class="file-item">📄 <code>package.json</code> — Elektron 44.x, start/dev scripts</div>
     <div class="file-item">📄 <code>assets/</code> — Ikony, loga, tray icons</div>
-    <div class="file-item">✨ <code>IVI-ROADMAP.html</code> — Ten plik (checklista)</div>
-    <div class="file-item">✨ <code>business-logic.excalidraw</code> — Diagram przepływu</div>
-    <div class="file-item">⬜ <code>backend/</code> — Backend Python (do stworzenia)</div>
+    <div class="file-item">📄 <code>backend/main.py</code> — 🆕 FastAPI app + WebSocket + REST</div>
+    <div class="file-item">📄 <code>backend/db.py</code> — 🆕 SQLite (meetings, notes, series, commitments)</div>
+    <div class="file-item">📄 <code>backend/stt.py</code> — 🆕 Whisper STT wrapper</div>
+    <div class="file-item">📄 <code>backend/llm.py</code> — 🆕 LLM pipeline (summary, suggestions)</div>
+    <div class="file-item">📄 <code>IVI-ROADMAP.html</code> — Checklista postępu</div>
+    <div class="file-item">📄 <code>IVI-Business-Logic.pdf</code> — Dokument biznesowy</div>
+    <div class="file-item">📄 <code>IVI-business-logic.html</code> — Źródło PDF</div>
+    <div class="file-item">📄 <code>business-logic.excalidraw</code> — Diagram przepływu</div>
   </div>
 
   <div class="repo-info">
