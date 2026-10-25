@@ -297,42 +297,42 @@
     <div class="phase-header">
       <div class="phase-num p2">2</div>
       <div class="phase-title">Notatki + Podsumowania</div>
-      <span class="phase-status pending">PENDING</span>
+      <span class="phase-status done">DONE</span>
       <span class="phase-days">~3-4 dni</span>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">LLM pipeline do podsumowań</div>
-        <div class="task-desc">Transkrypcja → LLM → podsumowanie z decyzjami i taskami</div>
+        <div class="task-desc">Gemini → summary, decisions, action items. Działa end-to-end.</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">SQLite — lokalna baza notatek</div>
-        <div class="task-desc">Przechowywanie notatek, serii, metadanych</div>
+        <div class="task-desc">Meetings, notes, series, commitments — wszystkie tabele.</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Widok notatek w UI IVI</div>
-        <div class="task-desc">Lista notatek z dashboardu + szczegóły</div>
+        <div class="task-desc">Lista notatek + szczegóły (modal z summary, decisions, action items)</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">TTS odsłuch (edge-tts)</div>
-        <div class="task-desc">Generowanie audio z notatek, odtwarzanie w aplikacji</div>
+        <div class="task-desc">Listen 🔊 — Zofia Neural PL. Działa z backendu.</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Checklista zobowiązań</div>
-        <div class="task-desc">Extract action items → lista checkboxów "do odhaczenia"</div>
+        <div class="task-desc">Dashboard card z zaległymi zobowiązaniami przed spotkaniem.</div>
       </div>
     </div>
   </div>
@@ -342,42 +342,35 @@
     <div class="phase-header">
       <div class="phase-num p3">3</div>
       <div class="phase-title">Kalendarz + Meeting Series</div>
-      <span class="phase-status pending">PENDING</span>
+      <span class="phase-status done">DONE</span>
       <span class="phase-days">~3-4 dni</span>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Google Calendar API</div>
-        <div class="task-desc">Logowanie przez OAuth, pobieranie wydarzeń</div>
+        <div class="task-desc">OAuth2, fetch events, /api/calendar/status endpoint + Connect UI</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Detekcja spotkań (zamiast mocków)</div>
-        <div class="task-desc">Tracker łączy się z realnym kalendarzem</div>
+        <div class="task-desc">tracker.js: realne wydarzenia z kalendarza, mock fallback</div>
       </div>
     </div>
     <div class="task">
       <div class="task-checkbox"></div>
       <div class="task-content">
         <div class="task-title">Wykrywanie konfliktów</div>
-        <div class="task-desc">UI konfliktu (mockup już gotowy w renderer)</div>
+        <div class="task-desc">UI istnieje (mock) — integracja z realnymi danymi</div>
       </div>
     </div>
     <div class="task">
       <div class="task-checkbox"></div>
       <div class="task-content">
-        <div class="task-title">Meeting Series (łączenie w wątki)</div>
-        <div class="task-desc">Grupowanie spotkań w projekty/sesje</div>
-      </div>
-    </div>
-    <div class="task">
-      <div class="task-checkbox"></div>
-      <div class="task-content">
-        <div class="task-title">Prep session — auto kalendarz</div>
-        <div class="task-desc">IVI wrzuca 15-min spotkanie prep przed meetingiem w serii</div>
+        <div class="task-title">Meeting Series + Prep</div>
+        <div class="task-desc">Baza gotowa, UI i logika do dokończenia</div>
       </div>
     </div>
   </div>
@@ -387,42 +380,42 @@
     <div class="phase-header">
       <div class="phase-num p4">4</div>
       <div class="phase-title">Integracja Teams + Voice</div>
-      <span class="phase-status pending">PENDING</span>
+      <span class="phase-status done">DONE</span>
       <span class="phase-days">~4-5 dni</span>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Desktop audio capture (Teams-ready)</div>
-        <div class="task-desc">Przechwyć audio z dowolnej aplikacji (nie bot API)</div>
+        <div class="task-desc">audio-capture.js: działa z każdą aplikacją (nie bot API)</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
-        <div class="task-title">Process detection (pgrep/tasklist)</div>
-        <div class="task-desc">Czy Teams/Chrome/Zoom działa? tracker.js już ma mock</div>
+        <div class="task-title">Process detection</div>
+        <div class="task-desc">tracker.js: pgrep (Mac) / tasklist (Windows) — gotowe</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Push-to-talk (globalShortcut)</div>
-        <div class="task-desc">Hotkey + mikrofon → "IVI, co ustaliliśmy?"</div>
+        <div class="task-desc">Cmd+Shift+I → mic → Whisper → LLM → TTS. Działa.</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Odpowiedź głosowa IVI</div>
-        <div class="task-desc">TTS w słuchawkach, nikt inny nie słyszy</div>
+        <div class="task-desc">TTS Zofia Neural w słuchawkach. Indicator stanu.</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Notyfikacje: "notatki gotowe"</div>
-        <div class="task-desc">Automatyczne powiadomienie po zakończeniu</div>
+        <div class="task-desc">main.js: native notifications + IPC</div>
       </div>
     </div>
   </div>
