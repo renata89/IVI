@@ -1,11 +1,11 @@
 version: 0.1.0
 files:
   - url: IVI-0.1.0-mac.zip
-    sha512: dvsd3Ilbh0uyGrUQIwQ0aKfldTf1F7/7NzOuRXleMypHLeOkMBkykJkwa6FsNWXCwZsczqwfLorEYMvzXSMn8g==
-    size: 290239951
+    sha512: xgw4c4xPYGtSAvVFMM42PS0rDyf3EPzjH/tvqMv1l19sV1F9qAYSYJnRfnjoMW6rJxu91srGQQGenZv5lh5nxA==
+    size: 290239965
   - url: IVI-0.1.0-mac.dmg
-    sha512: yYLa+RI48Bf0u8hu8fP+u7FgJdJVg33ik2O8//CsLCAwVX/YF4Z/uJkDkGaPBFwdvY+Ux32WPGDwEVaTOQtYTw==
-    size: 288393740
+    sha512: wY+uWVaDb0F5bpp2pa2feCjurIQsMNWGZcUbANlWBC/AK/4SPv60F/dTS6+kqXdNnEWwQXaaXW8+9N0SjA16Rw==
+    size: 288397830
 path: IVI-0.1.0-mac.zip
-sha512: dvsd3Ilbh0uyGrUQIwQ0aKfldTf1F7/7NzOuRXleMypHLeOkMBkykJkwa6FsNWXCwZsczqwfLorEYMvzXSMn8g==
-releaseDate: '2026-10-25T16:23:53.896Z'
+sha512: xgw4c4xPYGtSAvVFMM42PS0rDyf3EPzjH/tvqMv1l19sV1F9qAYSYJnRfnjoMW6rJxu91srGQQGenZv5lh5nxA==
+releaseDate: '2026-10-25T16:39:41.362Z'

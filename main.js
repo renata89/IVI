@@ -172,6 +172,7 @@ ipcMain.on('minimize-to-tray', () => {
 app.whenReady().then(() => {
   // Set app name for dock/taskbar
   app.name = 'IVI';
+  app.setAppUserModelId('com.testigo.ivi');
   // Set dock icon on macOS
   if (process.platform === 'darwin') {
     const dockIcon = nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png'));
