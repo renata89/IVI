@@ -468,9 +468,21 @@ body {
           <div class="card-label">Next Meeting</div>
           <div class="card-value" style="font-size:16px">Product Sprint Review</div>
           <div class="card-sub">Today 14:00 · 45 min · 6 participants</div>
-          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-            <span class="badge badge-blue">3 docs loaded</span>
-            <span class="badge badge-amber">No context yet</span>
+          <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
+            <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
+              <span style="font-size:10px;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:4px">
+                <span style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Spec_API_v2.pdf</span>
+                <span style="cursor:default;opacity:0.6;font-size:12px;line-height:1" onclick="removeDoc('Spec_API_v2.pdf')" title="Remove">×</span>
+              </span>
+              <span style="font-size:10px;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:4px">
+                <span style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Q4_goals.pptx</span>
+                <span style="cursor:default;opacity:0.6;font-size:12px;line-height:1" onclick="removeDoc('Q4_goals.pptx')" title="Remove">×</span>
+              </span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:4px">
+            <span>📄 AI summary ready</span>
+            <span style="font-size:9px;color:var(--emerald);cursor:default" onclick="openSummaryPdf()">View</span>
           </div>
           <div style="margin-top:auto;padding-top:10px;display:flex;gap:6px">
             <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
@@ -1380,6 +1392,32 @@ body {
       </div>
     `;
     lucide.createIcons();
+  }
+
+  // ---------- Document management ----------
+  function removeDoc(name) {
+    // In a real app this would remove the doc from the meeting
+    // For now, visual feedback: hide the doc tag
+    const docTags = document.querySelectorAll('.card-value[style*="font-size:16px"]');
+    docTags.forEach(tag => {
+      if (tag.textContent === 'Product Sprint Review') {
+        const parent = tag.closest('.card');
+        const docs = parent.querySelectorAll('[onclick*="removeDoc"]');
+        docs.forEach(d => {
+          const clicked = d.closest('span[style*="background:#e0e7ff"]');
+          if (clicked && clicked.textContent.includes(name)) {
+            clicked.style.display = 'none';
+          }
+        });
+      }
+    });
+  }
+
+  function openSummaryPdf() {
+    // Mock: show a modal or alert with the summary
+    alert('AI-generated summary of loaded documents:\n\n' +
+      '— Spec_API_v2.pdf: API v2 migration requirements, endpoints, and testing plan\n' +
+      '— Q4_goals.pptx: Q4 business goals, KPIs, and team resource allocation');
   }
 
   // ---------- IVI records all toggle ----------
