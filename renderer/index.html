@@ -509,11 +509,12 @@ body {
             </div>
             <div style="font-size:10px;color:var(--emerald);cursor:default;margin-top:6px;font-weight:500" onclick="openSummaryPdf()">Download full summary (PDF) →</div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="checkbox" id="ai-assistant-chk" onchange="toggleAiAssistant()" style="accent-color:var(--emerald);width:14px;height:14px;cursor:default">
-            <label for="ai-assistant-chk" style="font-size:10px;color:var(--text-muted);cursor:default">AI assistant — get live suggestions during the meeting</label>
-          </div>
-          <div style="margin-top:auto;padding-top:4px;display:flex;gap:6px">
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px;padding-top:4px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="ai-assistant-chk" onchange="toggleAiAssistant()" style="accent-color:var(--emerald);width:14px;height:14px;cursor:default">
+              <label for="ai-assistant-chk" style="font-size:10px;color:var(--text-muted);cursor:default">AI assistant — get live suggestions during the meeting</label>
+            </div>
+            <div style="display:flex;gap:6px">
             <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="joinWithAI()" id="join-btn">Join</span>
             <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()" id="add-context-btn">Add context</span>
           </div>
