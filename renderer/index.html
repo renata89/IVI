@@ -1361,6 +1361,12 @@ body {
     document.getElementById('meeting-modal').classList.add('active');
     document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'none');
     document.getElementById('modal-detail').style.display = 'block';
+    // Back closes the modal entirely (not returning to options list)
+    document.getElementById('modal-back').onclick = function() {
+      document.getElementById('meeting-modal').classList.remove('active');
+      document.getElementById('modal-back').style.display = 'none';
+      document.getElementById('modal-back').onclick = hideAction;
+    };
     document.getElementById('modal-back').style.display = 'flex';
     document.querySelector('.modal-detail').innerHTML = `
       <div style="padding:8px 0">
