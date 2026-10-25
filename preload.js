@@ -13,6 +13,15 @@ contextBridge.exposeInMainWorld('ivi', {
   // Desktop capturer for system audio
   desktopCapturer: desktopCapturer,
 
+  // Backend API helpers
+  fetchAPI: (path, options) => {
+    const BASE = 'http://127.0.0.1:8765';
+    return fetch(`${BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    }).then(r => r.json());
+  },
+
   // Minimize to tray
   minimizeToTray: () => ipcRenderer.send('minimize-to-tray'),
 

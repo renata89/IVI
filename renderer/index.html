@@ -422,6 +422,9 @@ body {
       <a class="nav-item" data-page="library">
         <span class="nav-icon"><i data-lucide="file-text"></i></span> Library
       </a>
+      <a class="nav-item" data-page="notes">
+        <span class="nav-icon"><i data-lucide="sticky-note"></i></span> Notes
+      </a>
       <a class="nav-item" data-page="settings">
         <span class="nav-icon"><i data-lucide="settings"></i></span> Settings
       </a>
@@ -737,6 +740,21 @@ body {
           <tr><td style="font-weight:500">Q4_goals.pptx</td><td>Link</td><td>–</td><td><span class="badge badge-amber" style="font-size:10px"> Processing</span></td><td style="font-size:12px;color:var(--text-muted)">Product Sprint Review</td></tr>
           <tr><td style="font-weight:500">Test_plan_v3.docx</td><td>DOCX</td><td>12</td><td><span class="badge" style="font-size:10px"> Processed</span></td><td style="font-size:12px;color:var(--text-muted)">Sprint Planning</td></tr>
         </table>
+      </div>
+    </div>
+
+    <!-- PAGE: NOTES -->
+    <div class="page" id="page-notes">
+      <div style="display:flex;gap:16px;margin-bottom:16px;align-items:stretch">
+        <div class="card" style="flex:1"><div class="card-label">Total Notes</div><div class="card-value" id="notes-count">0</div><div class="card-sub">From all meetings</div></div>
+        <div class="card" style="flex:1"><div class="card-label">Backend</div><div class="card-value" id="backend-status-text" style="font-size:14px;color:#64748b">Checking...</div><div class="card-sub" id="backend-status-sub">⏳</div></div>
+        <div class="card" style="flex:1"><div class="card-label">Last Note</div><div class="card-value" id="last-note-date" style="font-size:14px">—</div><div class="card-sub" id="last-note-title">No notes yet</div></div>
+      </div>
+      <div id="notes-list">
+        <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px" id="notes-empty">
+          No meeting notes yet.<br>
+          <span style="font-size:12px">Start a capture or join a meeting — IVI will generate notes automatically.</span>
+        </div>
       </div>
     </div>
 
@@ -1507,6 +1525,87 @@ body {
       if (cells.length >= 2) {
         openMeetingModal(cells[1]?.textContent || 'Meeting', cells[0]?.textContent || '');
       }
+    });
+  });
+
+  // ---------- Notes page ----------
+  let notesRefreshInterval = null;
+
+  async function loadNotes() {
+    try {
+      const backendStatus = await window.ivi.getBackendStatus();
+      const statusText = document.getElementById('backend-status-text');
+      const statusSub = document.getElementById('backend-status-sub');
+      if (backendStatus && backendStatus.running) {
+        statusText.textContent = 'Online ✅';
+        statusText.style.color = '#16a34a';
+        statusSub.textContent = 'Port ' + backendStatus.port;
+
+        // Fetch meetings from backend
+        const data = await window.ivi.fetchAPI('/meetings?limit=20');
+        const meetings = data.meetings || [];
+        document.getElementById('notes-count').textContent = meetings.length;
+
+        const container = document.getElementById('notes-list');
+        const empty = document.getElementById('notes-empty');
+
+        if (meetings.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+        empty.style.display = 'none';
+
+        // Build notes list
+        let html = '<div class="card" style="padding:0;overflow:hidden"><table class="table"><tr><th>Meeting</th><th>Date</th><th>Summary</th><th>Actions</th></tr>';
+        for (const m of meetings) {
+          const notesData = await window.ivi.fetchAPI(`/meetings/${m.id}/notes`);
+          const notes = notesData.notes || [];
+          const summary = notes.length > 0 ? notes[0].summary?.slice(0, 100) + '…' : '—';
+          const date = m.start_time ? new Date(m.start_time).toLocaleDateString('pl-PL') : '—';
+          html += `<tr>
+            <td style="font-weight:500">${m.title}</td>
+            <td>${date}</td>
+            <td style="font-size:12px;color:var(--text-muted)">${summary}</td>
+            <td><span class="btn btn-ghost btn-sm" onclick="alert('Open notes viewer soon')">View</span></td>
+          </tr>`;
+        }
+        html += '</table></div>';
+        container.innerHTML = html;
+
+        // Update last note
+        if (meetings.length > 0) {
+          const last = meetings[0];
+          document.getElementById('last-note-title').textContent = last.title;
+          document.getElementById('last-note-date').textContent = last.start_time
+            ? new Date(last.start_time).toLocaleDateString('pl-PL')
+            : 'Today';
+        }
+      } else {
+        statusText.textContent = 'Offline ⚠️';
+        statusText.style.color = '#ef4444';
+        statusSub.textContent = 'Backend not running';
+      }
+    } catch (err) {
+      const statusText = document.getElementById('backend-status-text');
+      statusText.textContent = 'Offline ⚠️';
+      statusText.style.color = '#ef4444';
+      document.getElementById('backend-status-sub').textContent = err.message;
+    }
+  }
+
+  // Load notes when Notes page is active
+  document.querySelectorAll('.nav-item[data-page="notes"]').forEach(el => {
+    el.addEventListener('click', () => {
+      loadNotes();
+      if (notesRefreshInterval) clearInterval(notesRefreshInterval);
+      notesRefreshInterval = setInterval(loadNotes, 10000);
+    });
+  });
+
+  // Also check backend status on dashboard load
+  document.querySelectorAll('.nav-item[data-page="dashboard"]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (notesRefreshInterval) clearInterval(notesRefreshInterval);
     });
   });
 </script>
