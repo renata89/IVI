@@ -427,10 +427,10 @@ body {
       </a>
     </nav>
     <div class="sidebar-footer">
-      <!-- IVI records all toggle -->
+      <!-- IVI notes all toggle -->
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--card-border)">
         <input type="checkbox" id="ivi-all-sidebar" onchange="toggleIVIAll(this)" style="accent-color:var(--emerald);width:14px;height:14px">
-        <label for="ivi-all-sidebar" style="cursor:default;font-size:11px;flex:1;color:var(--text-muted)">IVI records <strong style="color:var(--text)">all</strong> my meetings</label>
+        <label for="ivi-all-sidebar" style="cursor:default;font-size:11px;flex:1;color:var(--text-muted)">IVI notes <strong style="color:var(--text)">all</strong> my meetings</label>
       </div>
       <div class="plan">Active plan</div>
       <div class="plan-name">Pro · 14h / 30h used</div>
@@ -1108,7 +1108,7 @@ body {
             User Only
           </button>
         </div>
-        <div id="note-${meetingId}" style="font-size:11px;color:${borderColor};font-weight:500;visibility:${isLeft ? 'visible' : 'hidden'}">ℹ️ IVI will record & summarize</div>
+        <div id="note-${meetingId}" style="font-size:11px;color:${borderColor};font-weight:500;visibility:${isLeft ? 'visible' : 'hidden'}">ℹ️ IVI will take notes & summarize</div>
       </div>`;
     }
 
@@ -1486,7 +1486,7 @@ body {
     alert('AI-generated summary of loaded documents:\n\n' + parts);
   }
 
-  // ---------- IVI records all toggle ----------
+  // ---------- IVI notes all toggle ----------
   function toggleIVIAll(checkbox) {
     const warning = document.getElementById('plan-warning-sidebar');
     warning.style.display = checkbox.checked ? 'block' : 'none';
