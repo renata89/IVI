@@ -18,11 +18,11 @@ function createAppIcon() {
 
 function createTray() {
   tray = new Tray(createTrayIcon());
-  tray.setToolTip('Veles');
+  tray.setToolTip('IVI');
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Open Veles',
+      label: 'Open IVI',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -36,7 +36,7 @@ function createTray() {
       enabled: false
     },
     {
-      label: 'Quit Veles',
+      label: 'Quit IVI',
       click: () => {
         isQuitting = true;
         app.quit();
@@ -60,7 +60,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'Veles',
+    title: 'IVI',
     icon: createAppIcon(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -117,6 +117,8 @@ ipcMain.on('minimize-to-tray', () => {
 
 // --------------- App Lifecycle ---------------
 app.whenReady().then(() => {
+  // Set app name for dock/taskbar
+  app.name = 'IVI';
   // Set dock icon on macOS
   if (process.platform === 'darwin') {
     const dockIcon = nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png'));

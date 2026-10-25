@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('weles', {
+contextBridge.exposeInMainWorld('ivi', {
   // Get upcoming meetings from tracker
   getUpcomingMeetings: () => ipcRenderer.invoke('get-upcoming-meetings'),
 

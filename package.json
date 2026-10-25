@@ -1,7 +1,7 @@
 {
-  "name": "weles",
+  "name": "ivi",
   "version": "0.1.0",
-  "description": "Veles — słowiański bóg wiedzy. Asystent spotkań który zna kontekst.",
+  "description": "IVI — meeting assistant. Context-aware notes, conflict detection, AI insights.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
