@@ -477,18 +477,18 @@ body {
           </div>
         </div>
 
-        <div class="card conflict-active" id="conflict-card" style="display:flex;flex-direction:column;gap:14px;padding:20px">
+        <div class="card" id="conflict-card" style="display:flex;flex-direction:column;gap:14px;padding:20px">
 
           <!-- Header -->
           <div>
-            <div class="card-label" id="conflict-label" style="color:#7a2020;font-size:13px">Calendar Alert</div>
+            <div class="card-label" id="conflict-label" style="color:var(--text-muted)">Calendar Alert</div>
             <div class="card-value" id="conflict-count" style="font-size:22px;color:#7a2020">2 meetings overlap</div>
           </div>
 
           <!-- All solved state -->
-          <div id="conflict-none" style="display:none">
+          <div id="conflict-none" style="display:none;flex-direction:column;flex:1">
             <div style="font-size:13px;color:var(--emerald);font-weight:600">✅ All solved</div>
-            <div style="margin-top:6px">
+            <div style="margin-top:auto;padding-top:10px">
               <span class="btn btn-ghost btn-sm" onclick="openConflictManager('review')">Review decisions</span>
             </div>
           </div>
@@ -1069,13 +1069,20 @@ body {
   function renderConflictCard() {
     if (currentConflictIndex >= activeConflicts.length) {
       document.getElementById('conflict-active-content').style.display = 'none';
-      document.getElementById('conflict-none').style.display = 'block';
+      document.getElementById('conflict-none').style.display = 'flex';
       document.getElementById('conflict-card').classList.remove('conflict-active');
+      document.getElementById('conflict-count').style.display = 'none';
+      document.getElementById('conflict-label').style.color = 'var(--text-muted)';
+      document.getElementById('conflict-label').style.fontSize = '11px';
       return;
     }
 
     const conflict = activeConflicts[currentConflictIndex];
     const total = activeConflicts.length;
+
+    document.getElementById('conflict-count').style.display = 'block';
+    document.getElementById('conflict-label').style.color = '#7a2020';
+    document.getElementById('conflict-label').style.fontSize = '13px';
 
     document.getElementById('conflict-counter').textContent = `Conflict ${currentConflictIndex + 1} of ${total}`;
 
