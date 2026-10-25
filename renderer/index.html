@@ -868,24 +868,51 @@ body {
 
 <!-- Reschedule Modal -->
 <div class="modal-overlay" id="reschedule-modal">
-  <div class="modal" style="width:400px">
+  <div class="modal" style="width:440px">
     <div class="modal-header">
       <div style="flex:1;min-width:0">
         <div class="modal-title" id="reschedule-modal-title">Reschedule: Client Sync</div>
+        <div class="modal-meta" id="reschedule-modal-meta" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
       </div>
       <span class="modal-close" onclick="document.getElementById('reschedule-modal').classList.remove('active')"><i data-lucide="x" style="width:18px;height:18px"></i></span>
     </div>
-    <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px">
+    <div style="padding:0 24px 24px;display:flex;flex-direction:column;gap:16px">
+
+      <!-- Suggested slots -->
       <div>
-        <div style="font-size:13px;font-weight:500;color:#374151;margin-bottom:6px">New time</div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
-          <input type="time" id="reschedule-time-start" value="10:00"
-            style="padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
-          <span style="color:var(--text-muted);font-size:13px">to</span>
-          <input type="time" id="reschedule-time-end" value="11:30"
-            style="padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
-        </div>
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px">✨ Best time for all participants</div>
+        <div style="display:flex;flex-direction:column;gap:6px" id="suggested-slots"></div>
       </div>
+
+      <div style="border-top:1px solid var(--card-border)"></div>
+
+      <!-- Manual date & time picker -->
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px">Manual pick</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Date</div>
+            <input type="date" id="reschedule-date"
+              style="width:100%;padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:end">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">From</div>
+              <input type="time" id="reschedule-time-start"
+                style="width:100%;padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
+            </div>
+            <span style="color:var(--text-muted);font-size:11px;padding-bottom:8px">to</span>
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">To</div>
+              <input type="time" id="reschedule-time-end"
+                style="width:100%;padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;font-size:13px;font-family:inherit">
+            </div>
+          </div>
+        </div>
+        <!-- Quick date pills -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="quick-date-pills"></div>
+      </div>
+
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <span class="btn btn-ghost btn-sm" onclick="document.getElementById('reschedule-modal').classList.remove('active')">Cancel</span>
         <span class="btn btn-primary btn-sm" onclick="applyReschedule()">Save changes</span>
@@ -1080,27 +1107,89 @@ body {
     if (conflict.right.createdByMe) userMeetings.push({ side: 'right', ...conflict.right });
     if (userMeetings.length === 0) return;
 
-    const m = userMeetings[0]; // Open editor for first user-created meeting
+    const m = userMeetings[0];
     const [startStr, endStr] = m.time.split(' - ');
+    const meetingDate = m.date || '2026-10-26';
 
     document.getElementById('reschedule-modal-title').textContent = 'Reschedule: ' + m.title;
+    document.getElementById('reschedule-modal-meta').textContent = m.participants + ' participants · ' + m.platform;
+    document.getElementById('reschedule-date').value = meetingDate;
     document.getElementById('reschedule-time-start').value = startStr || '09:00';
     document.getElementById('reschedule-time-end').value = endStr || '10:00';
+
+    // Generate suggested slots based on participant availability
+    const suggestions = generateSuggestions(meetingDate, startStr, m);
+    const container = document.getElementById('suggested-slots');
+    container.innerHTML = suggestions.map((s, i) =>
+      `<div class="suggested-slot" onclick="pickSuggestedSlot(${i})"
+            style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;cursor:default;transition:all 0.15s;
+                   ${i === 0 ? 'background:var(--emerald-light);border:1px solid var(--emerald)' : 'background:#f9fafb;border:1px solid var(--card-border)'}">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:600;color:${i === 0 ? 'var(--emerald)' : '#374151'}">${s.date}</span>
+          <span style="color:var(--text-muted);font-size:11px">${s.time}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="font-size:10px;color:${i === 0 ? 'var(--emerald)' : 'var(--text-muted)'}">${s.available} available</span>
+          ${i === 0 ? '<span style="font-size:10px;background:var(--emerald);color:#fff;padding:1px 6px;border-radius:4px;font-weight:600">BEST</span>' : ''}
+        </div>
+      </div>`
+    ).join('');
+
+    // Quick date pills
+    const pillContainer = document.getElementById('quick-date-pills');
+    const dates = ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    pillContainer.innerHTML = dates.map((d, i) => {
+      const dt = new Date(d);
+      const dayName = dayNames[dt.getDay()];
+      const display = d === meetingDate ? 'Today' : dayName + ' ' + (dt.getMonth()+1) + '/' + dt.getDate();
+      const active = d === meetingDate;
+      return `<span class="btn ${active ? 'btn-primary' : 'btn-ghost'} btn-sm" style="font-size:10px;padding:3px 8px" onclick="document.getElementById('reschedule-date').value='${d}'">${display}</span>`;
+    }).join('');
+
     document.getElementById('reschedule-modal').classList.add('active');
     lucide.createIcons();
+  }
+
+  function generateSuggestions(baseDate, currentTime, meeting) {
+    const base = new Date(baseDate);
+    const slots = [
+      { date: 'Mon 10/26', time: '11:00 - 12:00', available: '3/3' },
+      { date: 'Mon 10/26', time: '14:00 - 15:00', available: '2/3' },
+      { date: 'Tue 10/27', time: '09:00 - 10:00', available: '3/3' },
+      { date: 'Tue 10/27', time: '13:00 - 14:00', available: '3/3' },
+      { date: 'Wed 10/28', time: '10:00 - 11:00', available: '2/3' },
+    ];
+    return slots;
+  }
+
+  function pickSuggestedSlot(index) {
+    const slots = generateSuggestions();
+    const slot = slots[index];
+    if (!slot) return;
+    document.getElementById('reschedule-date').value = '2026-10-' + (26 + ['Mon 10/26','Mon 10/26','Tue 10/27','Tue 10/27','Wed 10/28'].indexOf(slot.date));
+    const [st, en] = slot.time.split(' - ');
+    document.getElementById('reschedule-time-start').value = st;
+    document.getElementById('reschedule-time-end').value = en;
   }
 
   function applyReschedule() {
     const conflict = activeConflicts[currentConflictIndex];
     if (!conflict) return;
 
+    const newDate = document.getElementById('reschedule-date').value;
     const newStart = document.getElementById('reschedule-time-start').value;
     const newEnd = document.getElementById('reschedule-time-end').value;
     const newTime = newStart + ' - ' + newEnd;
 
-    // Update the first user-created meeting's time
-    if (conflict.left.createdByMe) conflict.left.time = newTime;
-    else if (conflict.right.createdByMe) conflict.right.time = newTime;
+    // Update the first user-created meeting's time and date
+    if (conflict.left.createdByMe) {
+      conflict.left.time = newTime;
+      conflict.left.date = newDate;
+    } else if (conflict.right.createdByMe) {
+      conflict.right.time = newTime;
+      conflict.right.date = newDate;
+    }
 
     document.getElementById('reschedule-modal').classList.remove('active');
     renderConflictCard();
