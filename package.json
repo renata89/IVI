@@ -5,11 +5,66 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "NODE_ENV=development electron ."
+    "dev": "NODE_ENV=development electron .",
+    "build": "electron-builder build --mac",
+    "build:win": "electron-builder build --win",
+    "build:all": "electron-builder build --mac --win",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.testigo.ivi",
+    "productName": "IVI",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "tracker.js",
+      "audio-capture.js",
+      "renderer/**/*",
+      "backend/**/*",
+      "assets/**/*",
+      "!venv/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "venv",
+        "to": "venv",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
+      "target": ["dmg", "zip"],
+      "artifactName": "IVI-${version}-mac.${ext}",
+      "entitlements": "build/entitlements.mac.plist",
+      "hardenedRuntime": true
+    },
+    "win": {
+      "icon": "assets/icon.png",
+      "target": ["nsis"],
+      "artifactName": "IVI-${version}-win-setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "dmg": {
+      "title": "IVI ${version}",
+      "icon": "assets/icon.png",
+      "background": null,
+      "contents": [
+        { "x": 130, "y": 220, "type": "file" },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
   },
   "author": "Renata Lesko-Gebczyk",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^44.9.0"
+    "electron": "^44.9.0",
+    "electron-builder": "^26.18.0"
   }
 }
