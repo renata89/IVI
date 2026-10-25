@@ -215,6 +215,99 @@ async def calendar_oauth_callback(code: str = ""):
     return {"status": "error", "message": token.get("error_description", "OAuth failed")}
 
 
+# --- Conflict Detection ---
+
+
+@app.get("/api/conflicts")
+async def detect_conflicts():
+    """Detect overlapping calendar events and return unresolved conflicts."""
+    global _calendar
+    if not db:
+        return {"conflicts": [], "resolved_count": 0}
+
+    if _calendar is None:
+        _calendar = CalendarClient()
+
+    # Get upcoming events
+    connected = await _calendar.load_token()
+    if not connected:
+        logger.info("Calendar not connected — no conflict detection")
+        return {"conflicts": [], "resolved_count": 0, "connected": False}
+
+    events = await _calendar.get_upcoming_events(max_results=20)
+
+    # Detect overlaps
+    conflicts = []
+    already_resolved = set()
+    for cr in await db.get_unresolved_conflicts():
+        already_resolved.add((cr["meeting_a_id"], cr["meeting_b_id"]))
+
+    for i in range(len(events)):
+        for j in range(i + 1, len(events)):
+            a, b = events[i], events[j]
+            # Skip all-day / date-only events (no time)
+            if not a.get("start") or not b.get("start"):
+                continue
+            # Check overlap
+            if a["end"] > b["start"] and a["start"] < b["end"]:
+                conflict_id = f"{a['id']}|{b['id']}"
+                a_id, b_id = sorted([a["id"], b["id"]])
+                is_resolved = (a_id, b_id) in already_resolved
+                if not is_resolved:
+                    # Store in DB if new
+                    await db.add_conflict(a["id"], b["id"])
+                    conflicts.append({
+                        "id": conflict_id,
+                        "left": {
+                            "id": a["id"],
+                            "title": a["title"],
+                            "start": a["start"],
+                            "end": a["end"],
+                            "platform": a.get("platform", "Unknown"),
+                            "participants": a.get("participants", 0),
+                            "type": "video" if a.get("platform") in ("Teams", "Zoom", "Google Meet") else "inperson",
+                        },
+                        "right": {
+                            "id": b["id"],
+                            "title": b["title"],
+                            "start": b["start"],
+                            "end": b["end"],
+                            "platform": b.get("platform", "Unknown"),
+                            "participants": b.get("participants", 0),
+                            "type": "video" if b.get("platform") in ("Teams", "Zoom", "Google Meet") else "inperson",
+                        },
+                    })
+
+    # Get resolved count
+    resolved = await db.get_resolved_conflicts()
+    return {
+        "conflicts": conflicts,
+        "resolved_count": len(resolved),
+        "connected": True,
+    }
+
+
+@app.post("/api/conflicts/resolve")
+async def resolve_conflict(data: dict):
+    """Mark a conflict as resolved."""
+    if not db:
+        return {"status": "error", "message": "Database not ready"}
+    meeting_a = data.get("meeting_a_id", "")
+    meeting_b = data.get("meeting_b_id", "")
+    resolution = data.get("resolution", "ignore")
+    await db.resolve_conflict(meeting_a, meeting_b, resolution)
+    return {"status": "ok"}
+
+
+@app.get("/api/conflicts/resolved")
+async def resolved_conflicts():
+    """Get history of resolved conflicts."""
+    if not db:
+        return {"resolved": []}
+    resolved = await db.get_resolved_conflicts()
+    return {"resolved": resolved}
+
+
 # --- Push-to-Talk ---
 
 _PTT_CONTEXT = ""

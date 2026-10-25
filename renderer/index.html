@@ -1089,7 +1089,11 @@ body {
 
   // ---------- Conflict card: data & dynamic rendering ----------
 
-  const conflictData = [
+  let activeConflicts = [];
+  let currentConflictIndex = 0;
+
+  // Mock fallback — used when calendar not connected
+  const MOCK_CONFLICTS = [
     {
       id: 'c1',
       left: { title: 'Client Sync', time: '10:00 - 11:30', type: 'video', platform: 'Teams', participants: 3, createdByMe: true },
@@ -1107,11 +1111,60 @@ body {
     }
   ];
 
-  let activeConflicts = conflictData.map(c => ({ ...c }));
-  let currentConflictIndex = 0;
+  async function loadConflicts() {
+    try {
+      const resp = await fetch('http://127.0.0.1:8765/api/conflicts');
+      const data = await resp.json();
+      if (data.conflicts && data.conflicts.length > 0) {
+        // Transform backend events into the format expected by the UI
+        activeConflicts = data.conflicts.map(c => ({
+          id: c.id.replace(/[|]/g, '_'),
+          _meetingA: c.left.id,
+          _meetingB: c.right.id,
+          left: {
+            title: c.left.title,
+            time: formatConflictTime(c.left.start, c.left.end),
+            type: c.left.type,
+            platform: c.left.platform,
+            participants: c.left.participants,
+            createdByMe: false
+          },
+          right: {
+            title: c.right.title,
+            time: formatConflictTime(c.right.start, c.right.end),
+            type: c.right.type,
+            platform: c.right.platform,
+            participants: c.right.participants,
+            createdByMe: false
+          }
+        }));
+        currentConflictIndex = 0;
+        renderConflictCard();
+        return;
+      }
+    } catch (e) {
+      console.log('Conflict API unavailable, using mock data');
+    }
+    // Fallback to mock
+    activeConflicts = MOCK_CONFLICTS.map(c => ({ ...c }));
+    currentConflictIndex = 0;
+    renderConflictCard();
+  }
 
-  // Initial render
-  renderConflictCard();
+  function formatConflictTime(start, end) {
+    if (!start || !end) return '00:00 - 00:00';
+    try {
+      const s = new Date(start);
+      const e = new Date(end);
+      const fmt = (d) => String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+      return fmt(s) + ' - ' + fmt(e);
+    } catch {
+      return '00:00 - 00:00';
+    }
+  }
+
+  // Initial render — load from backend or fallback to mock
+  loadConflicts();
 
   function buildMeetingColumn(meeting, meetingId, borderColor, isLeft, showSpacer) {
     const borderRight = isLeft ? 'border-right:1px solid #f3f4f6;' : '';
@@ -1199,6 +1252,16 @@ body {
   }
 
   function ignoreConflict() {
+    const conflict = activeConflicts[currentConflictIndex];
+    if (!conflict) return;
+    // Persist to backend if we have real meeting IDs
+    if (conflict._meetingA) {
+      fetch('http://127.0.0.1:8765/api/conflicts/resolve', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({meeting_a_id: conflict._meetingA, meeting_b_id: conflict._meetingB, resolution: 'ignore'})
+      }).catch(() => {});
+    }
     activeConflicts.splice(currentConflictIndex, 1);
     if (currentConflictIndex >= activeConflicts.length && activeConflicts.length > 0) {
       currentConflictIndex = 0;
@@ -1290,6 +1353,15 @@ body {
     const newEnd = document.getElementById('reschedule-time-end').value;
     const newTime = newStart + ' - ' + newEnd;
 
+    // Persist to backend if we have real meeting IDs
+    if (conflict._meetingA) {
+      fetch('http://127.0.0.1:8765/api/conflicts/resolve', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({meeting_a_id: conflict._meetingA, meeting_b_id: conflict._meetingB, resolution: 'reschedule'})
+      }).catch(() => {});
+    }
+
     // Update the first user-created meeting's time and date
     if (conflict.left.createdByMe) {
       conflict.left.time = newTime;
@@ -1307,6 +1379,16 @@ body {
   function coverBoth() {
     const currentConflict = activeConflicts[currentConflictIndex];
     if (!currentConflict) return;
+
+    // Persist to backend if we have real meeting IDs
+    if (currentConflict._meetingA) {
+      fetch('http://127.0.0.1:8765/api/conflicts/resolve', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({meeting_a_id: currentConflict._meetingA, meeting_b_id: currentConflict._meetingB, resolution: 'cover_both'})
+      }).catch(() => {});
+    }
+
     const meetings = [
       { id: 'm' + currentConflict.id, type: currentConflict.left.type },
       { id: 'm' + currentConflict.id + 'r', type: currentConflict.right.type }
@@ -1334,20 +1416,36 @@ body {
     document.getElementById('modal-back').style.display = 'flex';
 
     if (mode === 'review') {
-      document.querySelector('.modal-detail').innerHTML = `<div style="padding:8px 0">
-          <div style="padding:10px;border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px">
-            <div style="font-weight:500;font-size:13px">e-Krew technical sync</div>
-            <div style="font-size:11px;color:var(--text-muted);margin:2px 0 6px">Oct 21 · 14:00-15:00</div>
-            <label style="font-size:12px">Assigned to: <strong>You</strong></label>
-            <div style="margin-top:4px"><span class="btn btn-ghost btn-sm">Change</span></div>
-          </div>
-          <div style="padding:10px;border:1px solid var(--card-border);border-radius:8px">
-            <div style="font-weight:500;font-size:13px">Ideamotive screening</div>
-            <div style="font-size:11px;color:var(--text-muted);margin:2px 0 6px">Oct 21 · 14:30-15:30</div>
-            <label style="font-size:12px">Assigned to: <strong>IVI</strong></label>
-            <div style="margin-top:4px"><span class="btn btn-ghost btn-sm">Change</span></div>
-          </div>
-        </div>`;
+      // Load resolved conflicts from backend
+      fetch('http://127.0.0.1:8765/api/conflicts/resolved')
+        .then(r => r.json())
+        .then(data => {
+          const resolved = data.resolved || [];
+          if (resolved.length === 0) {
+            document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">No resolved conflicts yet.</div>`;
+          } else {
+            let html = `<div style="padding:8px 0">`;
+            resolved.forEach(c => {
+              const label = c.resolution === 'cover_both' ? 'IVI covers both' : c.resolution === 'reschedule' ? 'Rescheduled' : 'Ignored';
+              const badgeClass = c.resolution === 'cover_both' ? 'badge-done' : c.resolution === 'reschedule' ? 'badge-wip' : 'badge-todo';
+              html += `<div style="padding:10px;border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-weight:500;font-size:13px">Conflict resolved</div>
+                  <span class="badge-status ${badgeClass}">${label}</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Meetings: ${c.meeting_a_id.substring(0,12)}… vs ${c.meeting_b_id.substring(0,12)}…</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${c.created_at || ''}</div>
+              </div>`;
+            });
+            html += `</div>`;
+            document.querySelector('.modal-detail').innerHTML = html;
+          }
+          lucide.createIcons();
+        })
+        .catch(() => {
+          // Fallback to hardcoded review data
+          document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">Could not load resolved conflicts.</div>`;
+        });
     } else {
       // Conflict list data (simulated)
       const allConflicts = [

@@ -217,3 +217,44 @@ class Database:
             (commitment_id,),
         )
         self._conn.commit()
+
+    # --- Conflicts ---
+
+    async def add_conflict(self, meeting_a_id: str, meeting_b_id: str) -> int | None:
+        """Record a detected conflict between two meetings. Returns id if new, None if already exists."""
+        existing = self._conn.execute(
+            "SELECT id FROM conflicts WHERE meeting_a_id = ? AND meeting_b_id = ?",
+            (meeting_a_id, meeting_b_id),
+        ).fetchone()
+        if existing:
+            return existing[0]
+        # Normalize: always store with sorted IDs to avoid duplicates in reverse
+        a, b = sorted([meeting_a_id, meeting_b_id])
+        cur = self._conn.execute(
+            "INSERT INTO conflicts (meeting_a_id, meeting_b_id) VALUES (?, ?)",
+            (a, b),
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    async def get_unresolved_conflicts(self) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM conflicts WHERE resolved = 0 ORDER BY created_at DESC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    async def resolve_conflict(self, meeting_a_id: str, meeting_b_id: str, resolution: str):
+        """Mark a conflict as resolved."""
+        a, b = sorted([meeting_a_id, meeting_b_id])
+        self._conn.execute(
+            "UPDATE conflicts SET resolved = 1, resolution = ? WHERE meeting_a_id = ? AND meeting_b_id = ?",
+            (resolution, a, b),
+        )
+        self._conn.commit()
+
+    async def get_resolved_conflicts(self, limit: int = 20) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM conflicts WHERE resolved = 1 ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
