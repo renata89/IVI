@@ -1395,15 +1395,21 @@ body {
   }
 
   // ---------- Document management ----------
+  const loadedDocs = [
+    { name: 'Spec_API_v2.pdf', summary: 'API v2 migration requirements, endpoints, and testing plan' },
+    { name: 'Q4_goals.pptx', summary: 'Q4 business goals, KPIs, and team resource allocation' }
+  ];
+
   function removeDoc(name) {
-    // In a real app this would remove the doc from the meeting
-    // For now, visual feedback: hide the doc tag
-    const docTags = document.querySelectorAll('.card-value[style*="font-size:16px"]');
-    docTags.forEach(tag => {
+    // Remove from data
+    const idx = loadedDocs.findIndex(d => d.name === name);
+    if (idx !== -1) loadedDocs.splice(idx, 1);
+
+    // Remove from card
+    document.querySelectorAll('.card-value[style*="font-size:16px"]').forEach(tag => {
       if (tag.textContent === 'Product Sprint Review') {
         const parent = tag.closest('.card');
-        const docs = parent.querySelectorAll('[onclick*="removeDoc"]');
-        docs.forEach(d => {
+        parent.querySelectorAll('[onclick*="removeDoc"]').forEach(d => {
           const clicked = d.closest('span[style*="background:#e0e7ff"]');
           if (clicked && clicked.textContent.includes(name)) {
             clicked.style.display = 'none';
@@ -1411,13 +1417,34 @@ body {
         });
       }
     });
+
+    // Remove from modal "Already loaded" list
+    const modalLoaded = document.querySelector('#detail-docs .badge');
+    if (modalLoaded) {
+      const badges = document.querySelectorAll('#detail-docs .badge');
+      badges.forEach(b => {
+        if (b.textContent.includes(name)) {
+          b.remove();
+        }
+      });
+      // If no badges left, remove the "Already loaded" line entirely
+      if (document.querySelectorAll('#detail-docs .badge').length === 0) {
+        const label = document.querySelector('#detail-docs .badge')?.parentElement;
+        if (label) label.remove();
+      }
+    }
+
+    // Update summary display if needed
+    if (loadedDocs.length === 0) {
+      document.querySelector('.card-value[style*="font-size:16px"]')?.closest('.card')
+        ?.querySelector('[onclick*="openSummaryPdf"]')?.closest('div')?.remove();
+    }
   }
 
   function openSummaryPdf() {
-    // Mock: show a modal or alert with the summary
-    alert('AI-generated summary of loaded documents:\n\n' +
-      '— Spec_API_v2.pdf: API v2 migration requirements, endpoints, and testing plan\n' +
-      '— Q4_goals.pptx: Q4 business goals, KPIs, and team resource allocation');
+    if (loadedDocs.length === 0) return;
+    const parts = loadedDocs.map(d => `— ${d.name}: ${d.summary}`).join('\n');
+    alert('AI-generated summary of loaded documents:\n\n' + parts);
   }
 
   // ---------- IVI records all toggle ----------
