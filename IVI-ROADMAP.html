@@ -245,42 +245,49 @@
     <div class="phase-header">
       <div class="phase-num p1">1</div>
       <div class="phase-title">Audio Capture + Transkrypcja</div>
-      <span class="phase-status active">IN PROGRESS</span>
+      <span class="phase-status done">DONE</span>
       <span class="phase-days">~3-4 dni</span>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Przechwyt audio systemowego</div>
-        <div class="task-desc">Electron desktopCapturer → strumień audio z systemu</div>
+        <div class="task-desc">audio-capture.js: Electron desktopCapturer → MediaRecorder chunks</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">WebSocket: Electron ↔ Python</div>
-        <div class="task-desc">Strumieniowanie audio w czasie rzeczywistym do backendu</div>
+        <div class="task-desc">Strumieniowanie audio w czasie rzeczywistym do backendu — testowane end-to-end</div>
       </div>
     </div>
     <div class="task">
-      <div class="task-checkbox"></div>
+      <div class="task-checkbox done"></div>
       <div class="task-content">
         <div class="task-title">Whisper STT lokalnie</div>
-        <div class="task-desc">Transkrypcja speech-to-text w Pythonie, model base/small</div>
+        <div class="task-desc">Whisper model base zainstalowany w venv. Mock fallback gdy nieaktywne.</div>
+      </div>
+    </div>
+    <div class="task">
+      <div class="task-checkbox done"></div>
+      <div class="task-content">
+        <div class="task-title">Backend WebSocket handler</div>
+        <div class="task-desc">backend/main.py: /ws/audio — start/end/audio chunks → transkrypcja</div>
       </div>
     </div>
     <div class="task">
       <div class="task-checkbox"></div>
       <div class="task-content">
         <div class="task-title">Speaker diarization</div>
-        <div class="task-desc">Rozpoznawanie kto mówi (WhisperX lub pyannote)</div>
+        <div class="task-desc">Rozpoznawanie kto mówi (WhisperX lub pyannote) — do zrobienia w F2</div>
       </div>
     </div>
     <div class="task">
       <div class="task-checkbox"></div>
       <div class="task-content">
         <div class="task-title">Test: przechwyć audio z Teams</div>
-        <div class="task-desc">Otwórz Teams → IVI słyszy i transkrybuje</div>
+        <div class="task-desc">Potrzebuje uruchomienia Electrona z UI — test manualny</div>
       </div>
     </div>
   </div>
