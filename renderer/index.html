@@ -509,9 +509,13 @@ body {
             </div>
             <div style="font-size:10px;color:var(--emerald);cursor:default;margin-top:6px;font-weight:500" onclick="openSummaryPdf()">Download full summary (PDF) →</div>
           </div>
-          <div style="margin-top:auto;padding-top:10px;display:flex;gap:6px">
-            <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
-            <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()">Add context</span>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border)">
+            <input type="checkbox" id="ai-assistant-chk" onchange="toggleAiAssistant()" style="accent-color:var(--emerald);width:14px;height:14px;cursor:default">
+            <label for="ai-assistant-chk" style="font-size:10px;color:var(--text-muted);cursor:default">AI assistant — get live suggestions during the meeting</label>
+          </div>
+          <div style="margin-top:auto;padding-top:8px;display:flex;gap:6px">
+            <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="joinWithAI()" id="join-btn">Join</span>
+            <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()" id="add-context-btn">Add context</span>
           </div>
         </div>
 
@@ -1424,6 +1428,29 @@ body {
     { name: 'Spec_API_v2.pdf', summary: 'API v2 migration requirements, endpoints, and testing plan' },
     { name: 'Q4_goals.pptx', summary: 'Q4 business goals, KPIs, and team resource allocation' }
   ];
+
+  function toggleAiAssistant() {
+    const chk = document.getElementById('ai-assistant-chk');
+    const btn = document.getElementById('add-context-btn');
+    if (chk.checked) {
+      btn.style.opacity = '0.4';
+      btn.style.pointerEvents = 'none';
+    } else {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+    }
+  }
+
+  function joinWithAI() {
+    const chk = document.getElementById('ai-assistant-chk');
+    if (chk.checked && loadedDocs.length > 0) {
+      const parts = loadedDocs.map(d => `— ${d.name}: ${d.summary}`).join('\n');
+      alert('🎯 Joining with AI assistant\n\nAI is analyzing your documents:\n' + parts +
+        '\n\nLive suggestions will appear during the meeting.');
+    } else {
+      openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45');
+    }
+  }
 
   function downloadDoc(name) {
     alert('Downloading: ' + name);
