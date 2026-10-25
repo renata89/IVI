@@ -487,31 +487,31 @@ body {
             <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
               <span style="font-size:10px;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:4px">
                 <span style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Spec_API_v2.pdf</span>
-                <span style="cursor:default;opacity:0.6;font-size:11px;line-height:1" onclick="downloadDoc('Spec_API_v2.pdf')" title="Download">⬇</span>
+                <span style="cursor:default;opacity:0.6;font-size:12px;line-height:1" onclick="removeDoc('Spec_API_v2.pdf')" title="Remove">×</span>
               </span>
               <span style="font-size:10px;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:4px">
                 <span style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Q4_goals.pptx</span>
-                <span style="cursor:default;opacity:0.6;font-size:11px;line-height:1" onclick="downloadDoc('Q4_goals.pptx')" title="Download">⬇</span>
+                <span style="cursor:default;opacity:0.6;font-size:12px;line-height:1" onclick="removeDoc('Q4_goals.pptx')" title="Remove">×</span>
               </span>
             </div>
           </div>
-          <div style="margin-top:auto;padding-top:10px;display:flex;gap:6px">
-            <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
-            <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()">Add context</span>
-          </div>
-          <div style="padding-top:10px;border-top:1px solid var(--card-border);margin-top:8px">
+          <div style="padding-top:10px;border-top:1px solid var(--card-border);margin-top:10px">
             <div style="font-size:10px;font-weight:600;color:var(--text-muted);margin-bottom:6px">AI summary:</div>
             <div style="display:flex;flex-direction:column;gap:4px">
               <div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px">
                 <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Spec_API_v2.pdf</span>
-                <span style="font-size:9px;color:var(--emerald);cursor:default;margin-left:auto" onclick="openSummaryPdf()">View summary</span>
+                <span style="cursor:default;opacity:0.6;font-size:11px;line-height:1;margin-left:auto" onclick="downloadDoc('Spec_API_v2.pdf')" title="Download">⬇</span>
               </div>
               <div style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px">
                 <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Q4_goals.pptx</span>
-                <span style="font-size:9px;color:var(--emerald);cursor:default;margin-left:auto" onclick="openSummaryPdf()">View summary</span>
+                <span style="cursor:default;opacity:0.6;font-size:11px;line-height:1;margin-left:auto" onclick="downloadDoc('Q4_goals.pptx')" title="Download">⬇</span>
               </div>
             </div>
             <div style="font-size:10px;color:var(--emerald);cursor:default;margin-top:6px;font-weight:500" onclick="openSummaryPdf()">Download full summary (PDF) →</div>
+          </div>
+          <div style="margin-top:auto;padding-top:10px;display:flex;gap:6px">
+            <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openMeetingModal('Product Sprint Review', 'Today · 14:00-14:45')">Join</span>
+            <span class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="openPrepareContext()">Add context</span>
           </div>
         </div>
 
@@ -1427,6 +1427,30 @@ body {
 
   function downloadDoc(name) {
     alert('Downloading: ' + name);
+  }
+
+  function removeDoc(name) {
+    const idx = loadedDocs.findIndex(d => d.name === name);
+    if (idx !== -1) loadedDocs.splice(idx, 1);
+
+    // Remove from card
+    document.querySelectorAll('[onclick*="removeDoc"]').forEach(el => {
+      const tag = el.closest('span[style*="background:#e0e7ff"]');
+      if (tag && (tag.textContent.includes(name) || el.textContent.includes(name))) {
+        tag.style.display = 'none';
+      }
+    });
+
+    // Remove from modal
+    document.querySelectorAll('#detail-docs .badge').forEach(b => {
+      if (b.textContent.includes(name)) b.remove();
+    });
+
+    // Hide AI summary if no docs left
+    if (loadedDocs.length === 0) {
+      const summary = document.querySelector('div[style*="border-top:1px solid var(--card-border)"]');
+      if (summary) summary.style.display = 'none';
+    }
   }
 
   function openSummaryPdf() {
