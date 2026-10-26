@@ -3,6 +3,14 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { startTracker, stopTracker, getUpcomingMeetings } = require('./tracker');
 
+// --- Handle EPIPE: parent process closed stdout/stderr ---
+process.stdout.on('error', (err) => { if (err.code === 'EPIPE') { /* ignore */ } });
+process.stderr.on('error', (err) => { if (err.code === 'EPIPE') { /* ignore */ } });
+process.on('uncaughtException', (err) => {
+  if (err && err.code === 'EPIPE') { /* ignore write-after-close */ return; }
+  console.error('[IVI] Uncaught exception:', err.message, err.stack);
+});
+
 let mainWindow = null;
 let tray = null;
 let isQuitting = false;
@@ -67,7 +75,8 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      webviewTag: true
     },
     show: false,
     vibrancy: 'sidebar',
@@ -126,12 +135,14 @@ function startBackend() {
   });
 
   backendProcess.stdout.on('data', (data) => {
-    console.log(`[backend] ${data.toString().trim()}`);
+    try { console.log(`[backend] ${data.toString().trim()}`); } catch(e) {}
   });
+  backendProcess.stdout.on('error', () => {});
 
   backendProcess.stderr.on('data', (data) => {
-    console.log(`[backend] ${data.toString().trim()}`);
+    try { console.log(`[backend] ${data.toString().trim()}`); } catch(e) {}
   });
+  backendProcess.stderr.on('error', () => {});
 
   backendProcess.on('error', (err) => {
     console.error(`[IVI] Backend error: ${err.message}`);
@@ -156,7 +167,8 @@ function stopBackend() {
 }
 
 // --------------- IPC Handlers ---------------
-const { globalShortcut } = require('electron');
+const { globalShortcut, dialog, shell } = require('electron');
+const fs = require('fs');
 
 ipcMain.handle('get-upcoming-meetings', () => getUpcomingMeetings());
 ipcMain.handle('get-app-version', () => app.getVersion());
@@ -164,6 +176,28 @@ ipcMain.handle('get-backend-status', () => ({
   running: backendProcess !== null,
   port: BACKEND_PORT
 }));
+ipcMain.handle('select-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+    buttonLabel: 'Select Storage Folder'
+  });
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0];
+  }
+  return null;
+});
+ipcMain.handle('list-directory', async (event, dirPath) => {
+  try {
+    const expanded = dirPath.replace(/^~/, require('os').homedir());
+    if (!fs.existsSync(expanded)) return [];
+    const entries = fs.readdirSync(expanded, { withFileTypes: true });
+    return entries.filter(e => e.isDirectory()).map(e => e.name).sort();
+  } catch { return []; }
+});
+ipcMain.handle('open-in-folder', async (event, filePath) => {
+  const expanded = filePath.replace(/^~/, require('os').homedir());
+  shell.showItemInFolder(expanded);
+});
 ipcMain.on('minimize-to-tray', () => {
   if (mainWindow) mainWindow.hide();
 });

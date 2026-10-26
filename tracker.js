@@ -100,6 +100,7 @@ function getMockEvents() {
       documents: ['Spec_API_v2.pdf', 'Q4_goals.pdf'],
       platform: 'Teams',
       participants: 6,
+      joinUrl: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_MjQ5NTY1ZjgtZTVmZC00YzNiLWI3M2UtY2M0ZDEyZGNiNTFk%40thread.v2/0?context=%7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%225a5a5a5a-5a5a-5a5a-5a5a-5a5a5a5a5a5a%22%7d',
     },
     {
       title: 'Teacher Lab — UI review',
@@ -109,6 +110,7 @@ function getMockEvents() {
       documents: ['Teacher_Lab_requirements.pdf'],
       platform: 'Google Meet',
       participants: 3,
+      joinUrl: 'https://meet.google.com/abc-defg-hij',
     },
     {
       title: 'e-Krew technical sync',
@@ -118,6 +120,7 @@ function getMockEvents() {
       documents: [],
       platform: 'Teams',
       participants: 5,
+      joinUrl: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_OTg5MjAwZjUtYmVkYi00YjkwLTg4Y2UtYjY5M2UzM2FhYzQy%40thread.v2/0?context=%7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%225a5a5a5a-5a5a-5a5a-5a5a-5a5a5a5a5a5a%22%7d',
     },
   ];
 }
@@ -135,39 +138,6 @@ function isAppRunning(appName) {
   }
 }
 
-// --------------- Polling loop ---------------
-function poll() {
-  const now = Date.now();
-
-  // Check meetings
-  for (const meeting of MOCK_EVENTS) {
-    const msUntilStart = meeting.start.getTime() - now;
-    const eventId = meeting.title;
-
-    // 5 minutes before: "meeting soon" notification
-    if (msUntilStart > 4 * 60 * 1000 && msUntilStart <= 5 * 60 * 1000 && !notifiedSoon[eventId]) {
-      notifiedSoon[eventId] = true;
-      if (onEvent) {
-        onEvent({
-          type: 'meeting_soon',
-          title: meeting.title,
-          hasContext: meeting.hasContext
-        });
-      }
-    }
-
-    // Meeting started (within first minute)
-    if (msUntilStart >= 0 && msUntilStart <= 60 * 1000 && !notifiedStarted[eventId]) {
-      notifiedStarted[eventId] = true;
-      if (onEvent) {
-        onEvent({
-          type: 'meeting_started',
-          title: meeting.title
-        });
-      }
-    }
-  }
-}
 
 // --------------- Public API ---------------
 function startTracker(callback) {

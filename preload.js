@@ -39,5 +39,14 @@ contextBridge.exposeInMainWorld('ivi', {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 
   // Platform
-  platform: process.platform
+  platform: process.platform,
+
+  // Select storage folder
+  selectFolder: () => ipcRenderer.invoke('select-folder'),
+
+  // List directories
+  listDirectory: (dirPath) => ipcRenderer.invoke('list-directory', dirPath),
+
+  // Open file/folder in system file manager
+  openInFolder: (filePath) => ipcRenderer.invoke('open-in-folder', filePath),
 });

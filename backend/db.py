@@ -80,6 +80,30 @@ class Database:
                 FOREIGN KEY (series_id) REFERENCES series(id)
             );
 
+            CREATE TABLE IF NOT EXISTS todo_lists (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                meeting_id TEXT NOT NULL,
+                meeting_title TEXT NOT NULL,
+                meeting_date TEXT DEFAULT '',
+                meeting_time TEXT DEFAULT '',
+                participants TEXT DEFAULT '',
+                assigned_to_meeting_id TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (meeting_id) REFERENCES meetings(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS todo_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                todo_list_id INTEGER NOT NULL,
+                person TEXT DEFAULT '',
+                description TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                not_done_reason TEXT DEFAULT '',
+                selected_for_export INTEGER DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (todo_list_id) REFERENCES todo_lists(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS conflicts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 meeting_a_id TEXT NOT NULL,

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IVI — Manual Test Scenarios</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #f0f2f5;
+    color: #0f172a;
+    padding: 30px 20px;
+    display: flex;
+    justify-content: center;
+  }
+  .container { max-width: 960px; width: 100%; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  .meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding: 12px 0; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 10px; }
+  .meta-info { font-size: 13px; color: #64748b; }
+  .meta-info strong { color: #334155; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; transition: all .15s;
+  }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-danger { background: #dc2626; color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: #475569; }
+  .btn-outline:hover { background: #f1f5f9; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 24px;
+  }
+  .summary-card {
+    background: #fff; border-radius: 12px; padding: 16px; text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); border: 1px solid #e2e8f0;
+  }
+  .summary-card .num { font-size: 28px; font-weight: 700; }
+  .summary-card .label { font-size: 11px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+  .summary-card.green .num { color: #16a34a; }
+  .summary-card.red .num { color: #dc2626; }
+  .summary-card.gray .num { color: #64748b; }
+  .summary-card.blue .num { color: #2563eb; }
+
+  .section {
+    background: #fff; border-radius: 16px; margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); border: 1px solid #e2e8f0; overflow: hidden;
+  }
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+    cursor: pointer; user-select: none;
+  }
+  .section-header:hover { background: #f1f5f9; }
+  .section-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff; background: #2563eb; flex-shrink: 0;
+  }
+  .section-title { font-size: 15px; font-weight: 600; flex: 1; }
+  .section-count { font-size: 12px; color: #64748b; }
+  .section .arrow { transition: transform .2s; font-size: 14px; color: #94a3b8; }
+  .section.collapsed .section-body { display: none; }
+  .section-body { padding: 0 20px 16px; }
+
+  .test-case {
+    padding: 14px 0; border-bottom: 1px solid #f1f5f9;
+  }
+  .test-case:last-child { border-bottom: none; }
+
+  .tc-header {
+    display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;
+  }
+  .tc-id {
+    font-size: 11px; font-weight: 700; color: #94a3b8;
+    background: #f1f5f9; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+  }
+  .tc-title { font-size: 14px; font-weight: 600; flex: 1; }
+
+  .tc-preq { font-size: 12px; color: #64748b; margin: 2px 0 8px 24px; }
+  .tc-preq code { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+  .step-list { list-style: none; margin: 8px 0 8px 24px; }
+  .step-item {
+    font-size: 13px; color: #334155; padding: 4px 0;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .step-num {
+    color: #94a3b8; font-weight: 600; flex-shrink: 0; width: 20px;
+  }
+  .step-expected {
+    display: block; font-size: 12px; color: #64748b; margin-top: 1px;
+  }
+  .step-expected::before { content: "→ "; color: #94a3b8; }
+
+  .tc-result {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin: 8px 0 4px 24px; padding-top: 8px;
+  }
+  .result-group {
+    display: flex; gap: 8px;
+  }
+  .result-option {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 13px; cursor: pointer;
+  }
+  .result-option input[type="radio"] {
+    width: 16px; height: 16px; cursor: pointer; accent-color: #16a34a;
+  }
+  .result-option.pass input[type="radio"] { accent-color: #16a34a; }
+  .result-option.fail input[type="radio"] { accent-color: #dc2626; }
+  .result-label-pass { color: #16a34a; font-weight: 600; }
+  .result-label-fail { color: #dc2626; font-weight: 600; }
+
+  .result-actual {
+    flex: 1; min-width: 150px;
+  }
+  .result-actual input, .result-actual textarea {
+    width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0;
+    border-radius: 6px; font-size: 12px; font-family: inherit;
+    background: #f8fafc;
+  }
+  .result-actual input:focus, .result-actual textarea:focus {
+    outline: none; border-color: #2563eb; background: #fff;
+  }
+  .result-actual textarea { min-height: 48px; resize: vertical; }
+
+  .tc-comment {
+    display: none; margin: 6px 0 0 24px; padding: 10px;
+    background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
+  }
+  .tc-comment.visible { display: block; }
+  .tc-comment textarea {
+    width: 100%; padding: 8px; border: 1px solid #fecaca;
+    border-radius: 6px; font-size: 12px; font-family: inherit;
+    min-height: 40px; resize: vertical; background: #fff;
+  }
+  .tc-comment textarea:focus { outline: none; border-color: #dc2626; }
+  .tc-comment .comment-label {
+    font-size: 11px; font-weight: 600; color: #dc2626; margin-bottom: 4px;
+  }
+
+  .screenshot-upload {
+    margin: 6px 0 0 24px;
+  }
+  .screenshot-upload label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border: 1px dashed #cbd5e1; border-radius: 6px;
+    font-size: 12px; color: #64748b; cursor: pointer;
+    transition: all .15s;
+  }
+  .screenshot-upload label:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+  .screenshot-upload input[type="file"] { display: none; }
+  .screenshot-preview {
+    max-width: 200px; max-height: 120px; border-radius: 6px;
+    margin-top: 6px; border: 1px solid #e2e8f0; display: none;
+  }
+  .screenshot-preview.visible { display: block; }
+
+  .tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-left: 8px; }
+  .tag-important { background: #fef2f2; color: #dc2626; }
+  .tag-smoke { background: #f0fdf4; color: #16a34a; }
+  .tag-regression { background: #fff7ed; color: #ea580c; }
+  .tag-automated { background: #eff6ff; color: #2563eb; }
+
+  .footer { text-align: center; font-size: 12px; color: #94a3b8; padding: 20px 0; }
+
+  @media (max-width: 640px) {
+    .summary-bar { grid-template-columns: repeat(2, 1fr); }
+    .tc-result { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🧪 IVI — Manual Test Scenarios</h1>
+  <div class="meta">
+    <div class="meta-info">
+      Wersja: <strong>v0.1.0</strong> &nbsp;|&nbsp; 
+      Data: <strong id="test-date"></strong> &nbsp;|&nbsp;
+      Tester: <input type="text" id="tester-name" placeholder="Imię..." style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:13px;width:120px">
+    </div>
+    <div class="controls">
+      <button class="btn btn-outline btn-sm" onclick="resetAll()">🔄 Reset</button>
+      <button class="btn btn-primary btn-sm" onclick="exportReport()">📤 Export</button>
+    </div>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="summary-bar" id="summary-bar">
+    <div class="summary-card blue"><div class="num" id="total-count">0</div><div class="label">Total</div></div>
+    <div class="summary-card green"><div class="num" id="pass-count">0</div><div class="label">Pass ✅</div></div>
+    <div class="summary-card red"><div class="num" id="fail-count">0</div><div class="label">Fail ❌</div></div>
+    <div class="summary-card gray"><div class="num" id="untested-count">0</div><div class="label">Untested</div></div>
+  </div>
+
+  <!-- Test sections will be rendered by JavaScript -->
+  <div id="test-container"></div>
+
+  <div class="footer">
+    IVI Test Scenarios — zapisz stronę by zachować wyniki (localStorage) lub użyj Export
+  </div>
+</div>
+
+<script>
+// =============================================================================
+// TEST SCENARIOS DATA
+// =============================================================================
+
+const TEST_SCENARIOS = [
+  {
+    title: "Dashboard — widok główny",
+    prereq: "Aplikacja uruchomiona, backend działa, IVI_MOCK=1, seed data załadowane",
+    cases: [
+      {
+        id: "DASH-01",
+        title: "Aplikacja uruchamia się bez błędów",
+        steps: [
+          "Otwórz IVI (Electron)",
+          "Sprawdź konsolę (Cmd+Opt+I) pod kątem czerwonych błędów"
+        ],
+        expected: "Aplikacja uruchamia się, główne okno widoczne, brak błędów w konsoli"
+      },
+      {
+        id: "DASH-02",
+        title: "Dashboard — dane spotkań",
+        prereq: "Seed data załadowane",
+        steps: [
+          "Sprawdź czy lista spotkań na dashboardzie się wyświetla",
+          "Zweryfikuj czy tytuły i godziny są poprawne"
+        ],
+        expected: "Lista spotkań widoczna, zawiera tytuły, platformę, godziny. Minimum 8 spotkań."
+      },
+      {
+        id: "DASH-03",
+        title: "Context Status — przygotowane spotkania",
+        steps: [
+          "Sprawdź sekcję 'Context Status' na dashboardzie",
+          "Kliknij 'Add context' dla spotkania"
+        ],
+        expected: "Context Status wyświetla liczbę przygotowanych spotkań. Modal 'Add context' otwiera się."
+      },
+      {
+        id: "DASH-04",
+        title: "Zegar na dashboardzie",
+        steps: [
+          "Sprawdź czy zegar w topbarze działa",
+          "Zweryfikuj czy godzina jest aktualna (względem systemowej)"
+        ],
+        expected: "Zegar wyświetla aktualną datę i godzinę. Odświeża się co minutę."
+      },
+    ]
+  },
+  {
+    title: "Kalendarz i wykrywanie konfliktów",
+    prereq: "IVI_MOCK=1, backend uruchomiony",
+    cases: [
+      {
+        id: "CAL-01",
+        title: "Status połączenia kalendarza (mock)",
+        steps: [
+          "Sprawdź czy kalendarz pokazuje się jako 'Connected'",
+          "Powinien pokazywać 'Mock mode' lub info o trybie offline"
+        ],
+        expected: "Kalendarz połączony (mock). Widoczna lista nadchodzących eventów (min. 8)."
+      },
+      {
+        id: "CAL-02",
+        title: "Wykrywanie konfliktów — karta konfliktów",
+        steps: [
+          "Sprawdź czy karta 'Calendar Alert' pojawia się na dashboardzie",
+          "Karta powinna pokazywać nakładające się spotkania",
+          "Sprawdź przyciski 'Reschedule' i 'Ignore Conflict'"
+        ],
+        expected: "Karta konfliktów widoczna. Pokazuje 2 nakładające się spotkania obok siebie. Przyciski Reschedule i Ignore działają."
+      },
+      {
+        id: "CAL-03",
+        title: "Ignore Conflict",
+        steps: [
+          "Kliknij 'Ignore Conflict' na aktywnej karcie konfliktów",
+          "Sprawdź czy licznik konfliktów się zmienia",
+          "Przejdź do następnego konfliktu strzałkami"
+        ],
+        expected: "Konflikt oznaczony jako zignorowany. Licznik się zmienia. Można nawigować między konfliktami."
+      },
+      {
+        id: "CAL-04",
+        title: "Reschedule — modal zmiany terminu",
+        steps: [
+          "Kliknij 'Reschedule' na karcie konfliktów",
+          "Sprawdź czy modal z datami i sugerowanymi slotami się otwiera"
+        ],
+        expected: "Modal reschedule otwiera się z wyborem daty i sugerowanymi slotami (jeśli dostępne)."
+      },
+      {
+        id: "CAL-05",
+        title: "Widok kalendarza — lista eventów",
+        steps: [
+          "Przejdź do widoku kalendarza (sidebar → Calendar)",
+          "Sprawdź czy eventy się wyświetlają z poprawnymi godzinami"
+        ],
+        expected: "Lista eventów widoczna w kalendarzu z czasem, tytułem, platformą. Eventy z konfliktami oznaczone na czerwono."
+      },
+    ]
+  },
+  {
+    title: "Notatki i podsumowania",
+    prereq: "Seed data załadowane (3 notatki w bazie)",
+    cases: [
+      {
+        id: "NOTE-01",
+        title: "Lista notatek dla spotkania",
+        steps: [
+          "Wybierz spotkanie 'Sprint Daily 2026-10-23'",
+          "Kliknij w notatki (Notes)",
+          "Sprawdź czy notatki się wyświetlają"
+        ],
+        expected: "Notatki widoczne. Zawierają: summary, decisions, action items."
+      },
+      {
+        id: "NOTE-02",
+        title: "Podgląd szczegółów notatki",
+        steps: [
+          "Otwórz szczegóły notatki (kliknij w nią)",
+          "Sprawdź czy modal pokazuje pełny summary, listę decyzji i action items"
+        ],
+        expected: "Modal szczegółów otwarty. Summary wyświetlony, decisions jako lista, action items jako lista."
+      },
+      {
+        id: "NOTE-03",
+        title: "TTS — odsłuch notatki",
+        steps: [
+          "W szczegółach notatki kliknij 'Listen' (🔊)",
+          "Sprawdź czy audio się odtwarza"
+        ],
+        expected: "edge-tts generuje audio. Odtwarza się przez głośniki/słuchawki. Jeśli TTS nie działa — 500 jako akceptowalne (brak edge-tts)."
+      },
+      {
+        id: "NOTE-04",
+        title: "Notatki dla spotkania bez notatek",
+        steps: [
+          "Wybierz spotkanie 'Sprint Daily 2026-10-25' (meet_006)",
+          "Sprawdź czy pokazuje pustą listę notatek"
+        ],
+        expected: "Pusta lista notatek. Brak błędów. Komunikat 'Brak notatek' lub pusta sekcja."
+      },
+    ]
+  },
+  {
+    title: "Series i zobowiązania",
+    prereq: "Seed data załadowane (4 serie, 5 zobowiązań)",
+    cases: [
+      {
+        id: "SER-01",
+        title: "Lista serii spotkań",
+        steps: [
+          "Przejdź do sekcji Series (sidebar)",
+          "Sprawdź czy lista serii się wyświetla"
+        ],
+        expected: "Lista serii widoczna. Zawiera: Daily Scrum, Retro, Sprint Planning, 1:1."
+      },
+      {
+        id: "SER-02",
+        title: "Zobowiązania w serii",
+        steps: [
+          "Wybierz serię 'Retro — Testigo'",
+          "Sprawdź czy lista zobowiązań (commitments) się wyświetla"
+        ],
+        expected: "Lista zobowiązań widoczna. Pokazuje osobę, opis, deadline, status."
+      },
+      {
+        id: "SER-03",
+        title: "Checklista przed spotkaniem",
+        steps: [
+          "Sprawdź czy dashboard pokazuje zaległe zobowiązania",
+          "Karta 'Commitments' powinna być widoczna"
+        ],
+        expected: "Checklista widoczna na dashboardzie (jeśli są zaległe zobowiązania w serii najbliższego spotkania)."
+      },
+    ]
+  },
+  {
+    title: "Dokumenty",
+    prereq: "Seed data załadowane (3 dokumenty)",
+    cases: [
+      {
+        id: "DOC-01",
+        title: "Lista dokumentów",
+        steps: [
+          "Przejdź do sekcji Documents (sidebar)",
+          "Sprawdź czy lista dokumentów się wyświetla"
+        ],
+        expected: "Lista dokumentów widoczna. Zawiera: 'Wzór raportu konfliktów', 'Standardy QA', 'Architektura IVI'."
+      },
+      {
+        id: "DOC-02",
+        title: "Dodawanie dokumentu",
+        steps: [
+          "Kliknij 'Add Document'",
+          "Wpisz nazwę i treść dokumentu",
+          "Zapisz"
+        ],
+        expected: "Dokument dodany. Widoczny na liście dokumentów."
+      },
+    ]
+  },
+  {
+    title: "Push-to-Talk (funkcja głosowa)",
+    prereq: "Backend uruchomiony",
+    cases: [
+      {
+        id: "PTT-01",
+        title: "WebSocket /ws/ptt — połączenie",
+        steps: [
+          "Otwórz konsolę JavaScript (Cmd+Opt+I)",
+          "Sprawdź czy WebSocket do /ws/ptt się łączy (możesz wymusić PTT skrótem Cmd+Shift+I)"
+        ],
+        expected: "WebSocket połączony. Konsola pokazuje 'Connected' (lub info log)."
+      },
+      {
+        id: "PTT-02",
+        title: "Zapytanie głosowe — endpoint /api/ptt",
+        steps: [
+          "Przytrzymaj PTT, zadaj pytanie np. 'co było na daily?'",
+          "Sprawdź czy IVI odpowiada (TTS lub tekst)"
+        ],
+        expected: "IVI odpowiada na pytanie na podstawie notatek. Mock odpowiada 'Skonfiguruj klucz API'."
+      },
+    ]
+  },
+  {
+    title: "Backend API — integracja",
+    prereq: "Backend uruchomiony, IVI_MOCK=1",
+    cases: [
+      {
+        id: "API-01",
+        title: "Health check",
+        steps: [
+          "Otwórz http://127.0.0.1:8765/health w przeglądarce (lub curl)",
+          "Sprawdź odpowiedź JSON"
+        ],
+        expected: '{"status": "ok", "version": "0.1.0"}'
+      },
+      {
+        id: "API-02",
+        title: "Lista spotkań (GET /meetings)",
+        steps: [
+          "Wywołaj GET /meetings (curl lub przeglądarka)",
+          "Sprawdź czy lista spotkań się zwraca"
+        ],
+        expected: "JSON z listą spotkań (min. 8). Każde spotkanie ma: id, title, platform, start_time."
+      },
+      {
+        id: "API-03",
+        title: "Wykrywanie konfliktów (GET /api/conflicts)",
+        steps: [
+          "Wywołaj GET /api/conflicts",
+          "Sprawdź czy konflikty są wykrywane"
+        ],
+        expected: "JSON z listą konfliktów (min. 2). Każdy konflikt ma: id, left (meeting data), right (meeting data)."
+      },
+      {
+        id: "API-04",
+        title: "Rozwiązywanie konfliktu (POST /api/conflicts/resolve)",
+        steps: [
+          "Wywołaj POST /api/conflicts/resolve z danymi konfliktu",
+          "Sprawdź odpowiedź"
+        ],
+        expected: '{"status": "ok"}. Konflikt oznaczony jako rozwiązany.'
+      },
+    ]
+  },
+  {
+    title: "Audio — nagrywanie spotkania",
+    prereq: "Aplikacja uruchomiona, mikrofon dostępny",
+    cases: [
+      {
+        id: "AUD-01",
+        title: "Połączenie WebSocket /ws/audio",
+        steps: [
+          "Rozpocznij nagrywanie spotkania (kliknij 'Record' lub dołącz do spotkania)",
+          "Sprawdź konsolę — WebSocket powinien się połączyć"
+        ],
+        expected: "WebSocket /ws/audio połączony. Log: 'Audio WebSocket connected'."
+      },
+      {
+        id: "AUD-02",
+        title: "Przepływ: audio → transkrypcja → notatki",
+        prereq: "Aplikacja działa (mock lub realne audio). W mock mode Whisper zwraca placeholder.",
+        steps: [
+          "Rozpocznij nagrywanie",
+          "Poczekaj aż spotkanie się zakończy (lub kliknij Stop)",
+          "Sprawdź czy notatki się wygenerowały"
+        ],
+        expected: "Po zakończeniu nagrywania, notatki pojawiają się na dashboardzie. W mock: placeholder transkrypt + mock summary."
+      },
+    ]
+  },
+  {
+    title: "Instalacja i uruchomienie",
+    prereq: "Aplikacja zbudowana (patrz Phase 5 — macOS .dmg / Windows .exe)",
+    cases: [
+      {
+        id: "INST-01",
+        title: "Uruchomienie z .dmg (macOS)",
+        steps: [
+          "Otwórz IVI-0.1.0-mac.dmg",
+          "Przeciągnij IVI do Applications",
+          "Uruchom IVI z Launchpada lub /Applications"
+        ],
+        expected: "Aplikacja uruchamia się. Ikona w docku jako 'IVI'. Backend startuje automatycznie."
+      },
+      {
+        id: "INST-02",
+        title: "Tryb deweloperski (z konsoli)",
+        steps: [
+          "Otwórz terminal w katalogu IVI",
+          "Uruchom: ./venv/bin/python3 -m backend.main",
+          "Sprawdź czy backend startuje na porcie 8765"
+        ],
+        expected: "Backend startuje. Health check na http://127.0.0.1:8765/health odpowiada."
+      },
+      {
+        id: "INST-03",
+        title: "Tryb mock",
+        steps: [
+          "Uruchom: IVI_MOCK=1 ./venv/bin/python3 -m backend.main",
+          "Sprawdź czy mock data działa — kalendarz zwraca eventy offline"
+        ],
+        expected: "Backend w mock mode. Calendar endpoint zwraca 'mock: true' i 9 eventów."
+      },
+      {
+        id: "INST-04",
+        title: "Seed test data",
+        steps: [
+          "Uruchom: ./venv/bin/python3 -m tests.seed.run --fresh",
+          "Sprawdź czy seed tworzy dane testowe"
+        ],
+        expected: "Seed tworzy 28 rekordów (4 serie, 10 spotkań, 3 notatki, 5 zobowiązań, 3 konflikty, 3 dokumenty)."
+      },
+    ]
+  },
+];
+
+// =============================================================================
+// RENDERER
+// =============================================================================
+
+let testState = {};
+
+function initState() {
+  // Try to load from localStorage
+  try {
+    const saved = localStorage.getItem('ivi_test_state');
+    if (saved) {
+      testState = JSON.parse(saved);
+      return;
+    }
+  } catch {}
+  testState = {};
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('ivi_test_state', JSON.stringify(testState));
+  } catch {}
+}
+
+function getTestKey(sectionIdx, caseIdx) {
+  return `s${sectionIdx}_c${caseIdx}`;
+}
+
+function getCaseId(sectionIdx, caseIdx) {
+  return TEST_SCENARIOS[sectionIdx].cases[caseIdx].id;
+}
+
+function render() {
+  initState();
+  const container = document.getElementById('test-container');
+  container.innerHTML = '';
+
+  TEST_SCENARIOS.forEach((section, si) => {
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+    sectionEl.dataset.section = si;
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.onclick = () => {
+      sectionEl.classList.toggle('collapsed');
+    };
+
+    const num = document.createElement('div');
+    num.className = 'section-num';
+    num.textContent = si + 1;
+
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = section.title;
+
+    const count = document.createElement('div');
+    count.className = 'section-count';
+
+    const arrow = document.createElement('div');
+    arrow.className = 'arrow';
+    arrow.textContent = '▼';
+
+    header.appendChild(num);
+    header.appendChild(title);
+    header.appendChild(count);
+    header.appendChild(arrow);
+    sectionEl.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'section-body';
+
+    if (section.prereq) {
+      const preq = document.createElement('div');
+      preq.className = 'tc-preq';
+      preq.innerHTML = '📋 Prerekwizyty: <code>' + section.prereq + '</code>';
+      body.appendChild(preq);
+    }
+
+    section.cases.forEach((tc, ci) => {
+      const key = getTestKey(si, ci);
+      const state = testState[key] || { result: '', actual: '', comment: '', screenshot: '' };
+
+      const caseEl = document.createElement('div');
+      caseEl.className = 'test-case';
+
+      // Header
+      const hdr = document.createElement('div');
+      hdr.className = 'tc-header';
+      const idEl = document.createElement('div');
+      idEl.className = 'tc-id';
+      idEl.textContent = tc.id;
+      const titleEl = document.createElement('div');
+      titleEl.className = 'tc-title';
+      titleEl.textContent = tc.title;
+      hdr.appendChild(idEl);
+      hdr.appendChild(titleEl);
+      caseEl.appendChild(hdr);
+
+      // Pre-requisite (case-specific)
+      if (tc.prereq) {
+        const p = document.createElement('div');
+        p.className = 'tc-preq';
+        p.innerHTML = '📋 ' + tc.prereq;
+        caseEl.appendChild(p);
+      }
+
+      // Steps
+      const stepsList = document.createElement('ol');
+      stepsList.className = 'step-list';
+      stepsList.style.listStyle = 'decimal';
+      stepsList.style.paddingLeft = '20px';
+      tc.steps.forEach((step, si2) => {
+        const li = document.createElement('li');
+        li.style.fontSize = '13px';
+        li.style.color = '#334155';
+        li.style.padding = '3px 0';
+        li.textContent = step;
+        stepsList.appendChild(li);
+      });
+      caseEl.appendChild(stepsList);
+
+      // Expected result
+      const expected = document.createElement('div');
+      expected.className = 'tc-preq';
+      expected.innerHTML = '✅ Oczekiwany rezultat: <strong>' + tc.expected + '</strong>';
+      caseEl.appendChild(expected);
+
+      // Result radios + actual result
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'tc-result';
+
+      const radioGroup = document.createElement('div');
+      radioGroup.className = 'result-group';
+
+      const passLabel = document.createElement('label');
+      passLabel.className = 'result-option pass';
+      const passRadio = document.createElement('input');
+      passRadio.type = 'radio';
+      passRadio.name = `result_${key}`;
+      passRadio.value = 'pass';
+      passRadio.checked = state.result === 'pass';
+      passRadio.onchange = () => { updateResult(si, ci, 'pass'); };
+      const passSpan = document.createElement('span');
+      passSpan.className = 'result-label-pass';
+      passSpan.textContent = '✅ Pass';
+      passLabel.appendChild(passRadio);
+      passLabel.appendChild(passSpan);
+
+      const failLabel = document.createElement('label');
+      failLabel.className = 'result-option fail';
+      const failRadio = document.createElement('input');
+      failRadio.type = 'radio';
+      failRadio.name = `result_${key}`;
+      failRadio.value = 'fail';
+      failRadio.checked = state.result === 'fail';
+      failRadio.onchange = () => { updateResult(si, ci, 'fail'); };
+      const failSpan = document.createElement('span');
+      failSpan.className = 'result-label-fail';
+      failSpan.textContent = '❌ Not Pass';
+      failLabel.appendChild(failRadio);
+      failLabel.appendChild(failSpan);
+
+      radioGroup.appendChild(passLabel);
+      radioGroup.appendChild(failLabel);
+      resultDiv.appendChild(radioGroup);
+
+      // Actual result input
+      const actualDiv = document.createElement('div');
+      actualDiv.className = 'result-actual';
+      const actualInput = document.createElement('input');
+      actualInput.type = 'text';
+      actualInput.placeholder = 'Rzeczywisty rezultat...';
+      actualInput.value = state.actual || '';
+      actualInput.onchange = () => {
+        const key2 = getTestKey(si, ci);
+        if (!testState[key2]) testState[key2] = {};
+        testState[key2].actual = actualInput.value;
+        saveState();
+      };
+      actualDiv.appendChild(actualInput);
+      resultDiv.appendChild(actualDiv);
+
+      caseEl.appendChild(resultDiv);
+
+      // Comment (visible only on fail)
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'tc-comment' + (state.result === 'fail' ? ' visible' : '');
+      const commentLabel = document.createElement('div');
+      commentLabel.className = 'comment-label';
+      commentLabel.textContent = '✏️ Komentarz (przyczyna faila):';
+      const commentText = document.createElement('textarea');
+      commentText.placeholder = 'Opisz co poszło nie tak...';
+      commentText.value = state.comment || '';
+      commentText.onchange = () => {
+        const key2 = getTestKey(si, ci);
+        if (!testState[key2]) testState[key2] = {};
+        testState[key2].comment = commentText.value;
+        saveState();
+      };
+      commentDiv.appendChild(commentLabel);
+      commentDiv.appendChild(commentText);
+      caseEl.appendChild(commentDiv);
+
+      // Screenshot upload
+      const screenDiv = document.createElement('div');
+      screenDiv.className = 'screenshot-upload';
+      const screenLabel = document.createElement('label');
+      screenLabel.innerHTML = '📷 Dodaj screena';
+      const screenInput = document.createElement('input');
+      screenInput.type = 'file';
+      screenInput.accept = 'image/png,image/jpeg,image/webp';
+      screenInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const key2 = getTestKey(si, ci);
+          if (!testState[key2]) testState[key2] = {};
+          testState[key2].screenshot = ev.target.result;
+          saveState();
+          // Show preview
+          preview.src = ev.target.result;
+          preview.className = 'screenshot-preview visible';
+        };
+        reader.readAsDataURL(file);
+      };
+      const preview = document.createElement('img');
+      preview.className = 'screenshot-preview' + (state.screenshot ? ' visible' : '');
+      preview.alt = 'Screenshot';
+      if (state.screenshot) preview.src = state.screenshot;
+
+      screenLabel.appendChild(screenInput);
+      screenDiv.appendChild(screenLabel);
+      screenDiv.appendChild(preview);
+      caseEl.appendChild(screenDiv);
+
+      body.appendChild(caseEl);
+    });
+
+    sectionEl.appendChild(body);
+    container.appendChild(sectionEl);
+
+    // Update section count
+    updateSectionCount(si);
+  });
+
+  updateSummary();
+}
+
+function updateResult(si, ci, value) {
+  const key = getTestKey(si, ci);
+  if (!testState[key]) testState[key] = {};
+  testState[key].result = value;
+  saveState();
+
+  // Toggle comment visibility
+  const caseEl = document.querySelector(`[data-section="${si}"] .section-body .test-case:nth-child(${ci + 2})`) || 
+                 document.querySelectorAll(`[data-section="${si}"] .section-body .test-case`)[ci];
+  if (caseEl) {
+    const comment = caseEl.querySelector('.tc-comment');
+    if (comment) {
+      comment.className = 'tc-comment' + (value === 'fail' ? ' visible' : '');
+    }
+  }
+
+  updateSectionCount(si);
+  updateSummary();
+}
+
+function updateSectionCount(si) {
+  const section = TEST_SCENARIOS[si];
+  if (!section) return;
+  const total = section.cases.length;
+  let passed = 0, failed = 0;
+  section.cases.forEach((_, ci) => {
+    const key = getTestKey(si, ci);
+    const s = testState[key];
+    if (s?.result === 'pass') passed++;
+    else if (s?.result === 'fail') failed++;
+  });
+  const countEl = document.querySelectorAll('.section')[si]?.querySelector('.section-count');
+  if (countEl) {
+    countEl.textContent = `${passed}✅ / ${failed}❌ / ${total - passed - failed}⬜`;
+  }
+}
+
+function updateSummary() {
+  let total = 0, passed = 0, failed = 0;
+  TEST_SCENARIOS.forEach((section, si) => {
+    section.cases.forEach((_, ci) => {
+      total++;
+      const s = testState[getTestKey(si, ci)];
+      if (s?.result === 'pass') passed++;
+      else if (s?.result === 'fail') failed++;
+    });
+  });
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('pass-count').textContent = passed;
+  document.getElementById('fail-count').textContent = failed;
+  document.getElementById('untested-count').textContent = total - passed - failed;
+}
+
+function resetAll() {
+  if (!confirm('Reset wszystkich wyników testów?')) return;
+  testState = {};
+  saveState();
+  render();
+}
+
+function exportReport() {
+  let md = `# IVI Test Report\n\n`;
+  md += `**Wersja:** v0.1.0  \n`;
+  md += `**Data:** ${new Date().toISOString().split('T')[0]}  \n`;
+  const tester = document.getElementById('tester-name')?.value || '(nie podano)';
+  md += `**Tester:** ${tester}  \n\n`;
+
+  let total = 0, passed = 0, failed = 0;
+  TEST_SCENARIOS.forEach((section, si) => {
+    md += `## ${si + 1}. ${section.title}\n\n`;
+    section.cases.forEach((tc, ci) => {
+      total++;
+      const s = testState[getTestKey(si, ci)];
+      const result = s?.result === 'pass' ? '✅ PASS' : s?.result === 'fail' ? '❌ FAIL' : '⬜ UNTESTED';
+      if (s?.result === 'pass') passed++;
+      else if (s?.result === 'fail') failed++;
+
+      md += `### ${tc.id}: ${tc.title}\n`;
+      md += `**Wynik:** ${result}  \n`;
+      if (s?.actual) md += `**Rzeczywisty rezultat:** ${s.actual}  \n`;
+      if (s?.comment) md += `**Komentarz:** ${s.comment}  \n`;
+      md += `\n`;
+    });
+  });
+
+  md += `---\n\n`;
+  md += `**Podsumowanie:** ${passed}✅ / ${failed}❌ / ${total - passed - failed}⬜ / ${total} total\n`;
+
+  // Download as .md
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ivi-test-report-${new Date().toISOString().split('T')[0]}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Set date
+document.getElementById('test-date').textContent = new Date().toISOString().split('T')[0];
+
+// Render the page
+render();
+
+// Auto-save on page unload
+window.addEventListener('beforeunload', saveState);
+</script>
+</body>
+</html>

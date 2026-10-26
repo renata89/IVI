@@ -1,10 +1,118 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IVI — design preview</title>
 <script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  // LOGIN + LANGUAGE SELECT
+  const savedAuth = localStorage.getItem('ivi_authenticated');
+  let loginLang = 'en';
+
+  const LOGIN_STRINGS = {
+    en: { title: 'Sign in to IVI', sub: 'Your meeting assistant', email: 'Email', password: 'Password', signin: 'Sign In', or: 'or', google: 'Sign in with Google', link: 'Create one', noAccount: "Don't have an account?", error: 'Invalid email or password. Try demo@testigo.com / demo123' }
+  };
+
+  function setLoginLang(lang) {
+    // No-op: English only
+  }
+
+  function handleLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const errEl = document.getElementById('login-error');
+    if (!email || !password) {
+      errEl.textContent = LOGIN_STRINGS[loginLang].error;
+      errEl.className = 'login-error visible';
+      return;
+    }
+    errEl.className = 'login-error';
+    localStorage.setItem('ivi_authenticated', 'true');
+    localStorage.setItem('ivi_user_email', email);
+    // Go to dashboard
+    location.reload();
+  }
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (savedAuth) {
+      document.getElementById('login-overlay').classList.add('hidden');
+    }
+    setLoginLang('en');
+
+    // Update user info
+    const userEmail = localStorage.getItem('ivi_user_email');
+    if (userEmail) {
+      const nameEl = document.getElementById('topbar-username');
+      const avatarEl = document.getElementById('topbar-avatar');
+      const menuEmail = document.getElementById('user-menu-email');
+      if (nameEl) nameEl.textContent = userEmail.split('@')[0] || 'User';
+      if (avatarEl) avatarEl.textContent = (userEmail[0] || 'U').toUpperCase();
+      if (menuEmail) menuEmail.textContent = userEmail;
+    }
+
+
+  });
+
+  window.iviLogout = function() {
+    localStorage.removeItem('ivi_authenticated');
+    localStorage.removeItem('ivi_user_email');
+    location.reload();
+  };
+
+  // USER MENU
+  function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('user-menu');
+    if (menu && !e.target.closest('.topbar-right')) menu.style.display = 'none';
+  });
+
+
+  // i18n
+  const APP_STRINGS = {
+    en: {
+      'sidebar-dashboard': 'Dashboard', 'sidebar-calendar': 'Calendar', 'sidebar-library': 'Library', 'sidebar-notes': 'Notes',
+      'sidebar-ivi-all': 'IVI notes <strong>all</strong> my meetings', 'sidebar-active-plan': 'Active plan',
+      'plan-warning': 'All meetings count toward your 30h limit',
+      'page-title-dashboard': 'Dashboard', 'page-title-meetings': 'Calendar', 'page-title-library': 'Library', 'page-title-notes': 'Notes',
+      'next-meeting': 'NEXT MEETING', 'participants': 'Participants', 'platform': 'Platform',
+      'added-documents': 'Added documents:', 'ai-summary': 'AI summary:', 'download-pdf': 'Download full summary (PDF)',
+      'ai-assistant-checkbox': 'AI assistant — get live suggestions during the meeting',
+      'join': 'Join', 'add-context': 'Add context',
+      'calendar-alert': 'CALENDAR ALERT', 'meetings-overlap': '{n} meetings overlap',
+      'ivi-record': 'IVI Record', 'user-only': 'User Only', 'ivi-covers-both': '✓ IVI covers both',
+      'reschedule': 'Reschedule', 'ignore-conflict': 'Ignore Conflict',
+      'conflict-of': 'Conflict {current} of {total}', 'manage-conflicts': 'Manage all conflicts',
+      'your-event': 'Your event', 'ivi-will-take-notes': 'IVI will take notes & summarize',
+      'teams-sync': 'TEAMS SYNC', 'connected': 'Connected',
+      'recordings-to-process': '{n} recordings', 'unprocessed': '{n} unprocessed', 'last-sync': 'Last sync: {time} ago',
+      'action-items': 'ACTION ITEMS', 'action-open': '{n} open', 'action-overdue-today': '{over} overdue · {today} due today',
+      'upcoming-meetings': 'Upcoming Meetings', 'view-all': 'View all',
+      'recent-activity': 'Recent Activity', 'clear-action': 'Clear',
+      'date-col': 'Date', 'meeting-col': 'Meeting', 'context-col': 'Context', 'item-col': 'Item', 'status-col': 'Status',
+      'missing-context': 'Missing', 'conflict-tag': 'Conflict', 'loaded': 'Loaded', 'processing': 'Processing',
+      'no-conflicts': 'No conflicts in the calendar', 'review-decisions': 'Review decisions',
+      'user-menu-settings': 'Settings', 'user-menu-lang': 'Language', 'user-menu-signout': 'Sign Out',
+    },  };
+
+  function getString(key, vars) {
+    vars = vars || {};
+    const strings = APP_STRINGS.en;
+    if (!strings) return key;
+    let val = strings[key];
+    if (!val) return key;
+    if (typeof val === 'object') return val;
+    for (const [vk, vv] of Object.entries(vars)) {
+      val = val.replace('{' + vk + '}', vv);
+    }
+    return val;
+  }
+
+  </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -114,7 +222,11 @@ body {
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 12px 20px;
+  position: relative;
+  z-index: 150;
 }
+
+
 .topbar-left { display: flex; align-items: center; gap: 16px; }
 .page-title { font-size: 16px; font-weight: 600; }
 .topbar-right {
@@ -402,10 +514,390 @@ body {
 .cal-event.conflict { border-left-color: #EF4444; background: rgba(239,68,68,0.08); }
 .cal-event-title { font-weight: 500; color: var(--text); }
 .cal-event-time { font-size: 9px; color: var(--text-muted); }
+
+/* LOGIN */
+.login-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  transition: opacity .4s, visibility .4s;
+}
+.login-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.login-card { background: #fff; border-radius: 20px; padding: 40px; width: 400px; max-width: 90vw; box-shadow: 0 4px 24px rgba(0,0,0,.08); text-align: center; }
+.login-card .ivi-logo { width: 56px; height: 56px; margin: 0 auto 16px; display: block; }
+.login-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.login-card .sub { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+.login-field { width: 100%; padding: 12px 16px; border: 1px solid var(--card-border); border-radius: 12px; font-size: 14px; margin-bottom: 12px; background: #f8fafc; }
+.login-field:focus { outline: none; border-color: var(--emerald); background: #fff; box-shadow: 0 0 0 3px var(--emerald-light); }
+.login-btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.login-btn-primary { background: var(--emerald); color: #fff; }
+.login-btn-primary:hover { background: var(--emerald-dark); }
+.login-btn-google { background: #fff; color: var(--text); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--text-muted); font-size: 12px; }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+.login-link { font-size: 13px; color: var(--text-muted); margin-top: 16px; }
+.login-link a { color: var(--emerald); text-decoration: none; font-weight: 600; cursor: pointer; }
+.login-error { color: #dc2626; font-size: 13px; margin-top: 8px; display: none; }
+.login-error.visible { display: block; }
+
+/* LANGUAGE SELECT */
+
+  /* === MEETING ROOM === */
+  .meeting-room-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: #1a1d23;
+    display: flex; flex-direction: column;
+    color: #fff;
+  }
+  .mr-topbar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 16px;
+    background: rgba(26,29,35,0.95);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .mr-topbar-left { flex: 0 0 auto; }
+  .mr-topbar-center { flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .mr-topbar-right { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; }
+  .mr-back {
+    font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .mr-back:hover { color: #fff; }
+  .mr-meeting-title { font-size: 14px; font-weight: 600; }
+  .mr-meeting-time { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .mr-recording-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ef4444; display: inline-block;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .mr-recording-label { font-size: 11px; color: #ef4444; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .mr-timer { font-size: 13px; color: rgba(255,255,255,0.6); font-variant-numeric: tabular-nums; }
+  .mr-main { flex: 1; display: flex; position: relative; overflow: hidden; }
+  .mr-teams { flex: 1; position: relative; background: #0f1115; }
+
+  .teams-webview {
+    width: 100%; height: 100%;
+    border: none;
+  }
+  .teams-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #1e3a5f 0%, #0f1115 100%);
+    color: rgba(255,255,255,0.7); z-index: 1;
+    pointer-events: none;
+  }
+  .webview-loaded .teams-placeholder { opacity: 0; transition: opacity .5s; }
+  .tp-icon { margin-bottom: 16px; opacity: 0.3; }
+  .tp-title { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .tp-sub { font-size: 13px; margin-bottom: 20px; }
+  .tp-loading { font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .tp-spinner {
+    width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.15);
+    border-top-color: #60a5fa; border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* === AI CHAT BUBBLE === */
+  .ai-bubble {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 320px; max-height: 440px;
+    z-index: 600;
+    font-size: 13px;
+  }
+  .ai-bubble-handle {
+    background: rgba(30,35,45,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    overflow: hidden;
+    cursor: grab;
+    display: flex; flex-direction: column;
+    max-height: 440px;
+  }
+  .ai-bubble-handle:active { cursor: grabbing; }
+  .ai-bubble-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px;
+    font-size: 13px; font-weight: 600; color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    cursor: grab;
+    user-select: none;
+  }
+  .ai-bubble-close {
+    margin-left: auto; cursor: pointer;
+    color: rgba(255,255,255,0.4);
+    display: flex; align-items: center;
+  }
+  .ai-bubble-close:hover { color: #fff; }
+  .ai-bubble-body {
+    padding: 12px 16px;
+    overflow-y: auto;
+    flex: 1;
+    cursor: default;
+  }
+  .ai-message {
+    margin-bottom: 10px;
+    display: flex;
+  }
+  .ai-welcome { justify-content: flex-start; }
+  .ai-msg-text {
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 90%;
+  }
+  .ai-welcome .ai-msg-text {
+    background: rgba(16,185,129,0.15);
+    color: #d1fae5;
+    border-bottom-left-radius: 4px;
+  }
+  .ai-suggestion { justify-content: flex-start; }
+  .ai-suggestion .ai-msg-text {
+    background: rgba(59,130,246,0.12);
+    color: #bfdbfe;
+    border-bottom-left-radius: 4px;
+    font-size: 12px;
+  }
+  .ai-hint {
+    color: #60a5fa; cursor: pointer; text-decoration: underline;
+    text-decoration-color: rgba(96,165,250,0.3);
+  }
+  .ai-hint:hover { color: #93c5fd; }
+  .ai-bubble-input {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .ai-bubble-input input {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #fff;
+    outline: none;
+  }
+  .ai-bubble-input input::placeholder { color: rgba(255,255,255,0.3); }
+  .ai-bubble-input input:focus { border-color: rgba(96,165,250,0.5); }
+  .ai-send-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(16,185,129,0.2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #34d399; flex-shrink: 0;
+  }
+  .ai-send-btn:hover { background: rgba(16,185,129,0.35); }
+
+  /* Series page */
+  .section-header-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .section-title-lg { font-size: 18px; font-weight: 600; }
+  .series-grid {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .series-card {
+    background: #fff; border-radius: 12px; padding: 16px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
+  }
+  .series-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .series-card-name { font-size: 15px; font-weight: 600; }
+  .series-card-count { font-size: 12px; color: var(--text-muted); }
+  .series-card-commitments {
+    margin-top: 8px;
+  }
+  .series-commitment {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 6px;
+    font-size: 13px; margin-bottom: 4px;
+  }
+  .series-commitment:hover { background: var(--emerald-light); }
+  .series-commitment .status-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .series-commitment .status-dot.overdue { background: #ef4444; }
+  .series-commitment .status-dot.today { background: #f59e0b; }
+  .series-commitment .status-dot.upcoming { background: #94a3b8; }
+  .series-commitment .status-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .series-commitment .status-label.overdue { background: #fef2f2; color: #dc2626; }
+  .series-commitment .status-label.today { background: #fffbeb; color: #d97706; }
+  .series-empty {
+    text-align: center; padding: 60px 20px; color: var(--text-muted);
+  }
+  .series-empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+
+  /* === Toggle Switch === */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #d1d5db;
+    border-radius: 22px;
+    transition: 0.3s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--emerald, #10b981);
+  }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(16px);
+  }
+
+  /* Prevent text selection on settings controls */
+  .card label,
+  .card select,
+  .card input[type="checkbox"] + label,
+  .card .toggle-switch { -webkit-user-select: none; user-select: none; }
+  .card select, .card input[type="text"], .card input[type="number"] { -webkit-user-select: text; user-select: text; }
+
+  /* === Prep Alert === */
+  .prep-alert-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .prep-alert-bar .prep-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--emerald, #10b981);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .prep-alert-bar .prep-text { flex: 1; }
+  .prep-alert-bar .prep-text strong { display: block; font-size: 14px; color: #166534; }
+  .prep-alert-bar .prep-text span { display: block; font-size: 12px; color: #166534; opacity: 0.8; }
+
+  /* === Nagrania IVI — Recording Dots === */
+  .rec-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #d1d5db;
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+  }
+  .rec-dot.green { background: #22c55e; }
+  .rec-dot.yellow { background: #eab308; animation: rec-pulse 0.8s ease-in-out infinite; }
+  .rec-dot.red { background: #ef4444; }
+  .rec-dot.gray { background: #d1d5db; }
+  @keyframes rec-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(234,179,8,0.5); }
+    50% { box-shadow: 0 0 6px 2px rgba(234,179,8,0.4); }
+  }
+  .recording-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .recording-row:last-child { border-bottom: none; }
+  .recording-row .rec-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .recording-row .rec-title { font-size: 12px; font-weight: 500; color: var(--foreground); }
+  .recording-row .rec-meta { font-size: 10px; color: var(--text-muted); }
+  .rec-dots { display: flex; gap: 8px; align-items: center; }
+  .rec-dot-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  /* Compact mode (no conflicts) */
+  .compact-recordings .recording-row { padding: 5px 0; }
+  .compact-recordings .recording-row .rec-title { font-size: 11px; }
+  .compact-recordings .recording-row .rec-meta { font-size: 9px; display: none; }
+  .compact-recordings .rec-dot { width: 8px; height: 8px; }
+  .compact-recordings .rec-dots { gap: 5px; }
+
+  .settings-checkbox {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 12px; border-radius: 8px;
+    cursor: pointer; transition: background .1s;
+  }
+  .settings-checkbox:hover { background: var(--emerald-light); }
+  .settings-checkbox input[type="checkbox"] {
+    width: 16px; height: 16px; margin-top: 2px;
+    accent-color: var(--emerald); cursor: pointer; flex-shrink: 0;
+  }
+  .storage-path {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; background: #f8fafc;
+    border: 1px solid var(--card-border); border-radius: 8px;
+    font-size: 13px; font-family: monospace;
+  }
 </style>
 </head>
 <body>
 <div class="app">
+
+  <!-- LOGIN OVERLAY -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <img src="../assets/logo_sidebar.png" alt="IVI" class="ivi-logo">
+      <h1 id="login-title">Sign in to IVI</h1>
+      <p class="sub" id="login-sub">Your meeting assistant</p>
+
+      <input class="login-field" type="email" id="login-email" placeholder="Email" value="demo@testigo.com">
+      <input class="login-field" type="password" id="login-password" placeholder="Password" value="demo123">
+      <button class="login-btn login-btn-primary" id="login-btn" onclick="handleLogin()">Sign In</button>
+      <div class="login-divider" id="login-or">or</div>
+      <button class="login-btn login-btn-google" onclick="handleLogin()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        <span id="login-google-text">Sign in with Google</span>
+      </button>
+      <div class="login-error" id="login-error"></div>
+      <div class="login-link" id="login-link">Sign in to IVI</div>
+    </div>
+  </div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -419,13 +911,16 @@ body {
       <a class="nav-item" data-page="meetings">
         <span class="nav-icon"><i data-lucide="calendar"></i></span> Calendar
       </a>
+      <a class="nav-item" data-page="series">
+        <span class="nav-icon"><i data-lucide="repeat"></i></span> Series
+      </a>
       <a class="nav-item" data-page="library">
         <span class="nav-icon"><i data-lucide="file-text"></i></span> Library
       </a>
       <a class="nav-item" data-page="notes">
         <span class="nav-icon"><i data-lucide="sticky-note"></i></span> Notes
       </a>
-      <a class="nav-item" data-page="settings">
+      <a class="nav-item" data-page="settings" style="margin-top:4px">
         <span class="nav-icon"><i data-lucide="settings"></i></span> Settings
       </a>
     </nav>
@@ -458,13 +953,24 @@ body {
       <div style="font-size:13px;color:var(--text-muted);font-weight:500" id="topbar-datetime"></div>
       <div class="topbar-right">
         <span class="topbar-icon"><i data-lucide="bell"></i></span>
-        <span>Alex Kowalski</span>
-        <div class="avatar">AK</div>
+        <span class="topbar-user-name" id="topbar-username" onclick="toggleUserMenu()" style="cursor:default">Alex Kowalski</span>
+        <div class="avatar" id="topbar-avatar" onclick="toggleUserMenu()">AK</div>
+        <div class="user-menu" id="user-menu" style="display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid var(--card-border);border-radius:12px;padding:8px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:100;margin-top:4px">
+          <div style="padding:8px 12px;font-size:13px;color:var(--text-muted);border-bottom:1px solid var(--card-border);margin-bottom:4px" id="user-menu-email">alex@example.com</div>
+          <div class="user-menu-item" onclick="document.querySelector('.nav-item[data-page=settings]').click()" style="padding:8px 12px;font-size:13px;cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:8px" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+            <i data-lucide="settings" style="width:14px;height:14px"></i> <span id="menu-settings">Settings</span>
+          </div>
+          <div class="user-menu-item" onclick="window.iviLogout()" style="padding:8px 12px;font-size:13px;cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:8px;color:#dc2626" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">
+            <i data-lucide="log-out" style="width:14px;height:14px"></i> <span id="menu-signout">Sign Out</span>
+          </div>
+        </div>
       </div>
     </header>
 
     <!-- PAGE: DASHBOARD -->
     <div class="page active" id="page-dashboard">
+      <div id="prep-alert-container"></div>
+      <div id="doc-reminder-container"></div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:stretch">
 
         <div class="card" style="display:flex;flex-direction:column">
@@ -512,9 +1018,7 @@ body {
             </div>
             <div style="font-size:10px;color:var(--emerald);cursor:default;margin-top:6px;font-weight:500" onclick="openSummaryPdf()">Download full summary (PDF) →</div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input type="checkbox" id="ai-assistant-chk" onchange="toggleAiAssistant()" style="accent-color:var(--emerald);width:14px;height:14px;cursor:default">
-            <label for="ai-assistant-chk" style="font-size:10px;color:var(--text-muted);cursor:default">AI assistant — get live suggestions during the meeting</label>
+          <div id="ai-suggestions-row" style="padding-top:8px;margin-top:8px">
           </div>
           <div style="margin-top:auto;padding-top:4px;display:flex;gap:6px">
             <span class="btn btn-primary btn-sm" style="flex:1;justify-content:center;text-align:center;white-space:nowrap" onclick="joinWithAI()" id="join-btn">Join</span>
@@ -564,14 +1068,13 @@ body {
           </div>
         </div>
 
-        <div class="card" style="display:flex;flex-direction:column">
-          <div class="card-label">Teams Sync</div>
-          <div class="card-value" style="font-size:16px;color:var(--emerald)">Connected</div>
-          <div class="card-sub">8 recordings available to process</div>
-          <div style="margin-top:auto;padding-top:8px;display:flex;gap:6px">
-            <span class="badge">3 unprocessed</span>
+        <div class="card" id="ivi-recordings-card" style="display:flex;flex-direction:column">
+          <div class="card-label" style="margin-bottom:8px">IVI Notes</div>
+          <div id="recordings-list" style="display:flex;flex-direction:column;gap:6px;flex:1;min-height:0">
           </div>
-          <div style="margin-top:4px;font-size:12px;color:var(--text-muted)">Last sync: 5 min ago</div>
+          <div style="margin-top:auto;padding-top:8px;display:flex;gap:6px">
+            <span class="btn btn-ghost btn-sm" onclick="openIVINotesModal()" style="flex:1;justify-content:center;text-align:center;white-space:nowrap">See all</span>
+          </div>
         </div>
 
         <div class="card" style="display:flex;flex-direction:column">
@@ -726,6 +1229,17 @@ body {
     </div>
 
     <!-- PAGE: LIBRARY -->
+    <div class="page" id="page-series">
+      <div class="page-body">
+        <div class="section-header-row">
+          <div class="section-title-lg">Meeting Series</div>
+          <span class="btn btn-primary btn-sm" onclick="createSeries()"><i data-lucide="plus" style="width:12px;height:12px"></i> New Series</span>
+        </div>
+        <div class="series-grid" id="series-grid">
+          <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px">Loading series...</div>
+        </div>
+      </div>
+    </div>
     <div class="page" id="page-library">
       <div style="display:flex;gap:16px;margin-bottom:16px">
         <div class="card" style="flex:1"><div class="card-label">Total Documents</div><div class="card-value">12 files</div><div class="card-sub">8 PDF · 3 links · 1 DOCX</div></div>
@@ -757,17 +1271,23 @@ body {
 
     <!-- PAGE: NOTES -->
     <div class="page" id="page-notes">
-      <div style="display:flex;gap:16px;margin-bottom:16px;align-items:stretch">
-        <div class="card" style="flex:1"><div class="card-label">Total Notes</div><div class="card-value" id="notes-count">0</div><div class="card-sub">From all meetings</div></div>
-        <div class="card" style="flex:1"><div class="card-label">Backend</div><div class="card-value" id="backend-status-text" style="font-size:14px;color:#64748b">Checking...</div><div class="card-sub" id="backend-status-sub">⏳</div></div>
-        <div class="card" style="flex:1"><div class="card-label">Last Note</div><div class="card-value" id="last-note-date" style="font-size:14px">—</div><div class="card-sub" id="last-note-title">No notes yet</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-label">Total Notes</div><div class="card-value" id="notes-count">12</div><div class="card-sub">From all meetings</div></div>
+        <div class="card"><div class="card-label">Last Note</div><div class="card-value" id="last-note-date" style="font-size:14px">Oct 26</div><div class="card-sub" id="last-note-title">Product Sprint Review</div></div>
       </div>
-      <div id="notes-list">
-        <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px" id="notes-empty">
-          No meeting notes yet.<br>
-          <span style="font-size:12px">Start a capture or join a meeting — IVI will generate notes automatically.</span>
+      <div class="notes-filters">
+        <div class="nf-period">
+          <span class="nf-btn active" data-period="all" onclick="setNotesFilter('period', 'all')">All</span>
+          <span class="nf-btn" data-period="day" onclick="setNotesFilter('period', 'day')">Day</span>
+          <span class="nf-btn" data-period="week" onclick="setNotesFilter('period', 'week')">Week</span>
+          <span class="nf-btn" data-period="month" onclick="setNotesFilter('period', 'month')">Month</span>
+        </div>
+        <div class="nf-search">
+          <i data-lucide="search" style="width:14px;height:14px;color:var(--text-muted);flex-shrink:0"></i>
+          <input type="text" id="notes-search-input" placeholder="Search by name..." oninput="setNotesFilter('search', this.value)" style="flex:1;border:none;outline:none;font-size:13px;background:transparent">
         </div>
       </div>
+      <div id="notes-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
 
     <!-- PAGE: SETTINGS -->
@@ -835,6 +1355,145 @@ body {
         </div>
 
         <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:600">Note Formats</h3>
+          </div>
+          <div style="margin-bottom:8px;font-size:13px;color:var(--text-muted)">Choose which formats IVI will generate for each meeting:</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:4px">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="format-markdown" checked onchange="toggleNoteFormat(this)">
+              <div><div style="font-weight:500;font-size:13px">Markdown (.md)</div><div style="font-size:11px;color:var(--text-muted)">Editable, version-controllable — primary format</div></div>
+            </label>
+            <label class="settings-checkbox">
+              <input type="checkbox" id="format-pdf" checked onchange="toggleNoteFormat(this)">
+              <div><div style="font-weight:500;font-size:13px">PDF (.pdf)</div><div style="font-size:11px;color:var(--text-muted)">Shareable, read-only — perfect for clients</div></div>
+            </label>
+            <label class="settings-checkbox">
+              <input type="checkbox" id="format-txt" onchange="toggleNoteFormat(this)">
+              <div><div style="font-weight:500;font-size:13px">Plain Text (.txt)</div><div style="font-size:11px;color:var(--text-muted)">Lightweight, universal — works everywhere</div></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:600">Document Reminder Alerts</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-weight:500;font-size:13px">Document reminders</div>
+                <div style="font-size:11px;color:var(--text-muted)">Remind to add documents before the meeting</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="doc-reminder-enabled" checked onchange="saveDocReminderSettings()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="doc-reminder-details" style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+              <div>
+                <div style="font-size:12px;font-weight:500;margin-bottom:6px">Remind me</div>
+                <div style="display:flex;gap:8px">
+                  <select id="doc-reminder-time" onchange="saveDocReminderSettings()" style="flex:1;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit;background:#fff">
+                    <option value="15">15 minutes before</option>
+                    <option value="30">30 minutes before</option>
+                    <option value="60" selected>1 hour before</option>
+                    <option value="custom">Custom...</option>
+                  </select>
+                  <input type="number" id="doc-reminder-custom" min="1" max="1440" value="10" style="display:none;width:60px;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit" onchange="saveDocReminderSettings()" placeholder="min">
+                </div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:500;margin-bottom:6px">"Remind later" interval</div>
+                <select id="doc-reminder-snooze" onchange="saveDocReminderSettings()" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit;background:#fff">
+                  <option value="5">5 minutes</option>
+                  <option value="10">10 minutes</option>
+                  <option value="15" selected>15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">1 hour</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:600">Meeting Prep Alerts</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-weight:500;font-size:13px">Prep reminders</div>
+                <div style="font-size:11px;color:var(--text-muted)">Get reminded to review before each meeting</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="prep-enabled" checked onchange="savePrepSettings()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="prep-details" style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+              <div>
+                <div style="font-size:12px;font-weight:500;margin-bottom:6px">Remind me</div>
+                <div style="display:flex;gap:8px">
+                  <select id="prep-alert-time" onchange="savePrepSettings()" style="flex:1;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit;background:#fff">
+                    <option value="15" selected>15 minutes before</option>
+                    <option value="30">30 minutes before</option>
+                    <option value="custom">Custom...</option>
+                  </select>
+                  <input type="number" id="prep-alert-custom" min="1" max="120" value="10" style="display:none;width:60px;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit" onchange="savePrepSettings()" placeholder="min">
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="prep-auto-add" onchange="savePrepSettings()" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0">
+                <label for="prep-auto-add" style="font-size:12px;color:var(--text-muted);cursor:default">Auto-add "Meeting Prep" event to my calendar</label>
+              </div>
+              <div id="prep-auto-details" style="display:flex;flex-direction:column;gap:10px;padding:10px 12px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:12px;color:var(--text-muted);white-space:nowrap">Event name:</div>
+                  <input type="text" id="prep-event-name" value="Meeting Prep" onchange="savePrepSettings()" style="flex:1;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit">
+                </div>
+                <div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Duration:</div>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <select id="prep-duration" onchange="savePrepSettings()" style="flex:1;padding:6px 8px;border:1px solid var(--card-border);border-radius:8px;font-size:12px;font-family:inherit;background:#fff">
+                      <option value="5">5 min</option>
+                      <option value="10">10 min</option>
+                      <option value="15" selected>15 min</option>
+                      <option value="20">20 min</option>
+                      <option value="25">25 min</option>
+                      <option value="30">30 min</option>
+                      <option value="45">45 min</option>
+                      <option value="60">60 min</option>
+                    </select>
+                    <span id="prep-duration-warning" style="font-size:10px;color:#dc2626;display:none">Prep too long for this meeting</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="font-size:14px;font-weight:600">Storage</h3>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">IVI will save meeting notes to:</div>
+            <div class="storage-path" id="storage-path">
+              <span class="storage-path-text" id="storage-path-text">~/Desktop/</span>
+              <span class="btn btn-ghost btn-sm" onclick="chooseStorageFolder()" style="flex-shrink:0">
+                <i data-lucide="folder" style="width:12px;height:12px"></i> Change
+              </span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);background:var(--emerald-light);padding:10px 12px;border-radius:8px;display:flex;align-items:flex-start;gap:8px">
+            <i data-lucide="folder-tree" style="width:14px;height:14px;color:var(--emerald);flex-shrink:0;margin-top:1px"></i>
+            <div>IVI will create: <code style="font-size:11px">~/Desktop/IVI/YYYY-MM-DD_HH-MM_Meeting-Title/</code></div>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:14px;font-weight:600">Profile</h3></div>
           <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
             <div class="avatar" style="width:48px;height:48px;font-size:18px">AK</div>
@@ -895,8 +1554,9 @@ body {
       </div>
       <div id="detail-join" class="detail-content">
         <div style="text-align:center;padding:24px">
-          <div style="font-size:14px;margin-bottom:12px">The meeting will open in Microsoft Teams</div>
-          <span class="btn btn-primary" style="justify-content:center;width:100%"><i data-lucide="video" style="width:14px;height:14px"></i> Open in Teams</span>
+          <div style="font-size:14px;margin-bottom:12px">Ready to join the meeting</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">IVI will open the meeting room with Teams video and AI assistant panel</div>
+          <span class="btn btn-primary" onclick="openMeetingRoom()" style="justify-content:center;width:100%"><i data-lucide="video" style="width:14px;height:14px"></i> Start Meeting</span>
         </div>
       </div>
       <div id="detail-docs" class="detail-content" style="display:none">
@@ -939,6 +1599,72 @@ body {
 </div>
 
 <!-- Reschedule Modal -->
+
+<!-- MEETING ROOM -->
+<div class="meeting-room-overlay" id="meeting-room" style="display:none">
+  <!-- Top bar -->
+  <div class="mr-topbar">
+    <div class="mr-topbar-left">
+      <span class="mr-back" onclick="closeMeetingRoom()"><i data-lucide="arrow-left" style="width:16px;height:16px"></i> Back to Dashboard</span>
+    </div>
+    <div class="mr-topbar-center">
+      <span class="mr-meeting-title" id="mr-meeting-title">Product Sprint Review</span>
+      <span class="mr-meeting-time" id="mr-meeting-time">14:00 - 14:45</span>
+    </div>
+    <div class="mr-topbar-right">
+      <span class="mr-recording-dot"></span>
+      <span class="mr-recording-label">Recording</span>
+      <span class="mr-timer" id="mr-timer">00:00</span>
+      <span class="btn btn-sm btn-danger" onclick="closeMeetingRoom()" style="padding:4px 12px;font-size:11px">
+        <i data-lucide="log-out" style="width:12px;height:12px"></i> End
+      </span>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="mr-main">
+    <!-- Teams Webview -->
+    <div class="mr-teams" id="mr-teams-container">
+      <webview id="teams-webview" class="teams-webview"></webview>
+      <div class="teams-placeholder" id="teams-placeholder">
+        <div class="tp-icon"><i data-lucide="video" style="width:48px;height:48px"></i></div>
+        <div class="tp-title">Microsoft Teams</div>
+        <div class="tp-sub">Meeting will load here when you join</div>
+        <div class="tp-loading"><div class="tp-spinner"></div> Connecting to Teams...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating AI Chat Bubble -->
+  <div class="ai-bubble" id="ai-bubble">
+    <div class="ai-bubble-handle" id="ai-bubble-handle">
+      <div class="ai-bubble-header">
+        <i data-lucide="sparkles" style="width:14px;height:14px"></i>
+        IVI AI
+        <span class="ai-bubble-close" onclick="closeAiChat()"><i data-lucide="chevron-down" style="width:12px;height:12px"></i></span>
+      </div>
+      <div class="ai-bubble-body" id="ai-bubble-body">
+        <div class="ai-message ai-welcome">
+          <div class="ai-msg-text">Hi! I'm IVI. Ask me anything about the meeting context or documents.</div>
+        </div>
+        <div class="ai-message ai-suggestion">
+          <div class="ai-msg-text">Try: <span class="ai-hint" onclick="sendAiPrompt('What key points should I raise?')">What key points should I raise?</span></div>
+        </div>
+        <div class="ai-message ai-suggestion">
+          <div class="ai-msg-text">Try: <span class="ai-hint" onclick="sendAiPrompt('Summarize the documents for this meeting')">Summarize the documents for this meeting</span></div>
+        </div>
+      </div>
+      <div class="ai-bubble-input">
+        <input type="text" id="ai-chat-input" placeholder="Ask IVI..." onkeydown="if(event.key==='Enter')sendAiPrompt(this.value)">
+        <span class="ai-send-btn" onclick="sendAiPrompt(document.getElementById('ai-chat-input').value)">
+          <i data-lucide="send" style="width:14px;height:14px"></i>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="modal-overlay" id="reschedule-modal">
   <div class="modal" style="width:440px">
     <div class="modal-header">
@@ -993,6 +1719,21 @@ body {
   </div>
 </div>
 
+<!-- IVI Notes Modal -->
+<div class="modal-overlay" id="ivi-notes-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">IVI Notes</div>
+        <div class="modal-meta">All meetings with notes</div>
+      </div>
+      <span class="modal-close" onclick="closeIVINotesModal()">✕</span>
+    </div>
+    <div class="modal-options" id="ivi-notes-modal-list" style="padding:16px 24px 24px">
+    </div>
+  </div>
+</div>
+
 <script>
   lucide.createIcons();
 
@@ -1020,8 +1761,9 @@ body {
       this.classList.add('active');
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + page)?.classList.add('active');
-      const titles = { dashboard: 'Dashboard', meetings: 'Calendar', library: 'Library', settings: 'Settings' };
+      const titles = { dashboard: 'Dashboard', meetings: 'Calendar', series: 'Series', library: 'Library', notes: 'Notes', settings: 'Settings' };
       document.getElementById('page-title').textContent = titles[page] || page;
+      if (page === 'series') loadSeries();
       lucide.createIcons();
     });
   });
@@ -1031,13 +1773,408 @@ body {
     window.ivi.onNotification((data) => console.log('Notification:', data));
   }
 
-  // ---------- Meeting Modal ----------
+  
+  // === SERIES ===
+  function loadSeries() {
+    const grid = document.getElementById('series-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px">Loading series...</div>';
+
+    // Fetch from backend
+    fetch('http://127.0.0.1:8765/series')
+      .then(r => r.json())
+      .then(data => {
+        const list = data.series || [];
+        if (list.length === 0) {
+          grid.innerHTML = '<div class="series-empty"><div class="series-empty-icon">📋</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">No meeting series yet</div><div style="font-size:13px;color:var(--text-muted)">Create a series for recurring meetings like "Daily Scrum" or "Sprint Review"</div></div>';
+          return;
+        }
+        grid.innerHTML = '';
+        list.forEach(function(s) {
+          const card = document.createElement('div');
+          card.className = 'series-card';
+          card.innerHTML = '<div class="series-card-header"><div class="series-card-name">' + s.name + '</div><div class="series-card-count">' + (s.meeting_count || 0) + ' meetings</div></div>';
+          // Fetch commitments for this series
+          fetch('http://127.0.0.1:8765/series/' + s.id + '/commitments')
+            .then(r2 => r2.json())
+            .then(cdata => {
+              const commitments = cdata.commitments || [];
+              if (commitments.length > 0) {
+                const clist = document.createElement('div');
+                clist.className = 'series-card-commitments';
+                clist.innerHTML = '<div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Open Commitments</div>';
+                commitments.forEach(function(cm) {
+                  const due = new Date(cm.due_date + 'T23:59:59');
+                  const now = new Date();
+                  const diffDays = Math.ceil((due - now) / (1000*60*60*24));
+                  let statusClass = 'upcoming', statusLabel = '';
+                  if (diffDays < 0) { statusClass = 'overdue'; statusLabel = 'OVERDUE'; }
+                  else if (diffDays === 0) { statusClass = 'today'; statusLabel = 'TODAY'; }
+                  else if (diffDays <= 7) { statusClass = 'today'; statusLabel = diffDays + 'd left'; }
+                  const item = document.createElement('div');
+                  item.className = 'series-commitment';
+                  item.innerHTML = '<div class="status-dot ' + statusClass + '"></div><div style="flex:1;min-width:0"><div style="font-size:13px">' + (cm.person ? '<strong>' + cm.person + '</strong>: ' : '') + cm.description + '</div></div>' + (statusLabel ? '<span class="status-label ' + statusClass + '">' + statusLabel + '</span>' : '');
+                  clist.appendChild(item);
+                });
+                card.appendChild(clist);
+              }
+            })
+            .catch(function() {});
+          grid.appendChild(card);
+        });
+        if (window.lucide) lucide.createIcons();
+      })
+      .catch(function() {
+        grid.innerHTML = '<div class="series-empty"><div style="font-size:48px;margin-bottom:12px;opacity:0.3">📡</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">Could not load series</div><div style="font-size:13px;color:var(--text-muted)">Make sure the backend is running on port 8765</div></div>';
+      });
+  }
+
+  function createSeries() {
+    const name = prompt('Enter series name:', 'New Series');
+    if (!name || !name.trim()) return;
+    fetch('http://127.0.0.1:8765/series', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim() }),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() { loadSeries(); })
+    .catch(function() { alert('Failed to create series'); });
+  }
+
+// === SETTINGS ===
+function saveSettings() {
+  var fm = document.getElementById('format-markdown');
+  var fp = document.getElementById('format-pdf');
+  var ft = document.getElementById('format-txt');
+  var settings = {
+    formatMarkdown: fm ? fm.checked : true,
+    formatPdf: fp ? fp.checked : true,
+    formatTxt: ft ? ft.checked : false,
+    storagePath: localStorage.getItem('ivi_storage_path') || '~/Desktop/',
+  };
+  localStorage.setItem('ivi_settings', JSON.stringify(settings));
+}
+
+function toggleNoteFormat(el) {
+  var all = ['format-markdown', 'format-pdf', 'format-txt'];
+  var checked = all.filter(function(id) {
+    var cb = document.getElementById(id);
+    return cb && cb.checked;
+  });
+  // If this was the last checked one, re-check it
+  if (checked.length === 0) {
+    el.checked = true;
+  }
+  saveSettings();
+}
+
+// ---------- Meeting Prep Settings ----------
+function savePrepSettings() {
+  var enabled = document.getElementById('prep-enabled').checked;
+  var alertTime = document.getElementById('prep-alert-time').value;
+  var customMin = parseInt(document.getElementById('prep-alert-custom').value) || 10;
+  var autoAdd = document.getElementById('prep-auto-add').checked;
+  var eventName = document.getElementById('prep-event-name').value || 'Meeting Prep';
+  var duration = parseInt(document.getElementById('prep-duration').value) || 15;
+  // Show/hide all prep options based on toggle
+  document.getElementById('prep-details').style.display = enabled ? 'flex' : 'none';
+  // Validate duration against time to next meeting (mock: 34 min)
+  var maxDuration = 34;
+  var warn = document.getElementById('prep-duration-warning');
+  if (duration > maxDuration) {
+    warn.style.display = 'inline';
+  } else {
+    warn.style.display = 'none';
+  }
+  localStorage.setItem('ivi_prep_settings', JSON.stringify({
+    enabled: enabled,
+    alertTime: alertTime === 'custom' ? customMin : parseInt(alertTime),
+    alertTimeMode: alertTime,
+    autoAdd: autoAdd,
+    eventName: eventName,
+    duration: duration
+  }));
+  // Show/hide custom field
+  document.getElementById('prep-alert-custom').style.display = alertTime === 'custom' ? 'block' : 'none';
+  // Show/hide auto-add details
+  document.getElementById('prep-auto-details').style.display = (autoAdd && enabled) ? 'flex' : 'none';
+}
+
+function loadPrepSettings() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('ivi_prep_settings'));
+    if (!saved) {
+      // Default: toggle on, show options (matches HTML defaults)
+      document.getElementById('prep-enabled').checked = true;
+      document.getElementById('prep-details').style.display = 'flex';
+      // Persist defaults
+      localStorage.setItem('ivi_prep_settings', JSON.stringify({
+        enabled: true, alertTime: 15, alertTimeMode: '15',
+        autoAdd: false, eventName: 'Meeting Prep', duration: 15
+      }));
+      return;
+    }
+    var enabled = document.getElementById('prep-enabled');
+    if (enabled) enabled.checked = saved.enabled;
+    // Show/hide prep options based on saved state
+    document.getElementById('prep-details').style.display = saved.enabled ? 'flex' : 'none';
+    var alertTime = document.getElementById('prep-alert-time');
+    if (alertTime) {
+      alertTime.value = saved.alertTimeMode || (saved.alertTime === 15 ? '15' : saved.alertTime === 30 ? '30' : 'custom');
+      if (alertTime.value === 'custom') {
+        document.getElementById('prep-alert-custom').style.display = 'block';
+        document.getElementById('prep-alert-custom').value = saved.alertTime || 10;
+      }
+    }
+    var autoAdd = document.getElementById('prep-auto-add');
+    if (autoAdd) {
+      autoAdd.checked = saved.autoAdd;
+      document.getElementById('prep-auto-details').style.display = (saved.autoAdd && saved.enabled) ? 'flex' : 'none';
+    }
+    var eventName = document.getElementById('prep-event-name');
+    if (eventName) eventName.value = saved.eventName || 'Meeting Prep';
+    var duration = document.getElementById('prep-duration');
+    if (duration) duration.value = saved.duration || 15;
+  } catch(e) {}
+}
+
+// ---------- Document Reminder Settings ----------
+function saveDocReminderSettings() {
+  var enabled = document.getElementById('doc-reminder-enabled').checked;
+  var timeVal = document.getElementById('doc-reminder-time').value;
+  var customMin = parseInt(document.getElementById('doc-reminder-custom').value) || 10;
+  var snooze = parseInt(document.getElementById('doc-reminder-snooze').value) || 15;
+  // Show/hide options based on toggle
+  document.getElementById('doc-reminder-details').style.display = enabled ? 'flex' : 'none';
+  localStorage.setItem('ivi_doc_reminder_settings', JSON.stringify({
+    enabled: enabled,
+    time: timeVal === 'custom' ? customMin : parseInt(timeVal),
+    timeMode: timeVal,
+    snooze: snooze
+  }));
+  document.getElementById('doc-reminder-custom').style.display = timeVal === 'custom' ? 'block' : 'none';
+}
+
+function loadDocReminderSettings() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('ivi_doc_reminder_settings'));
+    if (!saved) {
+      // Default: toggle on, show options (matches HTML defaults)
+      document.getElementById('doc-reminder-enabled').checked = true;
+      document.getElementById('doc-reminder-details').style.display = 'flex';
+      // Persist defaults
+      localStorage.setItem('ivi_doc_reminder_settings', JSON.stringify({
+        enabled: true, time: 60, timeMode: '60', snooze: 15
+      }));
+      return;
+    }
+    var enabled = document.getElementById('doc-reminder-enabled');
+    if (enabled) enabled.checked = saved.enabled;
+    // Show/hide options based on saved state
+    document.getElementById('doc-reminder-details').style.display = saved.enabled ? 'flex' : 'none';
+    var timeEl = document.getElementById('doc-reminder-time');
+    if (timeEl) {
+      timeEl.value = saved.timeMode || '15';
+      if (timeEl.value === 'custom') {
+        document.getElementById('doc-reminder-custom').style.display = 'block';
+        document.getElementById('doc-reminder-custom').value = saved.time || 10;
+      }
+    }
+    var snooze = document.getElementById('doc-reminder-snooze');
+    if (snooze) snooze.value = saved.snooze || 15;
+  } catch(e) {}
+}
+
+// ---------- Dismissed meetings ----------
+var DOC_DISMISSED = JSON.parse(localStorage.getItem('ivi_doc_dismissed') || '{}');
+var DOC_SNOOZED = JSON.parse(localStorage.getItem('ivi_doc_snoozed') || '{}');
+
+function dismissDocReminder(meetingId) {
+  DOC_DISMISSED[meetingId] = true;
+  localStorage.setItem('ivi_doc_dismissed', JSON.stringify(DOC_DISMISSED));
+  renderDocReminderAlert();
+}
+
+function snoozeDocReminder(meetingId) {
+  var settings = JSON.parse(localStorage.getItem('ivi_doc_reminder_settings') || '{}');
+  var snoozeMin = settings.snooze || 15;
+  DOC_SNOOZED[meetingId] = Date.now() + snoozeMin * 60000;
+  localStorage.setItem('ivi_doc_snoozed', JSON.stringify(DOC_SNOOZED));
+  renderDocReminderAlert();
+}
+
+// ---------- Doc Reminder Alert on Dashboard ----------
+function renderDocReminderAlert() {
+  var container = document.getElementById('doc-reminder-container');
+  if (!container) return;
+  var settings = JSON.parse(localStorage.getItem('ivi_doc_reminder_settings') || '{}');
+  if (!settings.enabled) {
+    container.innerHTML = '';
+    return;
+  }
+  // Check if there are documents in the next meeting card
+  var docs = document.querySelectorAll('.card:first-child [style*="background:#e0e7ff"]');
+  if (docs.length > 0) {
+    container.innerHTML = '';
+    return; // has documents, no reminder needed
+  }
+  var now = Date.now();
+  var meetingId = 'mock_next_meeting';
+  if (DOC_DISMISSED[meetingId]) {
+    container.innerHTML = '';
+    return;
+  }
+  if (DOC_SNOOZED[meetingId] && now < DOC_SNOOZED[meetingId]) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = '<div class="prep-alert-bar" style="background:#fffbeb;border-color:#fde68a">' +
+    '<div class="prep-icon" style="background:#f59e0b">📄</div>' +
+    '<div class="prep-text">' +
+    '<strong>No documents for this meeting</strong>' +
+    '<span>Add documents so IVI can give you relevant suggestions during the meeting</span>' +
+    '</div>' +
+    '<span class="btn btn-ghost btn-sm" onclick="snoozeDocReminder(\'' + meetingId + '\')" style="font-size:11px;white-space:nowrap">Remind later</span>' +
+    '<span class="btn btn-ghost btn-sm" onclick="dismissDocReminder(\'' + meetingId + '\')" style="font-size:11px;white-space:nowrap;color:#dc2626;border-color:rgba(220,38,38,0.3)">Dismiss</span>' +
+    '</div>';
+}
+
+// ---------- Prep Alert on Dashboard ----------
+var prepCheckInterval = null;
+
+function renderPrepAlert() {
+  var container = document.getElementById('prep-alert-container');
+  if (!container) return;
+  var settings = JSON.parse(localStorage.getItem('ivi_prep_settings') || '{}');
+  if (!settings.enabled) {
+    container.innerHTML = '';
+    return;
+  }
+  var now = new Date();
+  // Mock: next meeting in ~34 min (simulating a meeting soon)
+  var nextMeeting = new Date(now.getTime() + 34 * 60000);
+  var nextMeetingTitle = 'Product Sprint Review';
+  var diffMs = nextMeeting.getTime() - now.getTime();
+  var diffMin = Math.round(diffMs / 60000);
+  var alertBefore = settings.alertTime || 15;
+  var duration = settings.duration || 15;
+  if (duration > diffMin) {
+    // Duration too long - cap it
+    duration = Math.max(5, diffMin - 1);
+  }
+  // Show alert if within alert window
+  if (diffMin >= 0 && diffMin <= alertBefore) {
+    var prepName = (settings.autoAdd && settings.eventName) ? settings.eventName : 'Meeting prep';
+    container.innerHTML = '<div class="prep-alert-bar">' +
+      '<div class="prep-icon">\uD83D\uDCDD</div>' +
+      '<div class="prep-text">' +
+      '<strong>' + prepName + ' in ' + diffMin + ' min</strong>' +
+      '<span>' + nextMeetingTitle + ' starts in ' + diffMin + ' min ' +
+      '(' + (settings.autoAdd ? duration + ' min prep \u00b7 auto-added to calendar' : '') + ')</span>' +
+      '</div></div>';
+  } else {
+    container.innerHTML = '';
+  }
+}
+
+function startPrepAlertLoop() {
+  if (prepCheckInterval) clearInterval(prepCheckInterval);
+  renderPrepAlert();
+  prepCheckInterval = setInterval(renderPrepAlert, 15000);
+}
+
+function loadSettings() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('ivi_settings'));
+    if (!saved) return;
+    var fm = document.getElementById('format-markdown');
+    var fp = document.getElementById('format-pdf');
+    var ft = document.getElementById('format-txt');
+    if (fm) fm.checked = saved.formatMarkdown !== false;
+    if (fp) fp.checked = saved.formatPdf !== false;
+    if (ft) ft.checked = saved.formatTxt === true;
+    if (saved.storagePath) {
+      var el = document.getElementById('storage-path-text');
+      if (el) el.textContent = saved.storagePath;
+      localStorage.setItem('ivi_storage_path', saved.storagePath);
+    }
+  } catch(e) {}
+}
+
+function chooseStorageFolder() {
+  if (window.ivi && window.ivi.selectFolder) {
+    window.ivi.selectFolder().then(function(path) {
+      if (path) {
+        var el = document.getElementById('storage-path-text');
+        if (el) el.textContent = path;
+        localStorage.setItem('ivi_storage_path', path);
+        saveSettings();
+        listStoredMeetings(path);
+      }
+    }).catch(function() {});
+  } else {
+    var path = prompt('Enter storage path:', localStorage.getItem('ivi_storage_path') || '~/Desktop/');
+    if (path && path.trim()) {
+      var el = document.getElementById('storage-path-text');
+      if (el) el.textContent = path.trim();
+      localStorage.setItem('ivi_storage_path', path.trim());
+      saveSettings();
+    }
+  }
+}
+
+function listStoredMeetings() {
+  var basePath = localStorage.getItem('ivi_storage_path') || '~/Desktop/';
+  var iviPath = basePath.replace(/\/$/, '') + '/IVI';
+  var preview = document.getElementById('storage-preview');
+  var list = document.getElementById('storage-meetings-list');
+  if (!preview || !list) return;
+  preview.style.display = 'block';
+  if (window.ivi && window.ivi.listDirectory) {
+    window.ivi.listDirectory(iviPath).then(function(entries) {
+      if (entries && entries.length > 0) {
+        // Only show folders that look like meetings (date-prefixed)
+        var meetingDirs = entries.filter(function(e) { return /^\d{4}-\d{2}-\d{2}_/.test(e); });
+        if (meetingDirs.length === 0) {
+          list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">No meetings saved yet.</div>';
+          return;
+        }
+        var html = '';
+        var start = Math.max(0, meetingDirs.length - 10);
+        for (var i = meetingDirs.length - 1; i >= start; i--) {
+          html += '<div style="padding:3px 0;font-size:12px">📁 ' + meetingDirs[i] + '</div>';
+        }
+        if (meetingDirs.length > 10) {
+          html += '<div style="font-size:11px;color:var(--text-muted);padding-top:4px">... and ' + (meetingDirs.length - 10) + ' more</div>';
+        }
+        list.innerHTML = html;
+      } else {
+        list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">No meetings saved yet</div>';
+      }
+    }).catch(function() {
+      list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Could not read directory</div>';
+    });
+  } else {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Folder browsing available in desktop app</div>';
+  }
+}
+
+// Load settings on page load and when navigating to settings
+document.addEventListener('DOMContentLoaded', function() { loadSettings(); loadPrepSettings(); loadDocReminderSettings(); });
+document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) {
+  el.addEventListener('click', function() {
+    setTimeout(function() { loadSettings(); loadPrepSettings(); loadDocReminderSettings(); listStoredMeetings(); }, 100);
+  });
+});
+
+// ---------- Meeting Modal ----------
   function openMeetingModal(title, meta) {
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-meta').textContent = meta;
     document.getElementById('meeting-modal').classList.add('active');
     document.getElementById('modal-detail').style.display = 'none';
-    document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'flex');
+    document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'flex');
     lucide.createIcons();
   }
 
@@ -1047,7 +2184,7 @@ body {
 
   function showAction(action) {
     const titles = { join: 'Join Meeting', docs: 'Add Documentation', absent: 'Absent Mode', transcript: 'Generate Notes & Transcript', ai: 'AI Suggestions' };
-    document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'none');
+    document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'none');
     document.getElementById('modal-detail').style.display = 'block';
     document.getElementById('md-title').textContent = titles[action] || action;
     document.getElementById('modal-back').style.display = 'flex';
@@ -1060,7 +2197,7 @@ body {
 
   function hideAction() {
     document.getElementById('modal-detail').style.display = 'none';
-    document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'flex');
+    document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'flex');
     document.getElementById('modal-back').style.display = 'none';
   }
 
@@ -1217,6 +2354,8 @@ body {
       document.getElementById('conflict-card').style.gap = '0px';
       document.getElementById('conflict-card').style.minHeight = '';
       document.getElementById('conflict-card').style.width = '';
+      // Notify recordings card to compact
+      if (typeof onConflictStateChange === 'function') onConflictStateChange();
       return;
     }
 
@@ -1248,6 +2387,8 @@ body {
     document.getElementById('conflict-active-content').style.display = 'block';
     document.getElementById('conflict-none').style.display = 'none';
     document.getElementById('conflict-card').classList.add('conflict-active');
+    // Notify recordings card to expand
+    if (typeof onConflictStateChange === 'function') onConflictStateChange();
     lucide.createIcons();
   }
 
@@ -1411,7 +2552,7 @@ body {
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-meta').textContent = meta;
     document.getElementById('meeting-modal').classList.add('active');
-    document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'none');
+    document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'none');
     document.getElementById('modal-detail').style.display = 'block';
     document.getElementById('modal-back').style.display = 'flex';
 
@@ -1493,12 +2634,13 @@ body {
 
         // Pagination
         if (totalPages > 1) {
-          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
-            <span style="font-size:11px;color:var(--text-muted)">Page ${conflictPage + 1} of ${totalPages}</span>
-            <div style="display:flex;gap:4px">`;
-          if (hasPrev) html += `<span class="btn btn-ghost btn-sm" onclick="window._prevConflictPage()">Previous</span>`;
-          if (hasNext) html += `<span class="btn btn-primary btn-sm" onclick="window._nextConflictPage()">Next 2</span>`;
-          html += `</div></div>`;
+          html += '<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding-top:12px;border-top:1px solid var(--card-border);margin-top:8px">';
+          if (hasPrev) html += '<span class="btn btn-ghost btn-sm" onclick="window._prevConflictPage()">← Prev</span>';
+          else html += '<span class="btn btn-ghost btn-sm" style="opacity:0.3;pointer-events:none">← Prev</span>';
+          html += '<span style="font-size:12px;color:var(--text-muted)">' + (conflictPage + 1) + ' / ' + totalPages + '</span>';
+          if (hasNext) html += '<span class="btn btn-ghost btn-sm" onclick="window._nextConflictPage()">Next →</span>';
+          else html += '<span class="btn btn-ghost btn-sm" style="opacity:0.3;pointer-events:none">Next →</span>';
+          html += '</div>';
         }
 
         html += `</div>`;
@@ -1519,7 +2661,7 @@ body {
 
   function closeDetail() {
     document.getElementById('modal-detail').style.display = 'none';
-    document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'flex');
+    document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'flex');
     document.getElementById('modal-back').style.display = 'none';
   }
 
@@ -1528,7 +2670,7 @@ body {
     document.getElementById('modal-title').textContent = 'Product Sprint Review';
     document.getElementById('modal-meta').textContent = 'Today · 14:00-14:45';
     document.getElementById('meeting-modal').classList.add('active');
-    document.querySelectorAll('.modal-options').forEach(o => o.style.display = 'none');
+    document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'none');
     document.getElementById('modal-detail').style.display = 'block';
     // Back closes the modal entirely (not returning to options list)
     document.getElementById('modal-back').onclick = function() {
@@ -1641,66 +2783,32 @@ body {
   // ---------- Notes page ----------
   let notesRefreshInterval = null;
 
-  async function loadNotes() {
-    try {
-      const backendStatus = await window.ivi.getBackendStatus();
-      const statusText = document.getElementById('backend-status-text');
-      const statusSub = document.getElementById('backend-status-sub');
-      if (backendStatus && backendStatus.running) {
-        statusText.textContent = 'Online ✅';
-        statusText.style.color = '#16a34a';
-        statusSub.textContent = 'Port ' + backendStatus.port;
+  function loadNotes() {
+    const list = document.getElementById('notes-list');
+    const countEl = document.getElementById('notes-count');
+    if (!list) return;
 
-        // Fetch meetings from backend
-        const data = await window.ivi.fetchAPI('/meetings?limit=20');
-        const meetings = data.meetings || [];
-        document.getElementById('notes-count').textContent = meetings.length;
+    if (countEl) countEl.textContent = IVI_RECORDINGS.length;
 
-        const container = document.getElementById('notes-list');
-        const empty = document.getElementById('notes-empty');
-
-        if (meetings.length === 0) {
-          empty.style.display = 'block';
-          return;
-        }
-        empty.style.display = 'none';
-
-        // Build notes list
-        let html = '<div class="card" style="padding:0;overflow:hidden"><table class="table"><tr><th>Meeting</th><th>Date</th><th>Summary</th><th>Actions</th></tr>';
-        for (const m of meetings) {
-          const notesData = await window.ivi.fetchAPI(`/meetings/${m.id}/notes`);
-          const notes = notesData.notes || [];
-          const summary = notes.length > 0 ? notes[0].summary?.slice(0, 100) + '…' : '—';
-          const date = m.start_time ? new Date(m.start_time).toLocaleDateString('pl-PL') : '—';
-          html += `<tr>
-            <td style="font-weight:500">${m.title}</td>
-            <td>${date}</td>
-            <td style="font-size:12px;color:var(--text-muted)">${summary}</td>
-            <td><span class="btn btn-ghost btn-sm" onclick="showNoteDetail('${m.id}', '${m.title.replace(/'/g, "\\'")}')">View</span></td>
-          </tr>`;
-        }
-        html += '</table></div>';
-        container.innerHTML = html;
-
-        // Update last note
-        if (meetings.length > 0) {
-          const last = meetings[0];
-          document.getElementById('last-note-title').textContent = last.title;
-          document.getElementById('last-note-date').textContent = last.start_time
-            ? new Date(last.start_time).toLocaleDateString('pl-PL')
-            : 'Today';
-        }
-      } else {
-        statusText.textContent = 'Offline ⚠️';
-        statusText.style.color = '#ef4444';
-        statusSub.textContent = 'Backend not running';
-      }
-    } catch (err) {
-      const statusText = document.getElementById('backend-status-text');
-      statusText.textContent = 'Offline ⚠️';
-      statusText.style.color = '#ef4444';
-      document.getElementById('backend-status-sub').textContent = err.message;
+    // Update last note
+    if (IVI_RECORDINGS.length > 0) {
+      const last = IVI_RECORDINGS[0];
+      document.getElementById('last-note-title').textContent = last.title;
+      document.getElementById('last-note-date').textContent = last.date + ' ' + last.time;
     }
+
+    let html = '';
+    IVI_RECORDINGS.forEach(rec => {
+      const completed = rec.status.filter(s => s === 'green').length;
+      html += `<div class="modal-option" style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;cursor:default;transition:background 0.15s">`;
+      html += `<div style="flex:1">`;
+      html += `<div class="mo-title">${rec.title}</div>`;
+      html += `<div class="mo-desc">${rec.date} ${rec.time} · ${rec.duration}</div>`;
+      html += `</div>`;
+      html += `<span class="btn btn-primary btn-sm" onclick="viewIVINotes('${rec.id}')" style="white-space:nowrap">See notes</span>`;
+      html += `</div>`;
+    });
+    list.innerHTML = html;
   }
 
   // ---------- Note detail viewer ----------
@@ -1802,10 +2910,333 @@ body {
     el.addEventListener('click', () => {
       if (notesRefreshInterval) clearInterval(notesRefreshInterval);
       loadChecklist();
+      loadActionItems();
+      loadIVIRecordings();
+      renderAISuggestionsRow();
+      startPrepAlertLoop();
+      renderDocReminderAlert();
     });
   });
 
-  // ---------- Commitments checklist ----------
+  
+  // ---------- Nagrania IVI — Recording Pipeline ----------
+  const IVI_RECORDINGS = [
+    {
+      id: 'rec1',
+      title: 'Product Sprint Review',
+      date: 'Today',
+      time: '14:00',
+      duration: '45 min',
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ],
+      status: ['green','green','green','green']
+    },
+    {
+      id: 'rec2',
+      title: 'Client Sync',
+      date: 'Today',
+      time: '10:30',
+      duration: '30 min',
+      status: ['green','yellow','gray','gray'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec3',
+      title: 'Teacher Lab — UI review',
+      date: 'Yesterday',
+      time: '09:00',
+      duration: '60 min',
+      status: ['green','green','green','green'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec4',
+      title: 'e-Krew technical sync',
+      date: 'Oct 24',
+      time: '15:00',
+      duration: '25 min',
+      status: ['green','green','green','red'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec5',
+      title: 'Weekly Sync',
+      date: 'Oct 24',
+      time: '11:00',
+      duration: '50 min',
+      status: ['green','green','green','green'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec6',
+      title: 'Ideamotive screening',
+      date: 'Oct 23',
+      time: '14:00',
+      duration: '30 min',
+      status: ['green','green','green','green'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec7',
+      title: 'Design review — Dashboard v2',
+      date: 'Oct 22',
+      time: '11:00',
+      duration: '55 min',
+      status: ['green','green','green','green'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec8',
+      title: 'Testigo weekly — QA sync',
+      date: 'Oct 21',
+      time: '09:30',
+      duration: '45 min',
+      status: ['green','green','green','green'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec9',
+      title: 'English Lab — lesson planning',
+      date: 'Oct 20',
+      time: '15:00',
+      duration: '60 min',
+      status: ['green','green','green','red'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec10',
+      title: 'e-Krew sprint planning',
+      date: 'Oct 19',
+      time: '10:00',
+      duration: '50 min',
+      status: ['green','green','green','green'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec11',
+      title: 'Product roadmap review',
+      date: 'Oct 18',
+      time: '13:00',
+      duration: '40 min',
+      status: ['green','green','yellow','gray'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    },
+    {
+      id: 'rec12',
+      title: 'Client onboarding — Acme Inc',
+      date: 'Oct 17',
+      time: '09:00',
+      duration: '35 min',
+      status: ['green','yellow','gray','gray'],
+      stages: [
+        { id: 'recorded', label: 'Recorded' },
+        { id: 'processed', label: 'Transcribed' },
+        { id: 'noted', label: 'Notes ready' },
+        { id: 'deleted', label: 'Audio deleted' }
+      ]
+    }
+  ];
+
+  let recordingRefreshInterval = null;
+
+  function renderRecordings(compact) {
+    const list = document.getElementById('recordings-list');
+    if (!list) return;
+    const hasConflicts = activeConflicts.length > 0;
+    const showCount = (!hasConflicts || compact) ? 2 : 5;
+
+    // Apply compact class
+    list.classList.toggle('compact-recordings', !hasConflicts || compact);
+
+    const items = IVI_RECORDINGS.slice(0, showCount);
+    if (items.length === 0) {
+      list.innerHTML = '<div style="font-size:11px;color:var(--text-muted);padding:12px 0;text-align:center">No recordings yet</div>';
+      return;
+    }
+
+    let html = '';
+    items.forEach(rec => {
+      html += `<div class="recording-row">`;
+      html += `<div class="rec-info">`;
+      html += `<div class="rec-title">${rec.title}</div>`;
+      html += `<div class="rec-meta">${rec.date} ${rec.time} · ${rec.duration}</div>`;
+      html += `</div>`;
+      html += `<div class="rec-dots">`;
+      rec.status.forEach((state, si) => {
+        const dotClass = state === 'green' ? 'green' : state === 'yellow' ? 'yellow' : state === 'red' ? 'red' : 'gray';
+        const stageLabel = rec.stages?.[si]?.label || '';
+        html += `<div class="rec-dot-col">`;
+        html += `<div class="rec-dot ${dotClass}" title="${stageLabel}"></div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+      html += `</div>`;
+    });
+
+    list.innerHTML = html;
+  }
+
+  function loadIVIRecordings() {
+    renderRecordings(false);
+  }
+
+  // Re-render when conflict state changes (called from renderConflictCard)
+  function onConflictStateChange() {
+    renderRecordings(false);
+  }
+
+  let iviNotesPage = 0;
+  const IVI_NOTES_PER_PAGE = 5;
+
+  function openIVINotesModal() {
+    iviNotesPage = 0;
+    renderIVINotesPage();
+    var modal = document.getElementById('ivi-notes-modal');
+    modal.classList.add('active');
+    // Reset any inline styles that might leak from other modals
+    var list = document.getElementById('ivi-notes-modal-list');
+    if (list) list.style.display = '';
+  }
+
+  function renderIVINotesPage() {
+    const list = document.getElementById('ivi-notes-modal-list');
+    if (!list) return;
+
+    const totalPages = Math.ceil(IVI_RECORDINGS.length / IVI_NOTES_PER_PAGE);
+    const start = iviNotesPage * IVI_NOTES_PER_PAGE;
+    const pageItems = IVI_RECORDINGS.slice(start, start + IVI_NOTES_PER_PAGE);
+
+    let html = '';
+    pageItems.forEach(rec => {
+      html += `<div class="modal-option">`;
+      html += `<div style="flex:1">`;
+      html += `<div class="mo-title">${rec.title}</div>`;
+      html += `<div class="mo-desc">${rec.date} ${rec.time} · ${rec.duration}</div>`;
+      html += `</div>`;
+      html += `<span class="btn btn-primary btn-sm" onclick="viewIVINotes('${rec.id}')" style="white-space:nowrap">See notes</span>`;
+      html += `</div>`;
+    });
+
+    if (totalPages > 1) {
+      html += `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding-top:12px;border-top:1px solid var(--card-border);margin-top:8px">`;
+      html += `<span class="btn btn-ghost btn-sm" onclick="iviNotesPrevPage()" style="${iviNotesPage === 0 ? 'opacity:0.3;pointer-events:none' : ''}">← Prev</span>`;
+      html += `<span style="font-size:12px;color:var(--text-muted)">${iviNotesPage + 1} / ${totalPages}</span>`;
+      html += `<span class="btn btn-ghost btn-sm" onclick="iviNotesNextPage()" style="${iviNotesPage >= totalPages - 1 ? 'opacity:0.3;pointer-events:none' : ''}">Next →</span>`;
+      html += `</div>`;
+    }
+
+    list.innerHTML = html;
+  }
+
+  function iviNotesPrevPage() {
+    if (iviNotesPage > 0) {
+      iviNotesPage--;
+      renderIVINotesPage();
+    }
+  }
+
+  function iviNotesNextPage() {
+    const totalPages = Math.ceil(IVI_RECORDINGS.length / IVI_NOTES_PER_PAGE);
+    if (iviNotesPage < totalPages - 1) {
+      iviNotesPage++;
+      renderIVINotesPage();
+    }
+  }
+
+  function closeIVINotesModal() {
+    document.getElementById('ivi-notes-modal').classList.remove('active');
+  }
+
+  function viewIVINotes(id) {
+    closeIVINotesModal();
+    // Open the storage folder in file manager
+    var path = localStorage.getItem('ivi_storage_path') || '~/Desktop/';
+    var iviPath = path.replace(/\/$/, '') + '/IVI';
+    if (window.ivi && window.ivi.openInFolder) {
+      window.ivi.openInFolder(iviPath);
+    }
+  }
+
+  function renderAISuggestionsRow() {
+    const row = document.getElementById('ai-suggestions-row');
+    if (!row) return;
+    // Check if there are documents in the card
+    const docs = document.querySelectorAll('.card:first-child [style*="background:#e0e7ff"]');
+    if (docs.length > 0) {
+      row.innerHTML = '<div style="display:flex;align-items:center;gap:8px">' +
+        '<input type="checkbox" id="ai-suggest-chk" onchange="toggleAiSuggestions()" ' +
+        'style="accent-color:var(--emerald);width:14px;height:14px;cursor:default;flex-shrink:0">' +
+        '<label for="ai-suggest-chk" style="font-size:10px;color:var(--text-muted);cursor:default;line-height:1.3">' +
+        'IVI will suggest during the meeting based on your documents</label></div>';
+    } else {
+      row.innerHTML = '<div style="font-size:10px;color:var(--text-muted);text-align:center;padding:4px 0;line-height:1.4">' +
+        '📄 Add documents for IVI to give you suggestions during the meeting</div>';
+    }
+  }
+
+  function toggleAiSuggestions() {
+    // Toggle stored - can be expanded later
+    const chk = document.getElementById('ai-suggest-chk');
+    if (chk) {
+      localStorage.setItem('ivi_ai_suggestions', chk.checked ? 'true' : 'false');
+    }
+  }
+
+// ---------- Commitments checklist ----------
   async function loadChecklist() {
     try {
       const data = await window.ivi.fetchAPI('/api/upcoming/checklist');
@@ -1880,6 +3311,11 @@ body {
   });
   // Also check on initial load
   setTimeout(checkCalendarStatus, 2000);
+  // Load recordings on initial load
+  setTimeout(loadIVIRecordings, 1500);
+  // Start prep alert loop on initial load
+  setTimeout(startPrepAlertLoop, 2000);
+  setTimeout(renderDocReminderAlert, 2500);
 
   // ---------- Push-to-Talk ----------
   let pttRecorder = null;
@@ -2010,6 +3446,167 @@ body {
       // main.js handles this via globalShortcut, this is a fallback
     }
   });
+
+  // === MEETING ROOM ===
+  let meetingRoomOpen = false;
+  let meetingTimer = null;
+  let meetingSeconds = 0;
+
+  function openMeetingRoom() {
+    const modal = document.getElementById('meeting-modal');
+    if (modal) modal.classList.remove('active');
+
+    const room = document.getElementById('meeting-room');
+    if (!room) return;
+    room.style.display = 'flex';
+
+    // Get meeting info from the modal title/meta
+    const titleEl = document.getElementById('modal-title');
+    const metaEl = document.getElementById('modal-meta');
+    if (titleEl) document.getElementById('mr-meeting-title').textContent = titleEl.textContent;
+    if (metaEl) document.getElementById('mr-meeting-time').textContent = metaEl.textContent;
+
+    // Find the meeting's joinUrl from tracker data
+    const meetingTitle = titleEl ? titleEl.textContent : '';
+    let joinUrl = '';
+
+    // Try to get from the current meeting card data
+    const nextCard = document.querySelector('.next-meeting-card');
+    if (nextCard && nextCard.dataset) {
+      joinUrl = nextCard.dataset.joinUrl || '';
+    }
+
+    // Try the webview
+    const webview = document.getElementById('teams-webview');
+    const placeholder = document.getElementById('teams-placeholder');
+    if (webview && joinUrl) {
+      webview.src = joinUrl;
+      webview.addEventListener('did-start-loading', function() {
+        if (placeholder) placeholder.style.display = 'flex';
+      });
+      webview.addEventListener('did-stop-loading', function() {
+        if (placeholder) placeholder.classList.add('webview-loaded');
+        setTimeout(() => { if (placeholder) placeholder.style.display = 'none'; }, 500);
+      });
+      webview.addEventListener('did-fail-load', function() {
+        // Keep placeholder visible if load fails
+        if (placeholder) placeholder.style.display = 'flex';
+      });
+    }
+
+    // Start timer
+    meetingSeconds = 0;
+    if (meetingTimer) clearInterval(meetingTimer);
+    meetingTimer = setInterval(function() {
+      meetingSeconds++;
+      const m = Math.floor(meetingSeconds / 60);
+      const s = meetingSeconds % 60;
+      const timer = document.getElementById('mr-timer');
+      if (timer) timer.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }, 1000);
+
+    meetingRoomOpen = true;
+    if (window.lucide) setTimeout(function() { lucide.createIcons(); }, 50);
+  }
+
+  function closeMeetingRoom() {
+    const room = document.getElementById('meeting-room');
+    if (room) room.style.display = 'none';
+    if (meetingTimer) { clearInterval(meetingTimer); meetingTimer = null; }
+
+    // Stop webview
+    const webview = document.getElementById('teams-webview');
+    if (webview) { try { webview.src = 'about:blank'; } catch(e) {} }
+
+    const placeholder = document.getElementById('teams-placeholder');
+    if (placeholder) placeholder.classList.remove('webview-loaded');
+    if (placeholder) placeholder.style.display = 'flex';
+
+    meetingRoomOpen = false;
+  }
+
+  // === DRAGGABLE AI BUBBLE ===
+  let dragState = null;
+
+  function initDrag(e) {
+    const bubble = document.getElementById('ai-bubble');
+    if (!bubble) return;
+    const rect = bubble.getBoundingClientRect();
+    dragState = {
+      startX: e.clientX, startY: e.clientY,
+      origLeft: rect.left, origTop: rect.top,
+      origRight: window.innerWidth - rect.right,
+      origBottom: window.innerHeight - rect.bottom,
+    };
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', endDrag);
+    e.preventDefault();
+  }
+
+  function onDrag(e) {
+    if (!dragState) return;
+    const bubble = document.getElementById('ai-bubble');
+    if (!bubble) return;
+    const dx = e.clientX - dragState.startX;
+    const dy = e.clientY - dragState.startY;
+    bubble.style.left = (dragState.origLeft + dx) + 'px';
+    bubble.style.top = (dragState.origTop + dy) + 'px';
+    bubble.style.bottom = 'auto';
+    bubble.style.right = 'auto';
+  }
+
+  function endDrag() {
+    dragState = null;
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', endDrag);
+  }
+
+  // Attach drag handlers after DOM ready
+  document.addEventListener('DOMContentLoaded', function() {
+    const handle = document.getElementById('ai-bubble-handle');
+    if (handle) {
+      handle.addEventListener('mousedown', initDrag);
+    }
+  });
+
+  // Also re-attach when lucide creates icons
+  function closeAiChat() {
+    const bubble = document.getElementById('ai-bubble');
+    if (bubble) bubble.style.display = bubble.style.display === 'none' ? '' : 'none';
+  }
+
+  function sendAiPrompt(text) {
+    if (!text || !text.trim()) return;
+    const body = document.getElementById('ai-bubble-body');
+    const input = document.getElementById('ai-chat-input');
+    if (!body) return;
+
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'ai-message';
+    userMsg.style.justifyContent = 'flex-end';
+    userMsg.innerHTML = '<div class="ai-msg-text" style="background:rgba(16,185,129,0.2);color:#d1fae5;border-bottom-right-radius:4px">' + text + '</div>';
+    body.appendChild(userMsg);
+
+    // Clear input
+    if (input) input.value = '';
+
+    // Simulate AI response
+    setTimeout(function() {
+      const respMsg = document.createElement('div');
+      respMsg.className = 'ai-message ai-welcome';
+      const responses = [
+        'Based on the documents, the key focus areas are API migration timeline and Q4 deliverables.',
+        'I found 3 relevant points: test plan gaps, resource allocation, and deadline risks.',
+        'The meeting context includes Spec_API_v2.pdf and Q4_goals.pdf — both are loaded and ready.',
+      ];
+      respMsg.innerHTML = '<div class="ai-msg-text" style="background:rgba(59,130,246,0.12);color:#bfdbfe;border-bottom-left-radius:4px">' + responses[Math.floor(Math.random() * responses.length)] + '</div>';
+      body.appendChild(respMsg);
+      body.scrollTop = body.scrollHeight;
+    }, 600);
+
+    body.scrollTop = body.scrollHeight;
+  }
 </script>
 </body>
 </html>

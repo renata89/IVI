@@ -25,6 +25,7 @@ from .db import Database
 BACKEND_PORT = int(os.environ.get("IVI_BACKEND_PORT", "8765"))
 DATA_DIR = Path(os.environ.get("IVI_DATA_DIR", str(Path.home() / ".ivi")))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+MOCK_MODE = os.environ.get("IVI_MOCK", "") == "1"
 
 logger = logging.getLogger("ivi-backend")
 
@@ -180,6 +181,37 @@ async def upcoming_checklist():
     return {"meeting": None, "commitments": []}
 
 
+@app.post("/commitments/{commitment_id}/resolve")
+async def resolve_commitment(commitment_id: int):
+    """Mark a commitment as resolved."""
+    if not db:
+        raise HTTPException(500, "Database not ready")
+    await db.resolve_commitment(commitment_id)
+    return {"status": "ok"}
+
+
+@app.get("/api/teams/sync-status")
+async def teams_sync_status():
+    """Get Teams sync status."""
+    if not db:
+        return {"connected": False, "recordings_total": 0, "recordings_processed": 0, "recordings_unprocessed": 0, "last_sync_minutes_ago": 0}
+    meetings = await db.get_meetings(limit=50)
+    total = len(meetings)
+    processed = 0
+    for m in meetings:
+        notes = await db.get_notes(m["id"])
+        if notes:
+            processed += 1
+    unprocessed = total - processed
+    return {
+        "connected": True,
+        "recordings_total": total,
+        "recordings_processed": processed,
+        "recordings_unprocessed": unprocessed,
+        "last_sync_minutes_ago": 5,
+    }
+
+
 # --- Calendar (Google) ---
 
 from .calendar import CalendarClient
@@ -191,6 +223,12 @@ _calendar: CalendarClient | None = None
 async def calendar_status():
     """Check if calendar is connected and get upcoming events."""
     global _calendar
+
+    # MOCK MODE: return fake events without Google API
+    if MOCK_MODE:
+        from tests.mock.data import MOCK_CALENDAR_EVENTS
+        return {"connected": True, "events": MOCK_CALENDAR_EVENTS, "auth_url": "", "mock": True}
+
     if _calendar is None:
         _calendar = CalendarClient()
 
@@ -225,16 +263,21 @@ async def detect_conflicts():
     if not db:
         return {"conflicts": [], "resolved_count": 0}
 
-    if _calendar is None:
-        _calendar = CalendarClient()
+    # MOCK MODE: detect conflicts using mock calendar events
+    if MOCK_MODE:
+        from tests.mock.data import MOCK_CALENDAR_EVENTS
+        events = MOCK_CALENDAR_EVENTS
+    else:
+        if _calendar is None:
+            _calendar = CalendarClient()
 
-    # Get upcoming events
-    connected = await _calendar.load_token()
-    if not connected:
-        logger.info("Calendar not connected — no conflict detection")
-        return {"conflicts": [], "resolved_count": 0, "connected": False}
+        # Get upcoming events
+        connected = await _calendar.load_token()
+        if not connected:
+            logger.info("Calendar not connected — no conflict detection")
+            return {"conflicts": [], "resolved_count": 0, "connected": False}
 
-    events = await _calendar.get_upcoming_events(max_results=20)
+        events = await _calendar.get_upcoming_events(max_results=20)
 
     # Detect overlaps
     conflicts = []
@@ -427,14 +470,20 @@ async def audio_websocket(websocket: WebSocket):
                         elif ctrl.get("type") == "end":
                             logger.info(f"Transcription ended: {meeting_title}")
                             text = "[mock - Whisper laduje]"
+                            speakers = []
                             if audio_buffer:
                                 tmp = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
                                 tmp.write(audio_buffer)
                                 tmp.close()
-                                text = await engine.transcribe(tmp.name)
+                                result = await engine.transcribe(tmp.name)
                                 os.unlink(tmp.name)
+                                if isinstance(result, dict):
+                                    text = result.get("text", text)
+                                    speakers = result.get("speakers", [])
+                                elif isinstance(result, str):
+                                    text = result
 
-                            logger.info(f"Transcribed {len(text)} chars — generating notes...")
+                            logger.info(f"Transcribed {len(text)} chars{' with diarization' if speakers else ''} — generating notes...")
 
                             # LLM: generate structured notes from transcription
                             notes = await llm.summarize(text)
@@ -454,6 +503,13 @@ async def audio_websocket(websocket: WebSocket):
                                     action_items=notes.get("action_items", []),
                                     raw_transcript=text,
                                 )
+                                # Save speaker info to meeting metadata
+                                if speakers:
+                                    import json as _json
+                                    await db.update_meeting(
+                                        meeting_id,
+                                        metadata=_json.dumps({"speakers": speakers})
+                                    )
                                 # Save action items as commitments
                                 for ai in notes.get("action_items", []):
                                     await db.add_commitment(
@@ -471,6 +527,8 @@ async def audio_websocket(websocket: WebSocket):
                                 "summary": notes.get("summary", ""),
                                 "decisions": notes.get("decisions", []),
                                 "action_items": notes.get("action_items", []),
+                                "speakers": speakers,
+                                "diarized": bool(speakers),
                             })
                             logger.info(f"Notes for '{meeting_title}' ready")
                     except json.JSONDecodeError:
