@@ -190,6 +190,110 @@ async def resolve_commitment(commitment_id: int):
     return {"status": "ok"}
 
 
+# --- Todo Lists ---
+
+
+@app.get("/api/todo-lists")
+async def list_todo_lists():
+    """Get all todo lists."""
+    if not db:
+        return {"todo_lists": []}
+    lists = await db.get_todo_lists()
+    result = []
+    for tl in lists:
+        total = await db.get_total_todo_count(tl["id"])
+        done = await db.get_completed_todo_count(tl["id"])
+        result.append({
+            "id": tl["id"],
+            "meeting_id": tl["meeting_id"],
+            "meeting_title": tl["meeting_title"],
+            "meeting_date": tl["meeting_date"],
+            "meeting_time": tl["meeting_time"],
+            "participants": tl["participants"],
+            "assigned_to_meeting_id": tl["assigned_to_meeting_id"],
+            "total_items": total,
+            "done_items": done,
+            "created_at": tl["created_at"],
+        })
+    return {"todo_lists": result}
+
+
+@app.get("/api/todo-lists/{todo_list_id}")
+async def get_todo_list_detail(todo_list_id: int):
+    """Get todo list with all items."""
+    if not db:
+        raise HTTPException(500, "Database not ready")
+    tl = await db.get_todo_list(todo_list_id)
+    if not tl:
+        raise HTTPException(404, "Todo list not found")
+    items = await db.get_todo_items(todo_list_id)
+    return {
+        "todo_list": tl,
+        "items": items,
+    }
+
+
+@app.patch("/api/todo-lists/{todo_list_id}/items/{item_id}")
+async def update_todo_item(item_id: int, data: dict):
+    """Update todo item status (done/not_done/pending) with optional reason."""
+    if not db:
+        raise HTTPException(500, "Database not ready")
+    status = data.get("status", "pending")
+    reason = data.get("not_done_reason", "")
+    await db.update_todo_item_status(item_id, status, reason)
+    return {"status": "ok"}
+
+
+@app.patch("/api/todo-lists/{todo_list_id}/items/{item_id}/export")
+async def toggle_todo_item_export(item_id: int, data: dict):
+    """Toggle export selection for a todo item."""
+    if not db:
+        raise HTTPException(500, "Database not ready")
+    selected = 1 if data.get("selected", True) else 0
+    await db.update_todo_item_export_selection(item_id, selected)
+    return {"status": "ok"}
+
+
+@app.post("/api/todo-lists/{todo_list_id}/assign")
+async def assign_todo_list(todo_list_id: int, data: dict):
+    """Assign todo list to a specific meeting."""
+    if not db:
+        raise HTTPException(500, "Database not ready")
+    meeting_id = data.get("meeting_id", "")
+    if not meeting_id:
+        raise HTTPException(400, "meeting_id is required")
+    await db.assign_todo_list(todo_list_id, meeting_id)
+    return {"status": "ok"}
+
+
+@app.get("/api/todo-lists/{todo_list_id}/export")
+async def export_todo_list(todo_list_id: int, selected_only: bool = True):
+    """Export todo list items as plain text."""
+    if not db:
+        raise HTTPException(500, "Database not ready")
+    tl = await db.get_todo_list(todo_list_id)
+    if not tl:
+        raise HTTPException(404, "Todo list not found")
+    items = await db.get_todo_items(todo_list_id)
+
+    if selected_only:
+        items = [i for i in items if i["selected_for_export"]]
+
+    lines = [
+        f"📋 To-Do List: {tl['meeting_title']}",
+        f"📅 {tl['meeting_date']} {tl['meeting_time']}",
+        f"👥 {tl['participants']}",
+        "",
+    ]
+    for item in items:
+        icon = "✅" if item["status"] == "done" else "❌" if item["status"] == "not_done" else "⬜"
+        who = f" ({item['person']})" if item['person'] else ""
+        reason = f" — {item['not_done_reason']}" if item['not_done_reason'] else ""
+        lines.append(f"{icon} {item['description']}{who}{reason}")
+
+    return {"text": "\n".join(lines), "format": "text"}
+
+
 @app.get("/api/teams/sync-status")
 async def teams_sync_status():
     """Get Teams sync status."""
@@ -518,6 +622,24 @@ async def audio_websocket(websocket: WebSocket):
                                         person=ai.get("who", ""),
                                         description=ai.get("what", ""),
                                         due_date=ai.get("when", ""),
+                                    )
+
+                                # Auto-create todo list from action items
+                                action_items = notes.get("action_items", [])
+                                if action_items:
+                                    from datetime import datetime as _dt
+                                    now = _dt.now()
+                                    todo_id = await db.create_todo_list(
+                                        meeting_id=meeting_id,
+                                        meeting_title=meeting_title,
+                                        meeting_date=now.strftime("%Y-%m-%d"),
+                                        meeting_time=now.strftime("%H:%M"),
+                                        participants=", ".join(speakers) if speakers else "",
+                                    )
+                                    await db.add_todo_items(todo_id, action_items)
+                                    logger.info(
+                                        f"Todo list #{todo_id} created for '{meeting_title}' "
+                                        f"with {len(action_items)} items"
                                     )
 
                             await websocket.send_json({

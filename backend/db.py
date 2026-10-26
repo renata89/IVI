@@ -282,3 +282,102 @@ class Database:
             (limit,),
         ).fetchall()
         return [dict(r) for r in rows]
+
+    # --- Todo Lists ---
+
+    async def create_todo_list(self, meeting_id: str, meeting_title: str,
+                                meeting_date: str = "", meeting_time: str = "",
+                                participants: str = "") -> int:
+        cur = self._conn.execute(
+            """INSERT INTO todo_lists (meeting_id, meeting_title, meeting_date, meeting_time, participants)
+               VALUES (?, ?, ?, ?, ?)""",
+            (meeting_id, meeting_title, meeting_date, meeting_time, participants),
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    async def get_todo_lists(self, limit: int = 20) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM todo_lists ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    async def get_todo_list(self, todo_list_id: int) -> dict | None:
+        row = self._conn.execute(
+            "SELECT * FROM todo_lists WHERE id = ?", (todo_list_id,)
+        ).fetchone()
+        return dict(row) if row else None
+
+    async def add_todo_items(self, todo_list_id: int, items: list[dict]) -> list[int]:
+        ids = []
+        for item in items:
+            cur = self._conn.execute(
+                """INSERT INTO todo_items (todo_list_id, person, description)
+                   VALUES (?, ?, ?)""",
+                (todo_list_id, item.get("who", ""), item.get("what", "")),
+            )
+            ids.append(cur.lastrowid)
+        self._conn.commit()
+        return ids
+
+    async def get_todo_items(self, todo_list_id: int) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM todo_items WHERE todo_list_id = ? ORDER BY id ASC",
+            (todo_list_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    async def update_todo_item_status(self, item_id: int, status: str,
+                                       not_done_reason: str = "") -> bool:
+        self._conn.execute(
+            "UPDATE todo_items SET status = ?, not_done_reason = ? WHERE id = ?",
+            (status, not_done_reason, item_id),
+        )
+        self._conn.commit()
+        return True
+
+    async def update_todo_item_export_selection(self, item_id: int,
+                                                  selected: int) -> bool:
+        self._conn.execute(
+            "UPDATE todo_items SET selected_for_export = ? WHERE id = ?",
+            (selected, item_id),
+        )
+        self._conn.commit()
+        return True
+
+    async def assign_todo_list(self, todo_list_id: int,
+                                assigned_to_meeting_id: str) -> bool:
+        self._conn.execute(
+            "UPDATE todo_lists SET assigned_to_meeting_id = ? WHERE id = ?",
+            (assigned_to_meeting_id, todo_list_id),
+        )
+        self._conn.commit()
+        return True
+
+    async def get_todo_list_by_meeting(self, meeting_id: str) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM todo_lists WHERE assigned_to_meeting_id = ? ORDER BY created_at DESC",
+            (meeting_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    async def get_unassigned_todo_lists(self) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM todo_lists WHERE assigned_to_meeting_id IS NULL ORDER BY created_at DESC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    async def get_completed_todo_count(self, todo_list_id: int) -> int:
+        row = self._conn.execute(
+            "SELECT COUNT(*) as cnt FROM todo_items WHERE todo_list_id = ? AND status = 'done'",
+            (todo_list_id,),
+        ).fetchone()
+        return row["cnt"] if row else 0
+
+    async def get_total_todo_count(self, todo_list_id: int) -> int:
+        row = self._conn.execute(
+            "SELECT COUNT(*) as cnt FROM todo_items WHERE todo_list_id = ?",
+            (todo_list_id,),
+        ).fetchone()
+        return row["cnt"] if row else 0

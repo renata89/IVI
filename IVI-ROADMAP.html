@@ -305,12 +305,14 @@ const PHASES = [
     ]
   },
   {
-    num: "8", title: "Dashboard — Action Items panel", status: "done",
+    num: "8", title: "Dashboard — To-Do Lists", status: "done",
     days: "~1-2 dni", color: "p2",
     tasks: [
-      { title: "Action Items — UI panel", desc: "Panel z liczbą open, overdue, due today" },
-      { title: "Integracja z backend API", desc: "Fetch z /api/upcoming/checklist i /series/{id}/commitments" },
-      { title: "Akcje: mark done, click to view", desc: "Kliknięcie → szczegóły, możliwość oznaczenia jako done" },
+      { title: "To-Do Lists table + API", desc: "todo_lists, todo_items — tabela + CRUD + assign + export" },
+      { title: "Auto-create after meeting", desc: "Po notes_ready: LLM action_items → todo_list" },
+      { title: "Dashboard card + modal UI", desc: "Kafel z listami, modal detail (checkboxy, assign, export)" },
+      { title: "Done/Not done + reason", desc: "Zielone = done, czerwone = not_done + opcjonalny powód" },
+      { title: "Export wybranych itemów", desc: "Checkbox per item → kopiuj do schowka" },
     ]
   },
   {

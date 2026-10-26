@@ -874,6 +874,30 @@ body {
     border: 1px solid var(--card-border); border-radius: 8px;
     font-size: 13px; font-family: monospace;
   }
+
+  /* Notes filters */
+  .notes-filters {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .nf-period {
+    display: flex; gap: 4px;
+    background: #f1f5f9; padding: 3px; border-radius: 10px;
+  }
+  .nf-btn {
+    padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; color: #64748b; transition: all .12s;
+  }
+  .nf-btn:hover { color: #334155; }
+  .nf-btn.active { background: #fff; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .nf-search {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; background: #fff;
+    border: 1px solid var(--card-border); border-radius: 10px;
+    min-width: 180px;
+  }
+  .nf-search input { flex: 1; border: none; outline: none; font-size: 13px; background: transparent; }
+  .nf-search input::placeholder { color: #94a3b8; }
 </style>
 </head>
 <body>
@@ -1077,14 +1101,15 @@ body {
           </div>
         </div>
 
-        <div class="card" style="display:flex;flex-direction:column">
-          <div class="card-label">Action Items</div>
-          <div class="card-value">5 open</div>
-          <div class="card-sub">2 overdue · 1 due today</div>
-          <div style="margin-top:auto;padding-top:8px;font-size:12px;color:var(--text-muted)">
-            <div> API docs review (overdue)</div>
-            <div> Test plan approval (today)</div>
-            <div> Meeting notes review (Fri)</div>
+        <div class="card" id="todo-lists-card" style="display:flex;flex-direction:column">
+          <div class="card-label">To-Do Lists</div>
+          <div id="todo-lists-summary" style="font-size:12px;color:var(--text-muted);margin-top:4px">
+            No lists yet
+          </div>
+          <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:6px;font-size:12px">
+          </div>
+          <div style="margin-top:auto;padding-top:8px;display:flex;gap:6px">
+            <span class="btn btn-ghost btn-sm" onclick="openTodoManager()" style="flex:1;justify-content:center;text-align:center;white-space:nowrap">See all</span>
           </div>
         </div>
 
@@ -1730,6 +1755,36 @@ body {
       <span class="modal-close" onclick="closeIVINotesModal()">✕</span>
     </div>
     <div class="modal-options" id="ivi-notes-modal-list" style="padding:16px 24px 24px">
+    </div>
+  </div>
+</div>
+
+<!-- TODO LIST MODAL -->
+<div class="modal-overlay" id="todo-manager-modal">
+  <div class="modal" style="width:640px;max-width:90vw">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">To-Do Lists</div>
+        <div class="modal-meta" id="todo-manager-meta">Meeting follow-up checklists</div>
+      </div>
+      <span class="modal-close" onclick="closeTodoManager()">✕</span>
+    </div>
+    <div id="todo-manager-list" style="padding:16px 24px 24px;max-height:60vh;overflow-y:auto">
+    </div>
+  </div>
+</div>
+
+<!-- TODO LIST DETAIL MODAL -->
+<div class="modal-overlay" id="todo-detail-modal">
+  <div class="modal" style="width:700px;max-width:90vw">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="todo-detail-title">To-Do List</div>
+        <div class="modal-meta" id="todo-detail-meta"></div>
+      </div>
+      <span class="modal-close" onclick="closeTodoDetail()">✕</span>
+    </div>
+    <div id="todo-detail-body" style="padding:16px 24px 24px;max-height:65vh;overflow-y:auto">
     </div>
   </div>
 </div>
@@ -2797,16 +2852,66 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       document.getElementById('last-note-date').textContent = last.date + ' ' + last.time;
     }
 
-    let html = '';
-    IVI_RECORDINGS.forEach(rec => {
-      const completed = rec.status.filter(s => s === 'green').length;
-      html += `<div class="modal-option" style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;cursor:default;transition:background 0.15s">`;
-      html += `<div style="flex:1">`;
-      html += `<div class="mo-title">${rec.title}</div>`;
-      html += `<div class="mo-desc">${rec.date} ${rec.time} · ${rec.duration}</div>`;
-      html += `</div>`;
-      html += `<span class="btn btn-primary btn-sm" onclick="viewIVINotes('${rec.id}')" style="white-space:nowrap">See notes</span>`;
-      html += `</div>`;
+    // Use filtered rendering
+    renderFilteredNotes();
+  }
+
+  // Notes filter state
+  var notesFilter = { period: 'all', search: '' };
+
+  function setNotesFilter(type, value) {
+    if (type === 'period') {
+      notesFilter.period = value;
+      document.querySelectorAll('.nf-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.period === value);
+      });
+    } else if (type === 'search') {
+      notesFilter.search = value.toLowerCase();
+    }
+    // Re-render with filters
+    renderFilteredNotes();
+  }
+
+  function renderFilteredNotes() {
+    var filtered = IVI_RECORDINGS.filter(function(rec) {
+      // Search filter
+      if (notesFilter.search && !rec.title.toLowerCase().includes(notesFilter.search)) {
+        return false;
+      }
+      // Period filter
+      if (notesFilter.period !== 'all') {
+        var today = new Date();
+        var recDate = new Date(rec.date);
+        // Handle relative dates
+        if (rec.date === 'Today') recDate = today;
+        else if (rec.date === 'Yesterday') recDate = new Date(today.getTime() - 86400000);
+
+        if (isNaN(recDate.getTime())) return true; // can't parse, show it
+
+        var diffDays = Math.floor((today - recDate) / 86400000);
+        if (notesFilter.period === 'day' && diffDays > 0) return false;
+        if (notesFilter.period === 'week' && diffDays >= 7) return false;
+        if (notesFilter.period === 'month' && diffDays >= 30) return false;
+      }
+      return true;
+    });
+
+    // Render filtered list
+    var list = document.getElementById('notes-list');
+    if (!list) return;
+    if (filtered.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px">No notes match your filters</div>';
+      return;
+    }
+    var html = '';
+    filtered.forEach(function(rec) {
+      html += '<div class="modal-option" style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;cursor:default;transition:background 0.15s">';
+      html += '<div style="flex:1">';
+      html += '<div class="mo-title">' + rec.title + '</div>';
+      html += '<div class="mo-desc">' + rec.date + ' ' + rec.time + ' · ' + rec.duration + '</div>';
+      html += '</div>';
+      html += '<span class="btn btn-primary btn-sm" onclick="viewIVINotes(\'' + rec.id + '\')" style="white-space:nowrap">See notes</span>';
+      html += '</div>';
     });
     list.innerHTML = html;
   }
@@ -2910,7 +3015,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     el.addEventListener('click', () => {
       if (notesRefreshInterval) clearInterval(notesRefreshInterval);
       loadChecklist();
-      loadActionItems();
+      loadTodoLists();
       loadIVIRecordings();
       renderAISuggestionsRow();
       startPrepAlertLoop();
@@ -3607,6 +3712,276 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     body.scrollTop = body.scrollHeight;
   }
+
+  // ---------- Todo Lists ----------
+
+  async function loadTodoLists() {
+    try {
+      const data = await window.ivi.fetchAPI('/api/todo-lists');
+      const lists = data.todo_lists || [];
+      const card = document.getElementById('todo-lists-card');
+      const summaryEl = document.getElementById('todo-lists-summary');
+      const itemsEl = document.getElementById('todo-lists-items');
+
+      if (lists.length === 0) {
+        summaryEl.textContent = 'No lists yet';
+        itemsEl.innerHTML = '';
+        return;
+      }
+
+      const totalOpen = lists.reduce((s, l) => s + (l.total_items - l.done_items), 0);
+      const unassigned = lists.filter(l => !l.assigned_to_meeting_id);
+      summaryEl.textContent = `${lists.length} list${lists.length > 1 ? 's' : ''} · ${totalOpen} open`;
+
+      // Show latest 2 lists
+      let html = '';
+      const show = lists.slice(0, 2);
+      show.forEach(list => {
+        const pct = list.total_items > 0 ? Math.round((list.done_items / list.total_items) * 100) : 0;
+        const status = list.assigned_to_meeting_id ? '📌 Assigned' : '📋 Pending assign';
+        html += `<div style="padding:6px 8px;background:var(--card-hover);border-radius:6px;cursor:pointer" onclick="openTodoDetail(${list.id})">
+          <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${list.meeting_title}</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px">
+            <span>${list.done_items}/${list.total_items} done</span>
+            <span>${status}</span>
+          </div>
+        </div>`;
+      });
+      if (lists.length > 2) {
+        html += `<div style="font-size:10px;color:var(--text-muted);text-align:center">+${lists.length - 2} more</div>`;
+      }
+      itemsEl.innerHTML = html;
+
+      // Show notification badge if there are unassigned lists
+      const badge = document.getElementById('nav-todo-badge');
+      if (badge) {
+        badge.textContent = unassigned.length;
+        badge.style.display = unassigned.length > 0 ? 'inline-flex' : 'none';
+      }
+    } catch (err) {
+      console.error('Todo lists error:', err);
+    }
+  }
+
+  function openTodoManager() {
+    const modal = document.getElementById('todo-manager-modal');
+    const listEl = document.getElementById('todo-manager-list');
+    modal.classList.add('active');
+
+    window.ivi.fetchAPI('/api/todo-lists').then(data => {
+      const lists = data.todo_lists || [];
+      document.getElementById('todo-manager-meta').textContent = `${lists.length} list${lists.length !== 1 ? 's' : ''}`;
+
+      if (lists.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">No to-do lists yet. They appear after meetings with action items.</div>';
+        return;
+      }
+
+      let html = '';
+      lists.forEach(list => {
+        const pct = list.total_items > 0 ? Math.round((list.done_items / list.total_items) * 100) : 0;
+        const assigned = list.assigned_to_meeting_id
+          ? `<span style="font-size:10px;color:var(--emerald)">✅ Assigned</span>`
+          : `<span style="font-size:10px;color:#f59e0b">⚠️ Not assigned</span>`;
+        html += `<div style="padding:12px;border-bottom:1px solid var(--card-border);cursor:pointer" onclick="openTodoDetail(${list.id})">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:600;font-size:14px">${list.meeting_title}</div>
+            ${assigned}
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">
+            ${list.meeting_date} ${list.meeting_time} · ${list.total_items} items · ${list.done_items} done
+          </div>
+          <div style="margin-top:6px;background:#e5e7eb;border-radius:4px;height:4px;overflow:hidden">
+            <div style="background:var(--emerald);height:100%;width:${pct}%;border-radius:4px;transition:width .3s"></div>
+          </div>
+        </div>`;
+      });
+      listEl.innerHTML = html;
+    }).catch(() => {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Error loading lists</div>';
+    });
+  }
+
+  function closeTodoManager() {
+    document.getElementById('todo-manager-modal').classList.remove('active');
+  }
+
+  async function openTodoDetail(listId) {
+    const modal = document.getElementById('todo-detail-modal');
+    const titleEl = document.getElementById('todo-detail-title');
+    const metaEl = document.getElementById('todo-detail-meta');
+    const bodyEl = document.getElementById('todo-detail-body');
+    modal.classList.add('active');
+
+    try {
+      const data = await window.ivi.fetchAPI(`/api/todo-lists/${listId}`);
+      const list = data.todo_list;
+      const items = data.items || [];
+
+      titleEl.textContent = `📋 ${list.meeting_title}`;
+      metaEl.textContent = `${list.meeting_date} ${list.meeting_time} · ${list.participants || 'No participants'}`;
+
+      // Meeting info header
+      let html = `<div style="background:var(--card-hover);border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap">
+          <span>📅 ${list.meeting_date} ${list.meeting_time}</span>
+          <span>👥 ${list.participants || '—'}</span>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <span class="btn btn-ghost btn-sm" onclick="showNoteDetail('${list.meeting_id}', '${list.meeting_title.replace(/'/g, "\\'")}')">📝 Meeting notes</span>
+          <span class="btn btn-ghost btn-sm" onclick="assignTodoList(${list.id})">📌 Assign to meeting</span>
+          <span class="btn btn-ghost btn-sm" onclick="exportTodoList(${list.id})">📤 Export</span>
+        </div>
+      </div>`;
+
+      if (items.length === 0) {
+        html += '<div style="text-align:center;padding:20px;color:var(--text-muted)">No items in this list</div>';
+      } else {
+        html += `<div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase">Items (${items.length})</div>`;
+        items.forEach(item => {
+          const isDone = item.status === 'done';
+          const isNotDone = item.status === 'not_done';
+          const checkboxClass = isDone ? 'todo-checkbox done' : isNotDone ? 'todo-checkbox not-done' : 'todo-checkbox';
+          const mark = isDone ? '✅' : isNotDone ? '❌' : '⬜';
+
+          html += `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--card-border);align-items:flex-start">
+            <div class="${checkboxClass}" onclick="toggleTodoStatus(${item.id}, ${listId})" style="cursor:pointer;font-size:16px;flex-shrink:0;margin-top:2px">${mark}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;${isDone ? 'text-decoration:line-through;color:var(--text-muted)' : ''}">
+                ${item.description}
+              </div>
+              ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 ${item.person}</div>` : ''}
+              ${isNotDone && item.not_done_reason ? `<div style="font-size:11px;color:#ef4444;margin-top:2px">💬 ${item.not_done_reason}</div>` : ''}
+            </div>
+            <label style="font-size:11px;color:var(--text-muted);cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()">
+              <input type="checkbox" ${item.selected_for_export ? 'checked' : ''} onchange="toggleExportItem(${item.id}, ${listId}, this.checked)" style="accent-color:var(--emerald)"> export
+            </label>
+          </div>`;
+        });
+      }
+
+      bodyEl.innerHTML = html;
+    } catch (err) {
+      bodyEl.innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444">Error: ${err.message}</div>`;
+    }
+  }
+
+  function closeTodoDetail() {
+    document.getElementById('todo-detail-modal').classList.remove('active');
+  }
+
+  async function toggleTodoStatus(itemId, listId) {
+    try {
+      // Cycle: pending → done → not_done → pending
+      const data = await window.ivi.fetchAPI(`/api/todo-lists/${listId}`);
+      const item = data.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      let newStatus, reason = '';
+
+      if (item.status === 'pending') {
+        newStatus = 'done';
+      } else if (item.status === 'done') {
+        newStatus = 'not_done';
+        reason = prompt('Why was this not done? (optional)', '');
+        if (reason === null) return; // cancelled
+      } else {
+        newStatus = 'pending';
+      }
+
+      await window.ivi.fetchAPI(`/api/todo-lists/${listId}/items/${itemId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus, not_done_reason: reason }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      // Refresh
+      openTodoDetail(listId);
+      loadTodoLists();
+    } catch (err) {
+      console.error('Toggle error:', err);
+    }
+  }
+
+  async function assignTodoList(listId) {
+    try {
+      // Get meetings for assignment
+      const meetingsData = await window.ivi.fetchAPI('/meetings');
+      const meetings = meetingsData.meetings || [];
+
+      const options = meetings.map(m => `<option value="${m.id}">${m.title} (${m.start_time || ''})</option>`).join('');
+      const selected = prompt('Assign this list to which meeting?\n\nPaste the meeting ID or leave blank to skip:', '');
+      if (!selected) return;
+
+      await window.ivi.fetchAPI(`/api/todo-lists/${listId}/assign`, {
+        method: 'POST',
+        body: JSON.stringify({ meeting_id: selected }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      openTodoDetail(listId);
+      loadTodoLists();
+    } catch (err) {
+      console.error('Assign error:', err);
+    }
+  }
+
+  async function exportTodoList(listId) {
+    try {
+      const data = await window.ivi.fetchAPI(`/api/todo-lists/${listId}/export?selected_only=true`);
+      const text = data.text;
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(text);
+      showToast('📋 Copied to clipboard!');
+    } catch (err) {
+      // Fallback: show in alert
+      try {
+        const data = await window.ivi.fetchAPI(`/api/todo-lists/${listId}/export?selected_only=true`);
+        alert(data.text);
+      } catch (e2) {
+        console.error('Export error:', err);
+      }
+    }
+  }
+
+  async function toggleExportItem(itemId, listId, selected) {
+    try {
+      await window.ivi.fetchAPI(`/api/todo-lists/${listId}/items/${itemId}/export`, {
+        method: 'PATCH',
+        body: JSON.stringify({ selected }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err) {
+      console.error('Toggle export error:', err);
+    }
+  }
+
+  // Simple toast notification
+  let toastTimer = null;
+  function showToast(msg) {
+    let toast = document.getElementById('toast-notification');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast-notification';
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#f9fafb;padding:10px 20px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);transition:opacity .3s;opacity:0';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+  }
+
+  // Auto-hide ivi-notes placeholder in sidebar
+  document.querySelectorAll('.nav-item[data-page=\"notes\"]').forEach(el => {
+    el.addEventListener('click', () => {
+      // no-op, handled elsewhere
+    });
+  });
+
+  // Also load todo lists on initial load
+  setTimeout(loadTodoLists, 3000);
 </script>
 </body>
 </html>
