@@ -1185,18 +1185,61 @@ body {
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
 
-        <div class="card">
-          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h3 style="font-size:14px;font-weight:600">Upcoming Meetings</h3>
-            <span class="btn btn-ghost btn-sm">View all</span>
+        <div class="card" style="display:flex;flex-direction:column">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h3 style="font-size:14px;font-weight:600">Today's Meetings</h3>
+            <span class="btn btn-ghost btn-sm" onclick="document.querySelector('.nav-item[data-page=meetings]').click()" style="font-size:11px">See all →</span>
           </div>
-          <table class="table">
-            <tr><th>Date</th><th>Meeting</th><th>Context</th><th></th></tr>
-            <tr><td>Today 14:00</td><td>Product Sprint Review</td><td><span class="badge badge-amber" style="font-size:10px"> Missing</span></td><td></td></tr>
-            <tr><td>Tue 09:00</td><td>Teacher Lab — UI review</td><td><span class="badge badge-blue" style="font-size:10px"> 2 docs</span></td><td></td></tr>
-            <tr><td>Fri 11:00</td><td>e-Krew technical sync</td><td><span class="badge badge-blue" style="font-size:10px"> 1 doc</span></td><td></td></tr>
-            <tr><td>Fri 14:00</td><td>Ideamotive screening</td><td><span class="badge" style="font-size:10px"> CV ready</span></td><td><span class="badge badge-red" style="font-size:10px"> Conflict</span></td></tr>
-          </table>
+          <div style="display:flex;flex-direction:column;gap:8px" id="todays-meetings-list">
+            <!-- Today: Sprint Review -->
+            <div class="meeting-readiness-row" style="display:flex;flex-direction:column;padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:12px;font-weight:500;color:#374151;white-space:nowrap">14:00</span>
+                <span style="width:3px;height:3px;border-radius:50%;background:#d1d5db;flex-shrink:0"></span>
+                <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Product Sprint Review</span>
+                <span style="font-size:10px;color:var(--text-muted)">45 min</span>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">📄 Docs</span>
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">📝 Notes</span>
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">🎯 Prep</span>
+                <span class="status-chip partial" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706">✅ To-Do 1/3</span>
+              </div>
+            </div>
+            <!-- Today: Client Sync -->
+            <div class="meeting-readiness-row" style="display:flex;flex-direction:column;padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:12px;font-weight:500;color:#374151;white-space:nowrap">10:30</span>
+                <span style="width:3px;height:3px;border-radius:50%;background:#d1d5db;flex-shrink:0"></span>
+                <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Client Sync</span>
+                <span style="font-size:10px;color:var(--text-muted)">30 min</span>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+                <span class="status-chip missing" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">📄 Docs</span>
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">📝 Notes</span>
+                <span class="status-chip missing" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">🎯 Prep</span>
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">✅ To-Do done</span>
+              </div>
+            </div>
+            <!-- Tomorrow: Teacher Lab -->
+            <div class="meeting-readiness-row" style="display:flex;flex-direction:column;padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border);opacity:0.75">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;font-weight:400;color:#94a3b8;white-space:nowrap">Tomorrow 09:00</span>
+                <span style="width:3px;height:3px;border-radius:50%;background:#d1d5db;flex-shrink:0"></span>
+                <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Teacher Lab UI Review</span>
+                <span style="font-size:10px;color:var(--text-muted)">60 min</span>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+                <span class="status-chip partial" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706">📄 Docs 1/2</span>
+                <span class="status-chip missing" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">📝 Notes</span>
+                <span class="status-chip missing" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">🎯 Prep</span>
+                <span class="status-chip partial" style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706">✅ To-Do 2/4</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);font-size:10px;color:var(--text-muted);text-align:center">
+            Showing 2 today · 1 tomorrow · <span style="color:var(--emerald);cursor:default" onclick="document.querySelector('.nav-item[data-page=meetings]').click()">See all 8 meetings →</span>
+          </div>
         </div>
 
         <div class="card">
@@ -4499,14 +4542,26 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       <!-- TAB: Calendar -->
       <div class="mock-tab-content" id="mock-tab-calendar" style="display:none">
         <div style="margin-bottom:16px">
-          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📅 Upcoming Meetings</div>
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📅 Today's Meetings</div>
           <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-              <input type="checkbox" id="mock-upcoming" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show upcoming meetings
-              <select id="mock-upcoming-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
-                <option value="2">2</option><option value="4" selected>4</option><option value="8">8</option>
-              </select>
+              <input type="checkbox" id="mock-todays-meetings" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show today's meetings card
             </label>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Meetings count:</span>
+              <select id="mock-todays-count" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="1">1 (today only)</option><option value="3" selected>3 (today + tomorrow)</option><option value="6">6 (full week)</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Readiness mix:</span>
+              <select id="mock-readiness-mix" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="mixed" selected>Mixed</option>
+                <option value="all-ready">All ready</option>
+                <option value="all-missing">All missing</option>
+                <option value="empty">No upcoming meetings</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -4548,7 +4603,7 @@ function saveMockState() {
     'mock-conflicts','mock-conflicts-count','mock-conflict-state',
     'mock-recordings','mock-recordings-count','mock-recording-status',
     'mock-todo','mock-todo-count','mock-todo-state',
-    'mock-upcoming','mock-upcoming-count','mock-backend'];
+    'mock-todays-meetings','mock-todays-count','mock-readiness-mix','mock-backend'];
   const state = {};
   fields.forEach(id => {
     const el = document.getElementById(id);
