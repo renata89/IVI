@@ -4082,8 +4082,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var cb = label.querySelector('input[type="checkbox"]');
     var text = label.querySelector('.todo-text');
     if (el.textContent === '✕') {
-      // Save original checkbox state, then dismiss
-      label.dataset.wasChecked = cb.checked ? '1' : '0';
+      // Dismiss: disable checkbox, red strikethrough
       cb.checked = false;
       cb.disabled = true;
       text.style.color = '#ef4444';
@@ -4093,18 +4092,12 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       el.textContent = '↩';
       el.style.color = 'var(--emerald)';
     } else {
-      // Undo dismiss: restore original state
+      // Undo: enable checkbox (unchecked), remove strikethrough
+      cb.checked = false;
       cb.disabled = false;
-      if (label.dataset.wasChecked === '1') {
-        cb.checked = true;
-        text.style.color = '#6b7280';
-        text.style.textDecoration = 'line-through';
-        text.style.textDecorationColor = '';
-      } else {
-        cb.checked = false;
-        text.style.color = '';
-        text.style.textDecoration = 'none';
-      }
+      text.style.color = '';
+      text.style.textDecoration = 'none';
+      text.style.textDecorationColor = '';
       label.style.opacity = '1';
       el.textContent = '✕';
       el.style.color = '#9ca3af';
