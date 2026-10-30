@@ -1108,7 +1108,7 @@ body {
             2 lists · 3 open
           </div>
           <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px">
-            <div class="todo-mock-list" style="padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+            <div class="todo-mock-list" style="padding:8px 10px;background:#f0f5ff;border-radius:8px;border:1px solid #c7d2fe">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sprint Review Follow-up</div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
@@ -1124,12 +1124,12 @@ body {
                   <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Krzysiek: Deploy v2.3</span>
                 </label>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--card-border)">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid #c7d2fe">
                 <span class="todo-count">1/3 done</span>
                 <span style="color:var(--emerald)">📌 Assigned</span>
               </div>
             </div>
-            <div class="todo-mock-list" style="padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+            <div class="todo-mock-list" style="padding:8px 10px;background:#fdf2f8;border-radius:8px;border:1px solid #fbcfe8">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Teacher Lab UI Review</div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
@@ -1149,7 +1149,7 @@ body {
                   <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Krzysiek: Deploy staging</span>
                 </label>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--card-border)">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid #fbcfe8">
                 <span class="todo-count">2/4 done</span>
                 <span style="color:#f59e0b">📋 Pending assign</span>
               </div>
@@ -3952,12 +3952,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       }
 
       let html = '';
-      displayLists.forEach(list => {
+      const pastelBg = ['#f0f5ff', '#fdf2f8', '#f0fdf4', '#fffbeb', '#faf5ff', '#ecfeff'];
+      displayLists.forEach((list, idx) => {
         const pct = list.total_items > 0 ? Math.round((list.done_items / list.total_items) * 100) : 0;
         const assigned = list.assigned_to_meeting_id
           ? `<span style="font-size:10px;color:var(--emerald)">✅ Assigned</span>`
           : `<span style="font-size:10px;color:#f59e0b">⚠️ Not assigned</span>`;
-        html += `<div style="padding:12px;border-bottom:1px solid var(--card-border);cursor:pointer" onclick="openTodoDetail(${list.id})">
+        const bg = pastelBg[idx % pastelBg.length];
+        html += `<div style="padding:12px;margin-bottom:8px;border-radius:10px;background:${bg};cursor:pointer" onclick="openTodoDetail(${list.id})">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div style="font-weight:600;font-size:14px">${list.meeting_title}</div>
             ${assigned}
