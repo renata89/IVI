@@ -974,6 +974,7 @@ body {
       <div class="topbar-left">
         <span class="page-title" id="page-title">Dashboard</span>
         <span class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-size:11px;padding:3px 8px;color:var(--text-muted)" title="Refresh app (dev)"><i data-lucide="refresh-cw" style="width:14px;height:14px"></i></span>
+        <span class="btn btn-ghost btn-sm" onclick="toggleMockPanel()" style="font-size:11px;padding:3px 8px;color:var(--text-muted)" title="Mock controls (dev)">🎛️ Mock</span>
       </div>
       <div style="font-size:13px;color:var(--text-muted);font-weight:500" id="topbar-datetime"></div>
       <div class="topbar-right">
@@ -1075,13 +1076,13 @@ body {
             </div>
 
             <!-- Actions Section -->
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
               <div style="display:flex" id="ivi-covers-both-row">
-                <span class="btn" style="display:flex;width:100%;background:#15803d;color:#fff;border:none;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;align-items:center;justify-content:center;gap:6px;cursor:default" onclick="coverBoth()">✓ IVI covers both</span>
+                <span class="btn" style="display:flex;width:100%;background:#15803d;color:#fff;border:none;padding:6px 10px;border-radius:14px;font-size:11px;font-weight:600;align-items:center;justify-content:center;gap:4px;cursor:default;white-space:nowrap" onclick="coverBoth()">✓ IVI covers both</span>
               </div>
-              <div style="display:flex;gap:8px">
-                <span class="btn btn-reschedule" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:8px;border-radius:12px;font-size:13px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1" onclick="rescheduleConflict()">Reschedule</span>
-                <span class="btn" style="border:1px solid #9ca3af;background:transparent;color:#374151;padding:8px;border-radius:12px;font-size:13px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1" onclick="ignoreConflict()">Ignore Conflict</span>
+              <div style="display:flex;gap:6px">
+                <span class="btn" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="rescheduleConflict()">Reschedule</span>
+                <span class="btn" style="border:1px solid #9ca3af;background:transparent;color:#374151;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="ignoreConflict()">Ignore Conflict</span>
               </div>
             </div>
 
@@ -4355,6 +4356,158 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   // Also load todo lists on initial load
   setTimeout(loadTodoLists, 3000);
+</script>
+
+<!-- 🎛️ MOCK CONTROLS PANEL (dev only) -->
+<div class="modal-overlay" id="mock-panel" style="align-items:flex-start;justify-content:flex-end;background:rgba(0,0,0,0.2)">
+  <div style="background:#fff;border-radius:20px 0 0 20px;width:400px;max-width:90vw;max-height:100vh;overflow-y:auto;box-shadow:-4px 0 30px rgba(0,0,0,0.1);padding:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--card-border);position:sticky;top:0;background:#fff;z-index:10">
+      <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px">🎛️ Mock Controls <span style="font-size:10px;color:var(--text-muted);font-weight:400">(dev only)</span></div>
+      <span class="modal-close" onclick="toggleMockPanel()" style="font-size:18px;width:28px;height:28px">✕</span>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--card-border);padding:0 16px;background:#f8fafc;position:sticky;top:52px;z-index:9">
+      <span class="mock-tab active" data-tab="dashboard" onclick="switchMockTab('dashboard')" style="padding:8px 12px;font-size:11px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent">Dashboard</span>
+      <span class="mock-tab" data-tab="calendar" onclick="switchMockTab('calendar')" style="padding:8px 12px;font-size:11px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent">Calendar</span>
+      <span class="mock-tab" data-tab="settings" onclick="switchMockTab('settings')" style="padding:8px 12px;font-size:11px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent">Settings</span>
+    </div>
+
+    <div style="padding:12px 20px 20px;font-size:13px">
+
+      <!-- TAB: Dashboard -->
+      <div class="mock-tab-content" id="mock-tab-dashboard">
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📋 Next Meeting</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-docs" onchange="saveMockState()" style="accent-color:var(--emerald)"> Show documents
+              <select id="mock-docs-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="0">0</option><option value="2" selected>2</option><option value="5">5</option><option value="10">10</option>
+              </select>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-ai-summary" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show AI summary
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-ai-suggestions" onchange="saveMockState()" style="accent-color:var(--emerald)"> Show AI suggestions row
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">⚠️ Calendar Alert</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-conflicts" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show conflicts
+              <select id="mock-conflicts-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="5">5</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📝 IVI Notes</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-recordings" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show recordings
+              <select id="mock-recordings-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="2">2</option><option value="5" selected>5</option><option value="10">10</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">✅ To-Do Lists</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-todo" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show to-do lists
+              <select id="mock-todo-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="5">5</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Calendar -->
+      <div class="mock-tab-content" id="mock-tab-calendar" style="display:none">
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📅 Upcoming Meetings</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-upcoming" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show upcoming meetings
+              <select id="mock-upcoming-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="2">2</option><option value="4" selected>4</option><option value="8">8</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Settings -->
+      <div class="mock-tab-content" id="mock-tab-settings" style="display:none">
+        <div style="font-size:11px;color:var(--text-muted);padding:12px 0;text-align:center">Settings mock controls coming soon</div>
+      </div>
+
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--card-border);display:flex;gap:8px">
+        <span class="btn btn-ghost btn-sm" onclick="resetMockState()" style="flex:1;justify-content:center">Reset defaults</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 🎛️ Mock Controls
+function toggleMockPanel() {
+  const panel = document.getElementById('mock-panel');
+  panel.classList.toggle('active');
+  loadMockState();
+}
+
+function switchMockTab(tab) {
+  document.querySelectorAll('.mock-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+    t.style.color = t.dataset.tab === tab ? 'var(--emerald)' : 'var(--text-muted)';
+    t.style.borderBottomColor = t.dataset.tab === tab ? 'var(--emerald)' : 'transparent';
+  });
+  document.querySelectorAll('.mock-tab-content').forEach(c => c.style.display = 'none');
+  const el = document.getElementById('mock-tab-' + tab);
+  if (el) el.style.display = 'block';
+}
+
+function saveMockState() {
+  const fields = ['mock-docs','mock-docs-count','mock-ai-summary','mock-ai-suggestions',
+    'mock-conflicts','mock-conflicts-count','mock-recordings','mock-recordings-count',
+    'mock-todo','mock-todo-count','mock-upcoming','mock-upcoming-count'];
+  const state = {};
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state[id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  localStorage.setItem('ivi_mock_state', JSON.stringify(state));
+}
+
+function loadMockState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ivi_mock_state'));
+    if (!saved) return;
+    Object.keys(saved).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (el.type === 'checkbox') el.checked = saved[id];
+        else el.value = saved[id];
+      }
+    });
+  } catch(e) {}
+}
+
+function resetMockState() {
+  localStorage.removeItem('ivi_mock_state');
+  location.reload();
+}
 </script>
 </body>
 </html>
