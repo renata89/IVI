@@ -272,6 +272,7 @@ const PHASES = [
       { title: "Meeting Room — Teams webview", desc: "Embed Teams w webview + pływająca chmurka AI czatu" },
       { title: "Meeting Room — floating AI chat", desc: "Przesuwalna, przezroczysta chmurka z AI podpowiedziami" },
       { title: "Meeting Room — join flow", desc: "Join → modal z opcjami → Meeting Room z Teams + AI" },
+      { title: "Live Notes w Meeting Room", desc: "Panel notatek podczas spotkania, auto-save do localStorage, zapis przy zakończeniu" },
     ]
   },
   {
@@ -305,14 +306,19 @@ const PHASES = [
     ]
   },
   {
-    num: "8", title: "Dashboard — To-Do Lists", status: "done",
-    days: "~1-2 dni", color: "p2",
+    num: "8", title: "Dashboard — To-Do Lists", status: "in-progress",
+    days: "~2-3 dni", color: "p2",
+    doneTasks: [0, 1, 2, 3, 4],
     tasks: [
       { title: "To-Do Lists table + API", desc: "todo_lists, todo_items — tabela + CRUD + assign + export" },
       { title: "Auto-create after meeting", desc: "Po notes_ready: LLM action_items → todo_list" },
       { title: "Dashboard card + modal UI", desc: "Kafel z listami, modal detail (checkboxy, assign, export)" },
       { title: "Done/Not done + reason", desc: "Zielone = done, czerwone = not_done + opcjonalny powód" },
       { title: "Export wybranych itemów", desc: "Checkbox per item → kopiuj do schowka" },
+      { title: "Checkboxy na kaflu To-Do Lists", desc: "Interactive checkboxes zamiast kropek, toggle stanu, aktualizacja licznika" },
+      { title: "Pastelowe kolory + data/godzina na listach", desc: "Kolory dopasowane do spotkań, data i godzina widoczna na każdej liście" },
+      { title: "Przypisywanie itemów do spotkań w detalu", desc: "Dropdown 'Discuss at:' per item, przypisanie do konkretnego spotkania lub notatka prywatna" },
+      { title: "Mock data fallback dla list", desc: "MOCK_TODO_LISTS + MOCK_MEETINGS_FOR_ASSIGN gdy API zwraca pustą listę" },
     ]
   },
   {
@@ -388,7 +394,7 @@ const PHASES = [
       { title: "Storage — podgląd zapisanych spotkań", desc: "Lista folderów z notatkami na dysku" },
       { title: "Storage — IPC + preload API", desc: "selectFolder + listDirectory" },
       { title: "Storage — integracja z notatkami", desc: "Zapis w wybranym formacie do wybranego folderu" },
-      { title: "Chmura / cross-device — koncept", desc: "Przygotowanie pod Google Drive / Dropbox" },
+      { title: "Cloud storage quick sync buttons", desc: "Dropbox, iCloud Drive, Google Drive — szybki wybór ścieżki, otwarcie logowania w przeglądarce" },
     ]
   },
 ];
