@@ -1105,9 +1105,55 @@ body {
         <div class="card" id="todo-lists-card" style="display:flex;flex-direction:column">
           <div class="card-label">To-Do Lists</div>
           <div id="todo-lists-summary" style="font-size:12px;color:var(--text-muted);margin-top:4px">
-            No lists yet
+            2 lists · 3 open
           </div>
-          <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px">
+            <div class="todo-mock-list" style="padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+              <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sprint Review Follow-up</div>
+              <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:line-through;color:#6b7280">Marek: Update API docs</span>
+                </label>
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ania: Review test plan</span>
+                </label>
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Krzysiek: Deploy v2.3</span>
+                </label>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--card-border)">
+                <span class="todo-count">1/3 done</span>
+                <span style="color:var(--emerald)">📌 Assigned</span>
+              </div>
+            </div>
+            <div class="todo-mock-list" style="padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
+              <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Teacher Lab UI Review</div>
+              <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:line-through;color:#6b7280">Renata: Prepare mockups</span>
+                </label>
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:line-through;color:#6b7280">Marek: API integration test</span>
+                </label>
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:line-through;color:#ef4444;text-decoration-color:#ef4444">Ania: Review accessibility</span>
+                </label>
+                <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+                  <input type="checkbox" onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
+                  <span class="todo-text" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Krzysiek: Deploy staging</span>
+                </label>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--card-border)">
+                <span class="todo-count">2/4 done</span>
+                <span style="color:#f59e0b">📋 Pending assign</span>
+              </div>
+            </div>
           </div>
           <div style="margin-top:auto;padding-top:8px;display:flex;gap:6px">
             <span class="btn btn-ghost btn-sm" onclick="openTodoManager()" style="flex:1;justify-content:center;text-align:center;white-space:nowrap">See all</span>
@@ -3781,6 +3827,64 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   // ---------- Todo Lists ----------
 
+  const MOCK_TODO_LISTS = [
+    {
+      id: 1, meeting_title: 'Sprint Review Follow-up', meeting_date: 'Mon, Oct 26', meeting_time: '14:00',
+      total_items: 3, done_items: 1, assigned_to_meeting_id: true,
+      items: [
+        { person: 'Marek', description: 'Update API docs', status: 'done' },
+        { person: 'Ania', description: 'Review test plan', status: 'pending' },
+        { person: 'Krzysiek', description: 'Deploy v2.3', status: 'pending' }
+      ]
+    },
+    {
+      id: 2, meeting_title: 'Teacher Lab UI Review', meeting_date: 'Tue, Oct 27', meeting_time: '09:00',
+      total_items: 4, done_items: 2, assigned_to_meeting_id: false,
+      items: [
+        { person: 'Renata', description: 'Prepare mockups', status: 'done' },
+        { person: 'Marek', description: 'API integration test', status: 'done' },
+        { person: 'Ania', description: 'Review accessibility', status: 'not_done' },
+        { person: 'Krzysiek', description: 'Deploy staging', status: 'pending' }
+      ]
+    }
+  ];
+
+  // Toggle checkbox on dashboard card
+  function toggleTodoItem(cb) {
+    var textSpan = cb.parentElement.querySelector('.todo-text');
+    if (cb.checked) {
+      textSpan.style.textDecoration = 'line-through';
+      textSpan.style.color = '#6b7280';
+    } else {
+      textSpan.style.textDecoration = 'none';
+      textSpan.style.color = '';
+    }
+    // Recalculate counts for this list
+    var listEl = cb.closest('.todo-mock-list');
+    if (listEl) {
+      var checks = listEl.querySelectorAll('.todo-mock-item input[type="checkbox"]');
+      var countEl = listEl.querySelector('.todo-count');
+      if (countEl && checks.length > 0) {
+        var done = 0;
+        checks.forEach(function(c) { if (c.checked) done++; });
+        countEl.textContent = done + '/' + checks.length + ' done';
+      }
+    }
+    // Update summary
+    updateTodoSummary();
+  }
+
+  function updateTodoSummary() {
+    var allChecks = document.querySelectorAll('#todo-lists-items .todo-mock-item input[type="checkbox"]');
+    var allCount = allChecks.length;
+    var doneCount = 0;
+    allChecks.forEach(function(c) { if (c.checked) doneCount++; });
+    var summaryEl = document.getElementById('todo-lists-summary');
+    if (summaryEl) {
+      summaryEl.textContent = '2 lists · ' + (allCount - doneCount) + ' open';
+    }
+  }
+
   async function loadTodoLists() {
     try {
       const data = await window.ivi.fetchAPI('/api/todo-lists');
@@ -3790,6 +3894,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       const itemsEl = document.getElementById('todo-lists-items');
 
       if (lists.length === 0) {
+        // Keep existing static HTML if the card already has content
+        if (itemsEl && itemsEl.children.length > 0) return;
         summaryEl.textContent = 'No lists yet';
         itemsEl.innerHTML = '';
         return;
@@ -3836,15 +3942,17 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     window.ivi.fetchAPI('/api/todo-lists').then(data => {
       const lists = data.todo_lists || [];
-      document.getElementById('todo-manager-meta').textContent = `${lists.length} list${lists.length !== 1 ? 's' : ''}`;
+      // Use mock data if API returns empty
+      const displayLists = lists.length > 0 ? lists : MOCK_TODO_LISTS;
+      document.getElementById('todo-manager-meta').textContent = `${displayLists.length} list${displayLists.length !== 1 ? 's' : ''}`;
 
-      if (lists.length === 0) {
+      if (displayLists.length === 0) {
         listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">No to-do lists yet. They appear after meetings with action items.</div>';
         return;
       }
 
       let html = '';
-      lists.forEach(list => {
+      displayLists.forEach(list => {
         const pct = list.total_items > 0 ? Math.round((list.done_items / list.total_items) * 100) : 0;
         const assigned = list.assigned_to_meeting_id
           ? `<span style="font-size:10px;color:var(--emerald)">✅ Assigned</span>`
@@ -3881,8 +3989,20 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     try {
       const data = await window.ivi.fetchAPI(`/api/todo-lists/${listId}`);
-      const list = data.todo_list;
-      const items = data.items || [];
+      let list = data.todo_list;
+      let items = data.items || [];
+
+      // Fallback to mock if API returns empty
+      if (!list || items.length === 0) {
+        const mock = MOCK_TODO_LISTS.find(m => m.id === listId);
+        if (mock) {
+          list = { ...mock, meeting_id: 'mock_' + mock.id, participants: 'Marek, Ania, Krzysiek' };
+          items = mock.items.map((item, idx) => ({
+            id: idx + 1, person: item.person, description: item.description,
+            status: item.status, selected_for_export: false, not_done_reason: ''
+          }));
+        }
+      }
 
       titleEl.textContent = `📋 ${list.meeting_title}`;
       metaEl.textContent = `${list.meeting_date} ${list.meeting_time} · ${list.participants || 'No participants'}`;
