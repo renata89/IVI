@@ -4084,11 +4084,10 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var cb = label.querySelector('input[type="checkbox"]');
     var text = label.querySelector('.todo-text');
     if (el.textContent === '✕') {
-      // Dismiss: disable checkbox, red strikethrough
+      label.classList.add('dismissed');
       cb.checked = false;
       cb.disabled = true;
       toggleTodoItem(cb);
-      // Override with red for dismissed state
       text.style.color = '#ef4444';
       text.style.textDecoration = 'line-through';
       text.style.textDecorationColor = '#ef4444';
@@ -4096,7 +4095,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       el.textContent = '↩';
       el.style.color = 'var(--emerald)';
     } else {
-      // Undo: enable checkbox (unchecked), remove strikethrough
+      label.classList.remove('dismissed');
       cb.checked = false;
       cb.disabled = false;
       toggleTodoItem(cb);
@@ -4104,6 +4103,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       el.textContent = '✕';
       el.style.color = '#9ca3af';
     }
+    updateUrgentState();
   }
 
   function toggleTodoItem(cb) {
@@ -4128,6 +4128,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     }
     // Update summary
     updateTodoSummary();
+    updateUrgentState();
   }
 
   function updateTodoSummary() {
@@ -4139,6 +4140,30 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     if (summaryEl) {
       summaryEl.textContent = '2 lists · ' + (allCount - doneCount) + ' open';
     }
+  }
+
+  // Check if all items in an urgent list are done/dismissed → remove urgency
+  function updateUrgentState() {
+    document.querySelectorAll('.todo-mock-list.urgent').forEach(function(list) {
+      var items = list.querySelectorAll('.todo-mock-item');
+      var allDone = true;
+      items.forEach(function(item) {
+        var cb = item.querySelector('input[type="checkbox"]');
+        var dismissed = item.classList.contains('dismissed');
+        if (!(cb && cb.checked) && !dismissed) {
+          allDone = false;
+        }
+      });
+      if (allDone && items.length > 0) {
+        // Remove urgency: normal state
+        list.classList.remove('urgent');
+        list.style.boxShadow = '';
+        list.style.transform = '';
+        list.style.margin = '';
+        list.style.zIndex = '';
+        list.style.padding = '8px 10px';
+      }
+    });
   }
 
   async function loadTodoLists() {
