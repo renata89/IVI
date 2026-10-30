@@ -1200,9 +1200,9 @@ body {
             <span class="btn btn-ghost btn-sm" onclick="document.querySelector('.nav-item[data-page=meetings]').click()" style="font-size:11px">See all →</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:10px;color:var(--text-muted)">
-            <span style="display:flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span>
-            <span style="display:flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#eab308;display:inline-block"></span> Partial</span>
-            <span style="display:flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span>
+            <span>Docs &amp; Notes: <span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span><span style="display:inline-flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span></span>
+            <span style="color:var(--card-border)">|</span>
+            <span>Prep &amp; To-Do: <span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span><span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#eab308;display:inline-block"></span> Partial</span><span style="display:inline-flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span></span>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px" id="todays-meetings-list">
             <!-- Today: Sprint Review -->
@@ -1230,7 +1230,7 @@ body {
               </div>
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">Docs</span>
-                <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">Notes</span>
+                <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">Notes</span>
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">Prep</span>
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">To-Do 3/3</span>
               </div>
@@ -1244,9 +1244,9 @@ body {
                 <span style="font-size:10px;color:var(--text-muted)">60 min</span>
               </div>
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px">
-                <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706">Docs 1</span>
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a">Docs</span>
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">Notes</span>
-                <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626">Prep</span>
+                <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706">Prep</span>
                 <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706">To-Do 2/4</span>
               </div>
             </div>
