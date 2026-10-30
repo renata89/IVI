@@ -864,6 +864,7 @@ body {
     cursor: pointer; transition: background .1s;
   }
   .settings-checkbox:hover { background: var(--emerald-light); }
+  .cloud-btn.active { background: var(--emerald-light); border-color: var(--emerald); color: var(--emerald); font-weight: 600; }
   .settings-checkbox input[type="checkbox"] {
     width: 16px; height: 16px; margin-top: 2px;
     accent-color: var(--emerald); cursor: pointer; flex-shrink: 0;
@@ -1512,9 +1513,28 @@ body {
               </span>
             </div>
           </div>
+          <div style="margin-bottom:12px;padding-top:4px;border-top:1px solid var(--card-border)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500">Quick sync with cloud storage:</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="btn btn-ghost btn-sm cloud-btn" data-path="~/Dropbox/IVI/" data-url="https://dropbox.com/login" data-provider="Dropbox" onclick="setCloudStorage(this.dataset.path, this.dataset.url, this.dataset.provider)" style="font-size:11px;gap:4px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L6 7l6 5-6 5 6 5 6-5-6-5 6-5-6-5z" fill="#0061FF" opacity="0.7"/><path d="M6 7l2 3-2 3h12l-2-3 2-3H6z" fill="#0061FF"/></svg>
+                Dropbox
+              </span>
+              <span class="btn btn-ghost btn-sm cloud-btn" data-path="~/Library/Mobile Documents/com~apple~CloudDocs/IVI/" data-url="https://icloud.com" data-provider="iCloud Drive" onclick="setCloudStorage(this.dataset.path, this.dataset.url, this.dataset.provider)" style="font-size:11px;gap:4px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 4v16" stroke="currentColor" stroke-width="1.5"/><path d="M15 4v16" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                iCloud Drive
+              </span>
+              <span class="btn btn-ghost btn-sm cloud-btn" data-path="~/Google Drive/IVI/" data-url="https://drive.google.com" data-provider="Google Drive" onclick="setCloudStorage(this.dataset.path, this.dataset.url, this.dataset.provider)" style="font-size:11px;gap:4px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="1.5" fill="#4285F4"/><rect x="13" y="2" width="9" height="9" rx="1.5" fill="#EA4335"/><rect x="2" y="13" width="9" height="9" rx="1.5" fill="#FBBC05"/><rect x="13" y="13" width="9" height="9" rx="1.5" fill="#34A853"/></svg>
+                Google Drive
+              </span>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Select a provider above, or use <strong>Change</strong> to pick any folder.</div>
+          </div>
+          <div id="cloud-storage-status" style="display:none;margin-bottom:12px"></div>
           <div style="font-size:12px;color:var(--text-muted);background:var(--emerald-light);padding:10px 12px;border-radius:8px;display:flex;align-items:flex-start;gap:8px">
             <i data-lucide="folder-tree" style="width:14px;height:14px;color:var(--emerald);flex-shrink:0;margin-top:1px"></i>
-            <div>IVI will create: <code style="font-size:11px">~/Desktop/IVI/YYYY-MM-DD_HH-MM_Meeting-Title/</code></div>
+            <div>IVI will create: <code style="font-size:11px" id="storage-path-preview">~/Desktop/IVI/YYYY-MM-DD_HH-MM_Meeting-Title/</code></div>
           </div>
         </div>
 
@@ -2153,8 +2173,54 @@ function loadSettings() {
       var el = document.getElementById('storage-path-text');
       if (el) el.textContent = saved.storagePath;
       localStorage.setItem('ivi_storage_path', saved.storagePath);
+      // Highlight matching cloud button
+      document.querySelectorAll('.cloud-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.path === saved.storagePath);
+      });
+      // Update path preview
+      var preview = document.getElementById('storage-path-preview');
+      if (preview) {
+        var base = saved.storagePath.replace(/\/$/, '');
+        preview.textContent = base + '/IVI/YYYY-MM-DD_HH-MM_Meeting-Title/';
+      }
     }
   } catch(e) {}
+}
+
+function setCloudStorage(path, url, provider) {
+  var el = document.getElementById('storage-path-text');
+  if (el) el.textContent = path;
+  localStorage.setItem('ivi_storage_path', path);
+  saveSettings();
+  listStoredMeetings(path);
+  // Update active state on all cloud buttons
+  document.querySelectorAll('.cloud-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.path === path);
+  });
+  // Update path preview
+  var preview = document.getElementById('storage-path-preview');
+  if (preview) {
+    var base = path.replace(/\/$/, '');
+    preview.textContent = base + '/IVI/YYYY-MM-DD_HH-MM_Meeting-Title/';
+  }
+  // Show status + open login in browser
+  var statusEl = document.getElementById('cloud-storage-status');
+  if (statusEl) {
+    statusEl.innerHTML =
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:12px">' +
+      '<span style="font-size:16px">✅</span>' +
+      '<div style="flex:1">' +
+      '<strong style="color:#166534;display:block">' + provider + ' selected</strong>' +
+      '<span style="color:#166534;opacity:0.8">Opening <strong>' + provider + '</strong> login in your browser. Make sure you\'re signed in — the folder will sync automatically.</span>' +
+      '</div></div>';
+    statusEl.style.display = 'block';
+  }
+  // Open the provider login in browser
+  if (window.ivi && window.ivi.openExternal) {
+    window.ivi.openExternal(url);
+  } else {
+    window.open(url, '_blank');
+  }
 }
 
 function chooseStorageFolder() {
