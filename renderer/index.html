@@ -4381,7 +4381,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📋 Next Meeting</div>
           <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-              <input type="checkbox" id="mock-docs" onchange="saveMockState()" style="accent-color:var(--emerald)"> Show documents
+              <input type="checkbox" id="mock-docs" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show documents
               <select id="mock-docs-count" onchange="saveMockState()" style="margin-left:auto;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
                 <option value="0">0</option><option value="2" selected>2</option><option value="5">5</option><option value="10">10</option>
               </select>
@@ -4392,6 +4392,29 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
               <input type="checkbox" id="mock-ai-suggestions" onchange="saveMockState()" style="accent-color:var(--emerald)"> Show AI suggestions row
             </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="mock-has-docs" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Meeting has documents folder
+            </label>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Participants:</span>
+              <select id="mock-participants" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="2">2</option><option value="6" selected>6</option><option value="12">12</option><option value="25">25</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Time to meeting:</span>
+              <select id="mock-time-to-meeting" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="1">1 min</option><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="34" selected>34 min</option><option value="60">1 hour</option><option value="120">2 hours</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Meeting state:</span>
+              <select id="mock-meeting-state" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="normal" selected>Normal</option>
+                <option value="no-meeting">No meeting today</option>
+                <option value="long-title">Very long meeting title</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -4404,6 +4427,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
                 <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="5">5</option>
               </select>
             </label>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Conflict state:</span>
+              <select id="mock-conflict-state" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="active" selected>Active conflicts</option>
+                <option value="all-solved">All solved</option>
+                <option value="none">No conflicts</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -4416,6 +4447,16 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
                 <option value="2">2</option><option value="5" selected>5</option><option value="10">10</option>
               </select>
             </label>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Status mix:</span>
+              <select id="mock-recording-status" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="mixed" selected>Mixed (normal)</option>
+                <option value="all-complete">All complete</option>
+                <option value="all-failed">All failed</option>
+                <option value="processing">Processing</option>
+                <option value="empty">No recordings</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -4428,6 +4469,29 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
                 <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="5">5</option>
               </select>
             </label>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">List state:</span>
+              <select id="mock-todo-state" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="normal" selected>Normal (mixed status)</option>
+                <option value="all-done">All done</option>
+                <option value="all-pending">All pending</option>
+                <option value="empty">No lists</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">🌐 General</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Backend status:</span>
+              <select id="mock-backend" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="online" selected>Connected</option>
+                <option value="offline">Disconnected (errors)</option>
+                <option value="slow">Slow responses</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -4480,8 +4544,11 @@ function switchMockTab(tab) {
 
 function saveMockState() {
   const fields = ['mock-docs','mock-docs-count','mock-ai-summary','mock-ai-suggestions',
-    'mock-conflicts','mock-conflicts-count','mock-recordings','mock-recordings-count',
-    'mock-todo','mock-todo-count','mock-upcoming','mock-upcoming-count'];
+    'mock-has-docs','mock-participants','mock-time-to-meeting','mock-meeting-state',
+    'mock-conflicts','mock-conflicts-count','mock-conflict-state',
+    'mock-recordings','mock-recordings-count','mock-recording-status',
+    'mock-todo','mock-todo-count','mock-todo-state',
+    'mock-upcoming','mock-upcoming-count','mock-backend'];
   const state = {};
   fields.forEach(id => {
     const el = document.getElementById(id);
