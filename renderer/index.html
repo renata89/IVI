@@ -4074,22 +4074,33 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   function toggleDismissItem(el) {
     var label = el.closest('.todo-mock-item');
     if (!label) return;
+    var cb = label.querySelector('input[type="checkbox"]');
+    var text = label.querySelector('.todo-text');
     if (el.textContent === '✕') {
-      // Dismiss: fade out, change to ↩
-      label.style.opacity = '0.4';
-      label.querySelector('.todo-text').style.textDecoration = 'line-through';
+      // Save original checkbox state, then dismiss
+      label.dataset.wasChecked = cb.checked ? '1' : '0';
+      cb.checked = false;
+      cb.disabled = true;
+      text.style.color = '#ef4444';
+      text.style.textDecoration = 'line-through';
+      text.style.textDecorationColor = '#ef4444';
+      label.style.opacity = '0.5';
       el.textContent = '↩';
       el.style.color = 'var(--emerald)';
     } else {
-      // Undo dismiss
-      label.style.opacity = '1';
-      // Restore original text-decoration based on checkbox
-      var cb = label.querySelector('input[type="checkbox"]');
-      if (cb && cb.checked) {
-        label.querySelector('.todo-text').style.textDecoration = 'line-through';
+      // Undo dismiss: restore original state
+      cb.disabled = false;
+      if (label.dataset.wasChecked === '1') {
+        cb.checked = true;
+        text.style.color = '#6b7280';
+        text.style.textDecoration = 'line-through';
+        text.style.textDecorationColor = '';
       } else {
-        label.querySelector('.todo-text').style.textDecoration = 'none';
+        cb.checked = false;
+        text.style.color = '';
+        text.style.textDecoration = 'none';
       }
+      label.style.opacity = '1';
       el.textContent = '✕';
       el.style.color = '#9ca3af';
     }
