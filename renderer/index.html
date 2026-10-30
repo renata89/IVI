@@ -1106,12 +1106,12 @@ body {
         <div class="card" id="todo-lists-card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;width:0">
           <div class="card-label">To-Do Lists</div>
           <div id="todo-lists-summary" style="font-size:12px;color:var(--text-muted);margin-top:4px">
-            2 lists · 3 open
+            3 lists · 3 open
           </div>
           <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px">
-            <div class="todo-mock-list" style="padding:8px 10px;background:#f0f5ff;border-radius:8px;border:1px solid #c7d2fe">
+            <div class="todo-mock-list urgent" style="padding:8px 10px;background:#f0f5ff;border-radius:8px;border:1px solid #c7d2fe;box-shadow:0 10px 40px -8px rgba(239,68,68,0.4),0 4px 20px -4px rgba(239,68,68,0.25);position:relative">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sprint Review Follow-up</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Mon, Oct 26 · 14:00 – 14:45</div>
+              <div style="font-size:10px;color:#dc2626;margin-top:2px;font-weight:500">Today 17:45 · in 15 min</div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
                   <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
@@ -1136,7 +1136,7 @@ body {
             </div>
             <div class="todo-mock-list" style="padding:8px 10px;background:#fdf2f8;border-radius:8px;border:1px solid #fbcfe8">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Teacher Lab UI Review</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Tue, Oct 27 · 09:00 – 10:00</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Tomorrow · 09:00 – 10:00</div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
                   <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
@@ -1166,7 +1166,7 @@ body {
             </div>
             <div class="todo-mock-list" style="padding:8px 10px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Daily Stand-up</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Wed, Oct 28 · 09:15 – 09:30</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Tomorrow · 09:15 – 09:30</div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
                   <input type="checkbox" onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
@@ -4028,8 +4028,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   const MOCK_TODO_LISTS = [
     {
-      id: 1, meeting_title: 'Sprint Review Follow-up', meeting_date: 'Mon, Oct 26', meeting_time: '14:00 – 14:45',
-      total_items: 3, done_items: 1, assigned_to_meeting_id: true, color: '#f0f5ff', borderColor: '#c7d2fe',
+      id: 1, meeting_title: 'Sprint Review Follow-up', meeting_date: 'Today', meeting_time: '17:45 – 18:00',
+      total_items: 3, done_items: 1, assigned_to_meeting_id: true, color: '#f0f5ff', borderColor: '#c7d2fe', urgent: true,
       items: [
         { person: 'Marek', description: 'Update API docs', status: 'done' },
         { person: 'Ania', description: 'Review test plan', status: 'pending' },
@@ -4037,7 +4037,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       ]
     },
     {
-      id: 2, meeting_title: 'Teacher Lab UI Review', meeting_date: 'Tue, Oct 27', meeting_time: '09:00 – 10:00',
+      id: 2, meeting_title: 'Teacher Lab UI Review', meeting_date: 'Tomorrow', meeting_time: '09:00 – 10:00',
       total_items: 4, done_items: 2, assigned_to_meeting_id: false, color: '#fdf2f8', borderColor: '#fbcfe8',
       items: [
         { person: 'Renata', description: 'Prepare mockups', status: 'done' },
@@ -4047,7 +4047,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       ]
     },
     {
-      id: 3, meeting_title: 'Daily Stand-up', meeting_date: 'Wed, Oct 28', meeting_time: '09:15 – 09:30',
+      id: 3, meeting_title: 'Daily Stand-up', meeting_date: 'Tomorrow', meeting_time: '09:15 – 09:30',
       total_items: 2, done_items: 0, assigned_to_meeting_id: true, color: '#fffbeb', borderColor: '#fde68a',
       items: [
         { person: 'Renata', description: 'Follow up on API migration blockers', status: 'pending' },
