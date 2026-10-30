@@ -1112,8 +1112,10 @@ body {
           </div>
           <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px">
             <div class="todo-mock-list urgent" style="padding:10px 12px;background:#f0f5ff;border-radius:8px;border:1px solid #c7d2fe;box-shadow:0 10px 40px -8px rgba(239,68,68,0.4),0 4px 20px -4px rgba(239,68,68,0.25);position:relative;transform:scale(1.06);margin:8px 0;z-index:1">
+              <div style="cursor:pointer" onclick="openTodoDetail(1)">
               <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sprint Review Follow-up</div>
               <div style="font-size:10px;color:#dc2626;margin-top:2px;font-weight:500">Today 17:45 · in 15 min</div>
+            </div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
                   <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
@@ -1137,8 +1139,10 @@ body {
               </div>
             </div>
             <div class="todo-mock-list" style="padding:8px 10px;background:#fdf2f8;border-radius:8px;border:1px solid #fbcfe8">
+              <div style="cursor:pointer" onclick="openTodoDetail(2)">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Teacher Lab UI Review</div>
               <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Tomorrow · 09:00 – 10:00</div>
+            </div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
                   <input type="checkbox" checked onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
@@ -1163,12 +1167,14 @@ body {
               </div>
               <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid #fbcfe8">
                 <span class="todo-count">2/4 done</span>
-                <span class="btn btn-ghost btn-sm" onclick="assignTodoList(2)" style="font-size:10px;padding:2px 8px;color:#d97706;border-color:#fde68a">Assign</span>
+                <span class="btn btn-ghost btn-sm" onclick="openTodoDetail(2)" style="font-size:10px;padding:2px 8px;color:#d97706;border-color:#fde68a">Assign</span>
               </div>
             </div>
             <div class="todo-mock-list" style="padding:8px 10px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a">
+              <div style="cursor:pointer" onclick="openTodoDetail(3)">
               <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Daily Stand-up</div>
               <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Tomorrow · 09:15 – 09:30</div>
+            </div>
               <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
                 <label class="todo-mock-item" style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
                   <input type="checkbox" onchange="toggleTodoItem(this)" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer">
@@ -1202,9 +1208,9 @@ body {
             <span class="btn btn-ghost btn-sm" onclick="document.querySelector('.nav-item[data-page=meetings]').click()" style="font-size:11px">See all →</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:10px;color:var(--text-muted)">
-            <span>Docs &amp; Notes: <span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span><span style="display:inline-flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span></span>
-            <span style="color:var(--card-border)">|</span>
-            <span>Prep &amp; To-Do: <span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span><span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#eab308;display:inline-block"></span> Partial</span><span style="display:inline-flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span></span>
+            <span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span>
+            <span style="display:inline-flex;align-items:center;gap:2px;margin-right:4px"><span style="width:6px;height:6px;border-radius:50%;background:#eab308;display:inline-block"></span> Partial</span>
+            <span style="display:inline-flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px" id="todays-meetings-list">
             <!-- Today: Sprint Review -->
@@ -1215,9 +1221,8 @@ body {
                 <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Product Sprint Review</span>
                 <span style="font-size:10px;color:var(--text-muted)">45 min</span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openPrepareContext('Product Sprint Review')" title="Add documents">Docs</span>
-                <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openSummaryPdf()" title="View prep notes">Notes</span>
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()" title="Go to Library">Prep</span>
                 <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="openTodoManager()" title="View To-Do list">To-Do 1/3</span>
               </div>
@@ -1230,9 +1235,8 @@ body {
                 <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Client Sync</span>
                 <span style="font-size:10px;color:var(--text-muted)">30 min</span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;cursor:pointer" onclick="openPrepareContext('Client Sync')" title="Add documents">Docs</span>
-                <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;cursor:pointer" title="No notes yet">Notes</span>
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()" title="Go to Library">Prep</span>
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openTodoManager()" title="View To-Do list">To-Do 3/3</span>
               </div>
@@ -1245,9 +1249,8 @@ body {
                 <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Teacher Lab UI Review</span>
                 <span style="font-size:10px;color:var(--text-muted)">60 min</span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openPrepareContext('Teacher Lab UI Review')" title="Add documents">Docs</span>
-                <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;cursor:pointer" title="No notes yet">Notes</span>
                 <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()" title="Go to Library">Prep</span>
                 <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="openTodoManager()" title="View To-Do list">To-Do 2/4</span>
               </div>
@@ -4054,6 +4057,73 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       items: [
         { person: 'Renata', description: 'Follow up on API migration blockers', status: 'pending' },
         { person: 'Marek', description: 'Prepare sprint demo for Friday', status: 'pending' }
+      ]
+    },
+    {
+      id: 4, meeting_title: 'Q4 Planning Sync', meeting_date: 'Fri, Oct 31', meeting_time: '11:00 – 12:00',
+      total_items: 5, done_items: 1, assigned_to_meeting_id: false, color: '#f0fdf4', borderColor: '#bbf7d0',
+      items: [
+        { person: 'Renata', description: 'Prepare Q4 roadmap draft', status: 'done' },
+        { person: 'Marek', description: 'Compile resource estimates', status: 'pending' },
+        { person: 'Ania', description: 'Review past quarter metrics', status: 'pending' },
+        { person: 'Krzysiek', description: 'Prepare risk assessment', status: 'pending' },
+        { person: 'Renata', description: 'Define OKRs for next quarter', status: 'pending' }
+      ]
+    },
+    {
+      id: 5, meeting_title: 'Design Review', meeting_date: 'Mon, Nov 3', meeting_time: '14:00 – 15:00',
+      total_items: 3, done_items: 0, assigned_to_meeting_id: false, color: '#f5f3ff', borderColor: '#ddd6fe',
+      items: [
+        { person: 'Ania', description: 'Finalize wireframes', status: 'pending' },
+        { person: 'Marek', description: 'Prepare user flow diagrams', status: 'pending' },
+        { person: 'Renata', description: 'Review accessibility compliance', status: 'pending' }
+      ]
+    },
+    {
+      id: 6, meeting_title: '1:1 with Manager', meeting_date: 'Tue, Nov 4', meeting_time: '10:00 – 10:30',
+      total_items: 2, done_items: 1, assigned_to_meeting_id: true, color: '#ecfeff', borderColor: '#a5f3fc',
+      items: [
+        { person: 'Renata', description: 'Prepare status report', status: 'done' },
+        { person: 'Renata', description: 'List topics for discussion', status: 'pending' }
+      ]
+    },
+    {
+      id: 7, meeting_title: 'Sprint Retrospective', meeting_date: 'Wed, Nov 5', meeting_time: '15:00 – 16:00',
+      total_items: 4, done_items: 3, assigned_to_meeting_id: false, color: '#fff7ed', borderColor: '#fed7aa',
+      items: [
+        { person: 'Team', description: 'Gather feedback from sprint', status: 'done' },
+        { person: 'Renata', description: 'Prepare improvement proposals', status: 'done' },
+        { person: 'Marek', description: 'Compile velocity metrics', status: 'done' },
+        { person: 'Ania', description: 'Document action items', status: 'pending' }
+      ]
+    },
+    {
+      id: 8, meeting_title: 'Client Presentation Prep', meeting_date: 'Thu, Nov 6', meeting_time: '09:00 – 10:30',
+      total_items: 6, done_items: 2, assigned_to_meeting_id: true, color: '#fef2f2', borderColor: '#fecaca',
+      items: [
+        { person: 'Renata', description: 'Create slide deck', status: 'done' },
+        { person: 'Marek', description: 'Prepare demo environment', status: 'done' },
+        { person: 'Ania', description: 'Write talking points', status: 'pending' },
+        { person: 'Krzysiek', description: 'Set up analytics dashboard', status: 'pending' },
+        { person: 'Renata', description: 'Rehearse presentation', status: 'pending' },
+        { person: 'Team', description: 'Review competitor analysis', status: 'pending' }
+      ]
+    },
+    {
+      id: 9, meeting_title: 'Architecture Decision Review', meeting_date: 'Fri, Nov 7', meeting_time: '13:00 – 14:00',
+      total_items: 3, done_items: 0, assigned_to_meeting_id: false, color: '#faf5ff', borderColor: '#e9d5ff',
+      items: [
+        { person: 'Marek', description: 'Document proposed architecture', status: 'pending' },
+        { person: 'Krzysiek', description: 'Prepare migration path comparison', status: 'pending' },
+        { person: 'Ania', description: 'Review security implications', status: 'pending' }
+      ]
+    },
+    {
+      id: 10, meeting_title: 'Team Building Planning', meeting_date: 'Mon, Nov 10', meeting_time: '16:00 – 17:00',
+      total_items: 2, done_items: 2, assigned_to_meeting_id: true, color: '#f0fdf4', borderColor: '#86efac',
+      items: [
+        { person: 'Renata', description: 'Choose venue & date', status: 'done' },
+        { person: 'Ania', description: 'Collect team preferences', status: 'done' }
       ]
     }
   ];
