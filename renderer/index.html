@@ -1199,6 +1199,11 @@ body {
             <h3 style="font-size:14px;font-weight:600">Upcoming Meetings</h3>
             <span class="btn btn-ghost btn-sm" onclick="document.querySelector('.nav-item[data-page=meetings]').click()" style="font-size:11px">See all →</span>
           </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:10px;color:var(--text-muted)">
+            <span style="display:flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> Ready</span>
+            <span style="display:flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#eab308;display:inline-block"></span> Partial</span>
+            <span style="display:flex;align-items:center;gap:2px"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Missing</span>
+          </div>
           <div style="display:flex;flex-direction:column;gap:8px" id="todays-meetings-list">
             <!-- Today: Sprint Review -->
             <div class="meeting-readiness-row" style="display:flex;flex-direction:column;padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border)">
