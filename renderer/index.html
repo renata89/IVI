@@ -4489,39 +4489,52 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       const summaryEl = document.getElementById('todo-lists-summary');
       const itemsEl = document.getElementById('todo-lists-items');
 
-      if (lists.length === 0) {
-        // Keep existing static HTML if the card already has content
+      // Fallback to MOCK_TODO_LISTS with real item statuses
+      const source = (lists.length > 0 ? lists : MOCK_TODO_LISTS).map(function(list) {
+        // Calculate actual counts from items
+        var activeItems = (list.items || []).filter(function(it) { return it.status !== 'dismissed'; });
+        var doneItems = activeItems.filter(function(it) { return it.status === 'done'; });
+        return {
+          id: list.id,
+          meeting_title: list.meeting_title,
+          total_items: list.items ? list.items.length : 0,
+          active_items: activeItems.length,
+          done_items: doneItems.length,
+          assigned_to_meeting_id: list.assigned_to_meeting_id
+        };
+      });
+
+      if (source.length === 0) {
         if (itemsEl && itemsEl.children.length > 0) return;
         summaryEl.textContent = 'No lists yet';
         itemsEl.innerHTML = '';
         return;
       }
 
-      const totalOpen = lists.reduce((s, l) => s + (l.total_items - l.done_items), 0);
-      const unassigned = lists.filter(l => !l.assigned_to_meeting_id);
-      summaryEl.textContent = `${lists.length} list${lists.length > 1 ? 's' : ''} · ${totalOpen} open`;
+      var totalActive = source.reduce(function(s, l) { return s + (l.active_items - l.done_items); }, 0);
+      var totalAll = source.length;
+      summaryEl.textContent = totalAll + ' list' + (totalAll > 1 ? 's' : '') + ' · ' + totalActive + ' open';
 
       // Show latest 2 lists
-      let html = '';
-      const show = lists.slice(0, 2);
-      show.forEach(list => {
-        const pct = list.total_items > 0 ? Math.round((list.done_items / list.total_items) * 100) : 0;
-        const status = list.assigned_to_meeting_id ? '📌 Assigned' : '📋 Pending assign';
-        html += `<div style="padding:6px 8px;background:var(--card-hover);border-radius:6px;cursor:pointer" onclick="openTodoDetail(${list.id})">
-          <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${list.meeting_title}</div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px">
-            <span>${list.done_items}/${list.total_items} done</span>
-            <span>${status}</span>
-          </div>
-        </div>`;
+      var html = '';
+      var show = source.slice(0, 2);
+      show.forEach(function(list) {
+        var status = list.assigned_to_meeting_id ? '📌 Assigned' : '📋 Pending assign';
+        html += '<div style="padding:6px 8px;background:var(--card-hover);border-radius:6px;cursor:pointer" onclick="openTodoDetail(' + list.id + ')">' +
+          '<div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + list.meeting_title + '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px">' +
+            '<span>' + list.done_items + '/' + list.active_items + ' done</span>' +
+            '<span>' + status + '</span>' +
+          '</div></div>';
       });
-      if (lists.length > 2) {
-        html += `<div style="font-size:10px;color:var(--text-muted);text-align:center">+${lists.length - 2} more</div>`;
+      if (source.length > 2) {
+        html += '<div style="font-size:10px;color:var(--text-muted);text-align:center">+' + (source.length - 2) + ' more</div>';
       }
       itemsEl.innerHTML = html;
 
       // Show notification badge if there are unassigned lists
-      const badge = document.getElementById('nav-todo-badge');
+      var unassigned = source.filter(function(l) { return !l.assigned_to_meeting_id; });
+      var badge = document.getElementById('nav-todo-badge');
       if (badge) {
         badge.textContent = unassigned.length;
         badge.style.display = unassigned.length > 0 ? 'inline-flex' : 'none';
