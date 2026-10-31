@@ -4862,9 +4862,50 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     // Also check custom meetings created via the calendar
     var custom = getCustomMeetings();
     for (var i = 0; i < custom.length; i++) {
-      if (custom[i].date === dateStr) res.push(custom[i]);
+      if (custom[i].date === dateStr) {
+        res.push(custom[i]);
+      } else if (custom[i].repeat && custom[i].repeatInterval) {
+        // Check if this date falls within the recurrence pattern
+        var ri = custom[i].repeatInterval;
+        if (ri && ri.indexOf('every_') === 0) {
+          var parts = ri.split('_');
+          if (parts.length === 3) {
+            var num = parseInt(parts[1]);
+            var unit = parts[2];
+            if (num > 0 && isDateInRecurrence(custom[i].createdDate, dateStr, num, unit)) {
+              res.push(custom[i]);
+            }
+          }
+        }
+      }
     }
     return res;
+  }
+
+  function isDateInRecurrence(startDateStr, targetDateStr, num, unit) {
+    if (!startDateStr || !targetDateStr) return false;
+    var start = new Date(startDateStr);
+    var target = new Date(targetDateStr);
+    if (isNaN(start.getTime()) || isNaN(target.getTime())) return false;
+    // Target must be on or after start
+    if (target < start) return false;
+    var diffMs = target.getTime() - start.getTime();
+    var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (unit === 'days') {
+      return diffDays % num === 0;
+    } else if (unit === 'weeks') {
+      return diffDays % (num * 7) === 0;
+    } else if (unit === 'months') {
+      // Check month difference
+      var monthDiff = (target.getFullYear() - start.getFullYear()) * 12 + (target.getMonth() - start.getMonth());
+      // Also check that the day matches or is the last valid day of the month
+      if (monthDiff % num !== 0) return false;
+      // Allow same day-of-month, or end-of-month clamp
+      return target.getDate() === start.getDate() ||
+             (target.getDate() === new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate() &&
+              start.getDate() > target.getDate());
+    }
+    return false;
   }
 
   function calSelectDate(dateStr) {
@@ -4949,6 +4990,21 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     // Pre-fill date
     var dateStr = calSelectedDate || (new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0'));
     document.getElementById('cal-form-date').value = dateStr;
+    // Reset form fields
+    document.getElementById('cal-form-title').value = '';
+    document.getElementById('cal-form-time').value = '12:00';
+    document.getElementById('cal-form-platform').value = '';
+    document.getElementById('cal-form-people').value = '';
+    document.getElementById('cal-form-notes').value = '';
+    document.getElementById('cal-form-link').value = '';
+    document.getElementById('cal-form-repeat').checked = false;
+    document.getElementById('cal-form-repeat-interval').value = 'weekly';
+    document.getElementById('cal-form-repeat-interval').disabled = true;
+    document.getElementById('cal-form-repeat-interval').style.opacity = '0.5';
+    document.getElementById('cal-form-repeat-items').checked = false;
+    document.getElementById('cal-form-repeat-items').disabled = true;
+    document.getElementById('cal-form-repeat-items').parentElement.style.opacity = '0.5';
+    document.getElementById('cal-repeat-custom').style.display = 'none';
   }
 
   function calCancelNewMeeting() {
