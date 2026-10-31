@@ -4626,7 +4626,22 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     calRender();
   }
 
+  var PLATFORM_COLORS = {
+    'teams': { dot: '#8b5cf6', bg: '#ede9fe', label: 'Teams' },
+    'zoom': { dot: '#3b82f6', bg: '#dbeafe', label: 'Zoom' },
+    'google-meets': { dot: '#eab308', bg: '#fef9c3', label: 'Google Meet' }
+  };
+
   function calRender() {
+    // Legend
+    var legendHtml = '<div style="display:flex;align-items:center;gap:12px;font-size:10px;color:var(--text-muted);margin-bottom:10px;padding:6px 0;border-bottom:1px solid var(--card-border)">';
+    var keys = Object.keys(PLATFORM_COLORS);
+    for (var li = 0; li < keys.length; li++) {
+      var pc = PLATFORM_COLORS[keys[li]];
+      legendHtml += '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span> ' + pc.label + '</span>';
+    }
+    legendHtml += '</div>';
+
     // Day labels
     var labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     document.getElementById('cal-day-labels').innerHTML = labels.map(function(l) { return '<span>' + l + '</span>'; }).join('');
@@ -4642,7 +4657,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var today = new Date();
 
-    var grid = '';
+    var grid = legendHtml;
     // Empty cells before first day
     for (var i = 0; i < firstDay; i++) grid += '<span></span>';
 
@@ -4650,19 +4665,29 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       var dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
       var isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
       var isSelected = calSelectedDate === dateStr;
-      // Check if there are meetings on this day
-      var hasMeetings = false;
       var meetings = getMeetingsForDate(dateStr);
-      if (meetings.length > 0) hasMeetings = true;
 
-      var style = 'padding:6px 4px;text-align:center;font-size:12px;border-radius:6px;cursor:pointer';
-      if (isSelected) style += ';background:var(--emerald);color:#fff';
-      else if (isToday) style += ';background:var(--emerald-light);color:var(--emerald);font-weight:600';
-      else style += ';color:var(--text)';
-      style += ';position:relative';
-      if (hasMeetings && !isSelected) style += ';font-weight:600';
+      // Collect unique platforms for this day
+      var platforms = {};
+      meetings.forEach(function(m) { if (m.platform) platforms[m.platform] = true; });
+      var platformKeys = Object.keys(platforms);
 
-      grid += '<span style="' + style + '" onclick="calSelectDate(\'' + dateStr + '\')">' + d + '</span>';
+      var cellStyle = 'padding:6px 4px 2px;text-align:center;font-size:12px;border-radius:6px;cursor:pointer;position:relative';
+      if (isSelected) cellStyle += ';background:var(--emerald);color:#fff';
+      else if (isToday) cellStyle += ';background:var(--emerald-light);color:var(--emerald);font-weight:600';
+
+      // Dots for platforms
+      var dotsHtml = '';
+      if (platformKeys.length > 0) {
+        dotsHtml = '<div style="display:flex;justify-content:center;gap:2px;margin-top:1px">';
+        platformKeys.forEach(function(pk) {
+          var pc = PLATFORM_COLORS[pk];
+          if (pc) dotsHtml += '<span style="width:5px;height:5px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span>';
+        });
+        dotsHtml += '</div>';
+      }
+
+      grid += '<span style="' + cellStyle + '" onclick="calSelectDate(\'' + dateStr + '\')">' + d + dotsHtml + '</span>';
     }
 
     document.getElementById('cal-grid').innerHTML = grid;
@@ -4687,18 +4712,18 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var month = parseInt(dateStr.substring(5,7)) - 1;
     var day = parseInt(dateStr.substring(8,10));
 
-    // Mock calendar meetings spread across month days
+    // Mock calendar meetings spread across month days with platform colors
     var mockCalendarMeetings = [
-      { id: 'cal_m1', title: 'Daily Stand-up', time: '09:15', daysFromStart: 1 },
-      { id: 'cal_m2', title: 'Product Sprint Review', time: '14:00', daysFromStart: 2 },
-      { id: 'cal_m3', title: 'Design Sync', time: '11:00', daysFromStart: 3 },
-      { id: 'cal_m4', title: 'Client Sync — e-Krew', time: '10:30', daysFromStart: 4 },
-      { id: 'cal_m5', title: 'Teacher Lab UI Review', time: '09:00', daysFromStart: 5 },
-      { id: 'cal_m6', title: 'Weekly Team Retro', time: '16:00', daysFromStart: 6 },
-      { id: 'cal_m7', title: '1:1 with Marek', time: '13:30', daysFromStart: 7 },
-      { id: 'cal_m8', title: 'Architecture Review', time: '15:00', daysFromStart: 8 },
-      { id: 'cal_m9', title: 'Q4 Planning Prep', time: '10:00', daysFromStart: 10 },
-      { id: 'cal_m10', title: 'Design Review — v3', time: '14:30', daysFromStart: 12 }
+      { id: 'cal_m1', title: 'Daily Stand-up', time: '09:15', daysFromStart: 1, platform: 'teams' },
+      { id: 'cal_m2', title: 'Product Sprint Review', time: '14:00', daysFromStart: 2, platform: 'zoom' },
+      { id: 'cal_m3', title: 'Design Sync', time: '11:00', daysFromStart: 3, platform: 'teams' },
+      { id: 'cal_m4', title: 'Client Sync — e-Krew', time: '10:30', daysFromStart: 4, platform: 'google-meets' },
+      { id: 'cal_m5', title: 'Teacher Lab UI Review', time: '09:00', daysFromStart: 5, platform: 'zoom' },
+      { id: 'cal_m6', title: 'Weekly Team Retro', time: '16:00', daysFromStart: 6, platform: 'teams' },
+      { id: 'cal_m7', title: '1:1 with Marek', time: '13:30', daysFromStart: 7, platform: 'zoom' },
+      { id: 'cal_m8', title: 'Architecture Review', time: '15:00', daysFromStart: 8, platform: 'google-meets' },
+      { id: 'cal_m9', title: 'Q4 Planning Prep', time: '10:00', daysFromStart: 10, platform: 'teams' },
+      { id: 'cal_m10', title: 'Design Review — v3', time: '14:30', daysFromStart: 12, platform: 'google-meets' }
     ];
 
     var firstOfMonth = new Date(year, month, 1);
@@ -4708,7 +4733,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       if (mDate.getMonth() !== month) return; // skip if rolled over
       var ds = mDate.getFullYear() + '-' + String(mDate.getMonth()+1).padStart(2,'0') + '-' + String(mDate.getDate()).padStart(2,'0');
       if (ds === dateStr) {
-        res.push({ id: m.id, title: m.title, date: ds, time: m.time, createdDate: ds });
+        res.push({ id: m.id, title: m.title, date: ds, time: m.time, createdDate: ds, platform: m.platform });
       }
     });
 
@@ -4733,8 +4758,13 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     }
     var html = '';
     meetings.forEach(function(m) {
+      var platformBadge = '';
+      if (m.platform && PLATFORM_COLORS[m.platform]) {
+        var pc = PLATFORM_COLORS[m.platform];
+        platformBadge = '<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:4px;background:' + pc.bg + ';color:' + pc.dot + ';font-weight:600;margin-left:6px"><span style="width:6px;height:6px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span>' + pc.label + '</span>';
+      }
       html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--card-border);margin-bottom:6px;cursor:pointer" onclick="calSelectMeeting(\'' + m.id + '\')" onmouseover="this.style.background=\'var(--card-hover)\'" onmouseout="this.style.background=\'\'">' +
-        '<span style="flex:1;font-size:12px;font-weight:500">' + m.title + '</span>' +
+        '<span style="flex:1;font-size:12px;font-weight:500">' + m.title + platformBadge + '</span>' +
         '<span style="font-size:10px;color:var(--text-muted)">' + m.date + ' ' + m.time + '</span>' +
         '<span class="btn btn-primary btn-sm" style="font-size:10px;padding:2px 8px">Assign ✓</span>' +
       '</div>';
