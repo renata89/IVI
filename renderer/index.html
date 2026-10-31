@@ -4362,15 +4362,21 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         MOCK_TODO_LISTS[listIdx].items[itemIdx].status = cb.checked ? 'done' : 'pending';
       }
     }
-    // Recalculate counts for this list
+    // Recalculate counts for this list — exclude dismissed items
     var listEl = cb.closest('.todo-mock-list');
     if (listEl) {
-      var checks = listEl.querySelectorAll('.todo-mock-item input[type="checkbox"]');
+      var items = listEl.querySelectorAll('.todo-mock-item');
       var countEl = listEl.querySelector('.todo-count');
-      if (countEl && checks.length > 0) {
+      if (countEl && items.length > 0) {
         var done = 0;
-        checks.forEach(function(c) { if (c.checked) done++; });
-        countEl.textContent = done + '/' + checks.length + ' done';
+        var activeTotal = 0;
+        items.forEach(function(item) {
+          var isDis = item.classList.contains('dismissed');
+          if (!isDis) activeTotal++;
+          var c = item.querySelector('input[type="checkbox"]');
+          if (c && c.checked && !isDis) done++;
+        });
+        countEl.textContent = done + '/' + activeTotal + ' done';
       }
     }
     // Update summary
@@ -4454,6 +4460,22 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           if (dismiss) { dismiss.textContent = '✕'; dismiss.style.color = '#9ca3af'; }
         }
       });
+    });
+    // Update per-list counts
+    var listEls = document.querySelectorAll('.todo-mock-list');
+    listEls.forEach(function(l) {
+      var items = l.querySelectorAll('.todo-mock-item');
+      var countEl = l.querySelector('.todo-count');
+      if (countEl && items.length > 0) {
+        var done = 0, activeTotal = 0;
+        items.forEach(function(item) {
+          var isDis = item.classList.contains('dismissed');
+          if (!isDis) activeTotal++;
+          var c = item.querySelector('input[type="checkbox"]');
+          if (c && c.checked && !isDis) done++;
+        });
+        countEl.textContent = done + '/' + activeTotal + ' done';
+      }
     });
     updateTodoSummary();
     updateUrgentState();
