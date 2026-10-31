@@ -742,6 +742,11 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       document.getElementById('conflict-card').style.gap = '0px';
       document.getElementById('conflict-card').style.minHeight = '';
       document.getElementById('conflict-card').style.width = '';
+      // Hide spacer and footer when no conflicts
+      var sp = document.getElementById('conflict-spacer');
+      var ft = document.getElementById('conflict-footer');
+      if (sp) sp.style.display = 'none';
+      if (ft) ft.style.display = 'none';
       // Notify recordings card to compact
       if (typeof onConflictStateChange === 'function') onConflictStateChange();
       return;
@@ -754,7 +759,12 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     document.getElementById('conflict-label').style.color = '#7a2020';
     document.getElementById('conflict-label').style.fontSize = '13px';
     document.getElementById('conflict-card').style.gap = '14px';
-    document.getElementById('conflict-card').style.minHeight = '370px';
+    document.getElementById('conflict-card').style.minHeight = '480px';
+    // Show spacer and footer when conflicts are active
+    var sp = document.getElementById('conflict-spacer');
+    var ft = document.getElementById('conflict-footer');
+    if (sp) sp.style.display = '';
+    if (ft) ft.style.display = '';
     // Lock card width while conflicts are active to prevent layout shifts
     document.getElementById('conflict-card').style.width = document.getElementById('conflict-card').offsetWidth + 'px';
 
