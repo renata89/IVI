@@ -10,6 +10,8 @@ Desktop meeting companion app. Captures system audio, transcribes meetings, gene
 
 ## Architecture
 
+> 📐 Visual diagram available: [`IVI-architecture.html`](./IVI-architecture.html) — open in any browser.
+
 ```
 ┌─────────────────────────────────────────────┐
 │              Electron Desktop App            │

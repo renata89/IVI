@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IVI — Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot { width: 12px; height: 12px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
+    .diagram-container { background: rgba(15, 23, 42, 0.5); border-radius: 1rem; border: 1px solid #1e293b; padding: 1.5rem; overflow-x: auto; }
+    svg { width: 100%; min-width: 1000px; display: block; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 2rem; }
+    .card { background: rgba(15, 23, 42, 0.5); border-radius: 0.75rem; border: 1px solid #1e293b; padding: 1.25rem; }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+    .card-dot.rose { background: #fb7185; }
+    .card h3 { font-size: 0.875rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>IVI Architecture</h1>
+      </div>
+      <p class="subtitle">Meeting Assistant — System Architecture & Data Flow</p>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1060 740">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+          </marker>
+          <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+          </marker>
+          <marker id="arrow-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+          </marker>
+          <marker id="arrow-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+          </marker>
+          <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background -->
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+
+        <!-- ========================================= -->
+        <!-- BOUNDARY: User Desktop -->
+        <!-- ========================================= -->
+        <rect x="20" y="20" width="1020" height="160" rx="12" fill="rgba(30, 41, 59, 0.2)" stroke="#475569" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="32" y="40" fill="#94a3b8" font-size="9" font-weight="600">USER DESKTOP</text>
+
+        <!-- User -->
+        <rect x="60" y="65" width="90" height="50" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="105" y="85" fill="white" font-size="11" font-weight="600" text-anchor="middle">User</text>
+        <text x="105" y="101" fill="#94a3b8" font-size="9" text-anchor="middle">Desktop</text>
+
+        <!-- Meeting Platform (Zoom/Teams) -->
+        <rect x="210" y="65" width="120" height="50" rx="6" fill="rgba(148, 163, 184, 0.15)" stroke="#64748b" stroke-width="1.5"/>
+        <text x="270" y="85" fill="white" font-size="11" font-weight="600" text-anchor="middle">Meeting App</text>
+        <text x="270" y="101" fill="#94a3b8" font-size="9" text-anchor="middle">Teams / Zoom / Meet</text>
+
+        <!-- Arrow: user to meeting -->
+        <line x1="150" y1="90" x2="208" y2="90" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- ========================================= -->
+        <!-- BOUNDARY: IVI Desktop App (Electron) -->
+        <!-- ========================================= -->
+        <rect x="380" y="20" width="330" height="160" rx="12" fill="rgba(8, 51, 68, 0.15)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="392" y="40" fill="#22d3ee" font-size="9" font-weight="600">IVI DESKTOP APP (ELECTRON)</text>
+
+        <!-- Main Process -->
+        <rect x="400" y="55" width="90" height="45" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="445" y="75" fill="white" font-size="9" font-weight="600" text-anchor="middle">Main Process</text>
+        <text x="445" y="88" fill="#94a3b8" font-size="8" text-anchor="middle">main.js</text>
+
+        <!-- Preload Bridge -->
+        <rect x="400" y="115" width="90" height="40" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="445" y="133" fill="white" font-size="9" font-weight="600" text-anchor="middle">Preload</text>
+        <text x="445" y="146" fill="#94a3b8" font-size="8" text-anchor="middle">contextBridge</text>
+
+        <!-- Audio Capture -->
+        <rect x="510" y="55" width="90" height="45" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="555" y="72" fill="white" font-size="9" font-weight="600" text-anchor="middle">Audio Capture</text>
+        <text x="555" y="85" fill="#94a3b8" font-size="8" text-anchor="middle">desktopCapturer</text>
+        <text x="555" y="95" fill="#94a3b8" font-size="8" text-anchor="middle">MediaRecorder</text>
+
+        <!-- Tracker -->
+        <rect x="510" y="115" width="90" height="40" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="555" y="133" fill="white" font-size="9" font-weight="600" text-anchor="middle">Tracker</text>
+        <text x="555" y="146" fill="#94a3b8" font-size="8" text-anchor="middle">calendar poll</text>
+
+        <!-- Renderer -->
+        <rect x="620" y="55" width="75" height="100" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="657" y="78" fill="white" font-size="9" font-weight="600" text-anchor="middle">Renderer</text>
+        <text x="657" y="94" fill="#94a3b8" font-size="8" text-anchor="middle">HTML + CSS</text>
+        <text x="657" y="108" fill="#94a3b8" font-size="8" text-anchor="middle">app.js</text>
+        <text x="657" y="122" fill="#94a3b8" font-size="8" text-anchor="middle">login.js</text>
+        <text x="657" y="136" fill="#94a3b8" font-size="8" text-anchor="middle">mock-panel.js</text>
+
+        <!-- IPC arrows within Electron -->
+        <line x1="490" y1="77" x2="508" y2="77" stroke="#22d3ee" stroke-width="1" marker-end="url(#arrow-cyan)"/>
+        <line x1="445" y1="100" x2="445" y2="113" stroke="#22d3ee" stroke-width="1" marker-end="url(#arrow-cyan)"/>
+        <line x1="600" y1="77" x2="618" y2="77" stroke="#64748b" stroke-width="1" marker-end="url(#arrow)"/>
+        <line x1="490" y1="135" x2="508" y2="135" stroke="#64748b" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- Arrow: meeting audio to capture -->
+        <path d="M 330 90 Q 350 90 350 77 Q 350 77 398 77" fill="none" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-emerald)"/>
+        <text x="360" y="73" fill="#34d399" font-size="8">system audio</text>
+
+        <!-- ========================================= -->
+        <!-- BOUNDARY: Python Backend -->
+        <!-- ========================================= -->
+        <rect x="20" y="230" width="800" height="280" rx="12" fill="rgba(6, 78, 59, 0.10)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="32" y="250" fill="#34d399" font-size="9" font-weight="600">IVI PYTHON BACKEND (FASTAPI — PORT 8765)</text>
+
+        <!-- REST API -->
+        <rect x="40" y="270" width="100" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="90" y="290" fill="white" font-size="9" font-weight="600" text-anchor="middle">REST API</text>
+        <text x="90" y="306" fill="#94a3b8" font-size="8" text-anchor="middle">FastAPI</text>
+        <text x="90" y="318" fill="#94a3b8" font-size="8" text-anchor="middle">/meetings, /notes</text>
+
+        <!-- WebSocket -->
+        <rect x="40" y="340" width="100" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="90" y="360" fill="white" font-size="9" font-weight="600" text-anchor="middle">WebSocket</text>
+        <text x="90" y="376" fill="#94a3b8" font-size="8" text-anchor="middle">/ws/audio</text>
+        <text x="90" y="388" fill="#94a3b8" font-size="8" text-anchor="middle">/ws/ptt</text>
+
+        <!-- LLM Pipeline -->
+        <rect x="200" y="270" width="120" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="260" y="288" fill="white" font-size="9" font-weight="600" text-anchor="middle">LLM Pipeline</text>
+        <text x="260" y="304" fill="#94a3b8" font-size="8" text-anchor="middle">summaries</text>
+        <text x="260" y="316" fill="#94a3b8" font-size="8" text-anchor="middle">live suggestions</text>
+
+        <!-- STT Engine -->
+        <rect x="200" y="340" width="120" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="260" y="358" fill="white" font-size="9" font-weight="600" text-anchor="middle">STT Engine</text>
+        <text x="260" y="374" fill="#94a3b8" font-size="8" text-anchor="middle">Whisper / WhisperX</text>
+        <text x="260" y="386" fill="#94a3b8" font-size="8" text-anchor="middle">diarization</text>
+
+        <!-- Calendar Client -->
+        <rect x="380" y="270" width="120" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="440" y="288" fill="white" font-size="9" font-weight="600" text-anchor="middle">Calendar Client</text>
+        <text x="440" y="304" fill="#94a3b8" font-size="8" text-anchor="middle">Google Calendar</text>
+        <text x="440" y="316" fill="#94a3b8" font-size="8" text-anchor="middle">OAuth2 flow</text>
+
+        <!-- Conflict Detection -->
+        <rect x="380" y="340" width="120" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="440" y="358" fill="white" font-size="9" font-weight="600" text-anchor="middle">Conflicts</text>
+        <text x="440" y="374" fill="#94a3b8" font-size="8" text-anchor="middle">overlap detection</text>
+        <text x="440" y="386" fill="#94a3b8" font-size="8" text-anchor="middle">resolution tracking</text>
+
+        <!-- TTS -->
+        <rect x="560" y="270" width="110" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="615" y="290" fill="white" font-size="9" font-weight="600" text-anchor="middle">Text-to-Speech</text>
+        <text x="615" y="306" fill="#94a3b8" font-size="8" text-anchor="middle">edge-tts</text>
+        <text x="615" y="316" fill="#94a3b8" font-size="8" text-anchor="middle">Polish voices</text>
+
+        <!-- Mock Data -->
+        <rect x="560" y="340" width="110" height="55" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="615" y="360" fill="white" font-size="9" font-weight="600" text-anchor="middle">Mock Data</text>
+        <text x="615" y="376" fill="#94a3b8" font-size="8" text-anchor="middle">dev mode</text>
+        <text x="615" y="388" fill="#94a3b8" font-size="8" text-anchor="middle">no API keys needed</text>
+
+        <!-- Database -->
+        <rect x="740" y="270" width="60" height="125" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="770" y="305" fill="white" font-size="9" font-weight="600" text-anchor="middle">DB</text>
+        <text x="770" y="320" fill="#94a3b8" font-size="8" text-anchor="middle">SQLite</text>
+        <text x="770" y="335" fill="#94a3b8" font-size="8" text-anchor="middle">~/.ivi/</text>
+        <text x="770" y="350" fill="#a78bfa" font-size="7" text-anchor="middle">WAL mode</text>
+
+        <!-- Arrows: API ↔ LLM -->
+        <line x1="140" y1="297" x2="198" y2="297" stroke="#34d399" stroke-width="1" marker-end="url(#arrow-emerald)"/>
+        <line x1="140" y1="367" x2="198" y2="367" stroke="#34d399" stroke-width="1" marker-end="url(#arrow-emerald)"/>
+        <!-- Arrows: LLM ↔ Calendar -->
+        <line x1="320" y1="297" x2="378" y2="297" stroke="#34d399" stroke-width="1" marker-end="url(#arrow-emerald)"/>
+        <line x1="320" y1="367" x2="378" y2="367" stroke="#34d399" stroke-width="1" marker-end="url(#arrow-emerald)"/>
+        <!-- Arrows to TTS -->
+        <line x1="500" y1="297" x2="558" y2="297" stroke="#34d399" stroke-width="1" marker-end="url(#arrow-emerald)"/>
+        <!-- Arrows to DB -->
+        <line x1="670" y1="332" x2="738" y2="332" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrow-violet)"/>
+
+        <!-- ========================================= -->
+        <!-- EXTERNAL SERVICES -->
+        <!-- ========================================= -->
+        <rect x="850" y="290" width="190" height="160" rx="12" fill="rgba(251, 191, 36, 0.08)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="862" y="310" fill="#fbbf24" font-size="9" font-weight="600">EXTERNAL SERVICES</text>
+
+        <!-- Google Calendar API -->
+        <rect x="865" y="325" width="160" height="40" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="945" y="345" fill="white" font-size="9" font-weight="600" text-anchor="middle">Google Calendar API</text>
+        <text x="945" y="357" fill="#94a3b8" font-size="8" text-anchor="middle">OAuth2 • REST</text>
+
+        <!-- LLM API -->
+        <rect x="865" y="375" width="160" height="40" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="945" y="395" fill="white" font-size="9" font-weight="600" text-anchor="middle">LLM API</text>
+        <text x="945" y="407" fill="#94a3b8" font-size="8" text-anchor="middle">OpenAI / Gemini</text>
+
+        <!-- Arrows to external -->
+        <line x1="500" y1="297" x2="863" y2="345" stroke="#fbbf24" stroke-width="1" marker-end="url(#arrow)"/>
+        <line x1="320" y1="297" x2="863" y2="395" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Electron to Backend arrows (vertical, crossing boundary) -->
+        <!-- Audio stream -->
+        <path d="M 555 160 L 555 210 Q 555 220 545 220 L 130 220 Q 120 220 120 230 L 120 268" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrow-emerald)"/>
+        <text x="280" y="216" fill="#34d399" font-size="8">WebSocket — audio stream</text>
+
+        <!-- REST API calls -->
+        <path d="M 445 160 L 445 190 Q 445 200 455 200 L 680 200 Q 690 200 690 210 L 690 268" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-cyan)"/>
+        <text x="540" y="197" fill="#22d3ee" font-size="8">HTTP REST — /api/*</text>
+
+        <!-- PTT -->
+        <path d="M 90 120 L 90 210 Q 90 220 90 230 L 90 268" fill="none" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-rose)"/>
+        <text x="32" y="185" fill="#fb7185" font-size="8" writing-mode="tb">PTT — WebSocket</text>
+
+        <!-- ========================================= -->
+        <!-- DATA FLOW ANNOTATIONS (curved paths) -->
+        <!-- ========================================= -->
+
+        <!-- ========================================= -->
+        <!-- LEGEND -->
+        <!-- ========================================= -->
+        <rect x="850" y="480" width="190" height="130" rx="8" fill="rgba(15, 23, 42, 0.8)" stroke="#1e293b" stroke-width="1"/>
+        <text x="862" y="498" fill="white" font-size="10" font-weight="600">Legend</text>
+
+        <rect x="862" y="510" width="14" height="8" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="882" y="517" fill="#94a3b8" font-size="8">Frontend (Electron)</text>
+
+        <rect x="862" y="526" width="14" height="8" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="882" y="533" fill="#94a3b8" font-size="8">Backend (FastAPI)</text>
+
+        <rect x="862" y="542" width="14" height="8" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="882" y="549" fill="#94a3b8" font-size="8">Database (SQLite)</text>
+
+        <rect x="862" y="558" width="14" height="8" rx="2" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="882" y="565" fill="#94a3b8" font-size="8">External Service</text>
+
+        <line x1="862" y1="580" x2="876" y2="580" stroke="#fb7185" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="882" y="583" fill="#94a3b8" font-size="8">Auth / PTT flow</text>
+
+        <!-- ========================================= -->
+        <!-- SUMMARY BOX -->
+        <!-- ========================================= -->
+        <rect x="20" y="550" width="800" height="55" rx="8" fill="rgba(15, 23, 42, 0.6)" stroke="#1e293b" stroke-width="1"/>
+        <text x="40" y="570" fill="#94a3b8" font-size="9">Architecture: Desktop-First • Local-First • Modular</text>
+        <text x="40" y="587" fill="#475569" font-size="8">Electron + FastAPI + SQLite • Audio: desktopCapturer → MediaRecorder → WebSocket → Whisper → LLM</text>
+        <text x="40" y="598" fill="#475569" font-size="8">All data stays on-device. Cloud APIs are optional. Mock mode works fully offline.</text>
+
+      </svg>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>Desktop App (Electron)</h3>
+        </div>
+        <ul>
+          <li>• System audio capture via desktopCapturer</li>
+          <li>• No meeting bot / API integration needed</li>
+          <li>• Secure context isolation (preload bridge)</li>
+          <li>• Cross-platform: macOS &amp; Windows builds</li>
+          <li>• Tray-based background operation</li>
+          <li>• Push-to-talk hotkey (Cmd/Ctrl+Shift+I)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>Python Backend (FastAPI)</h3>
+        </div>
+        <ul>
+          <li>• REST API + WebSocket (port 8765)</li>
+          <li>• Local Whisper/WhisperX transcription</li>
+          <li>• LLM summaries (OpenAI / Gemini / mock)</li>
+          <li>• Google Calendar sync (OAuth2)</li>
+          <li>• SQLite with WAL mode (local-first)</li>
+          <li>• Docker containerization ready</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot amber"></div>
+          <h3>Key Differentiators</h3>
+        </div>
+        <ul>
+          <li>• Companion app — no bot needed</li>
+          <li>• All major meeting platforms supported</li>
+          <li>• Live AI suggestions during meetings</li>
+          <li>• Fully offline-capable (mock mode)</li>
+          <li>• Privacy-first: no cloud dependency</li>
+          <li>• Clean architecture, MIT licensed</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">
+      IVI — Meeting Assistant • Architecture v0.1.0 • Published October 2026 • MIT License
+    </p>
+  </div>
+</body>
+</html>
