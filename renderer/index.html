@@ -5203,22 +5203,82 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   // ---------- Edit item (text + person) in detail modal ----------
   function editTodoItem(itemId, listId) {
-    showToast('✏️ Editing...');
-    var mockList = null;
-    for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
-      if (MOCK_TODO_LISTS[i].id === listId) { mockList = MOCK_TODO_LISTS[i]; break; }
+    var itemEl = document.querySelector('.todo-detail-item[data-item-id="' + itemId + '"]');
+    if (!itemEl) return;
+
+    // Find description span
+    var descSpan = itemEl.querySelector('span[style*="font-size:13px;font-weight:500"]');
+    if (!descSpan) return;
+
+    var currentDesc = descSpan.textContent;
+
+    // Find person element
+    var personContainer = itemEl.querySelector('div[style*="font-size:11px;color:var(--text-muted)"]');
+    var currentPerson = personContainer ? personContainer.textContent.replace('👤 ', '').trim() : '';
+
+    // Replace description with input
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentDesc;
+    input.style.cssText = 'font-size:13px;font-weight:500;padding:2px 6px;border:1px solid var(--emerald);border-radius:4px;font-family:inherit;width:100%';
+    input.autofocus = true;
+    descSpan.replaceWith(input);
+    input.focus();
+    input.select();
+
+    // Replace person with select
+    var select = document.createElement('select');
+    select.style.cssText = 'font-size:11px;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-family:inherit;background:#fff;margin-top:2px';
+    var people = ['', 'Marek', 'Ania', 'Krzysiek', 'Renata', 'Tomek'];
+    people.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = p || '(none)';
+      if (p === currentPerson) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    if (personContainer) {
+      personContainer.innerHTML = '👤 ';
+      personContainer.appendChild(select);
     }
-    if (!mockList) { showToast('⚠️ No mock list found for ID ' + listId); return; }
-    var mockItem = mockList.items[itemId - 1];
-    if (!mockItem) { showToast('⚠️ No item found at index ' + (itemId - 1)); return; }
-    var newDesc = prompt('Edit item text:', mockItem.description);
-    if (newDesc === null) return;
-    mockItem.description = newDesc.trim() || mockItem.description;
-    var newPerson = prompt('Assign to person (name):', mockItem.person || '');
-    if (newPerson === null) return;
-    mockItem.person = newPerson.trim() || '';
-    openTodoDetail(listId);
-    loadTodoLists();
+
+    // Save on Enter, cancel on Escape
+    function saveEdit() {
+      var newDesc = input.value.trim();
+      var newPerson = select ? select.value : '';
+      if (!newDesc) { input.focus(); return; }
+
+      // Update MOCK_TODO_LISTS
+      var mockList = null;
+      for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
+        if (MOCK_TODO_LISTS[i].id === listId) { mockList = MOCK_TODO_LISTS[i]; break; }
+      }
+      if (mockList) {
+        var idx = itemId - 1;
+        if (mockList.items[idx]) {
+          mockList.items[idx].description = newDesc;
+          mockList.items[idx].person = newPerson;
+        }
+      }
+      openTodoDetail(listId);
+      loadTodoLists();
+    }
+
+    function cancelEdit() {
+      openTodoDetail(listId);
+    }
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') saveEdit();
+      if (e.key === 'Escape') cancelEdit();
+    });
+    select.addEventListener('change', saveEdit);
+    // Also save on blur of input (if not cancelled)
+    input.addEventListener('blur', function() {
+      // Small delay to allow button clicks
+      setTimeout(saveEdit, 150);
+    });
   }
 
   async function assignTodoList(listId) {
