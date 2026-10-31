@@ -2739,7 +2739,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📹 Video Call (${meeting.platform})</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">👥 ${meeting.participants} participants</div>
-        <div id="note-${meetingId}" style="font-size:11px;color:${borderColor};font-weight:500;visibility:${isLeft ? 'visible' : 'hidden'};margin-top:8px">ℹ️ IVI will take notes & summarize</div>
       </div>`;
     }
 
@@ -2937,14 +2936,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   function toggleGlobalChoice() {
     globalChoiceIsIVI = !globalChoiceIsIVI;
     renderGlobalToggleUI();
-    // Update all meeting notes in current conflict
-    var conflict = activeConflicts[currentConflictIndex];
-    if (!conflict) return;
-    [conflict.left, conflict.right].forEach(function(m) {
-      if (!m || m.type !== 'video') return;
-      var note = document.getElementById('note-' + m.id);
-      if (note) note.style.visibility = globalChoiceIsIVI ? 'visible' : 'hidden';
-    });
   }
 
   function renderGlobalToggleUI() {
@@ -2982,17 +2973,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     // Set global toggle to IVI
     if (!globalChoiceIsIVI) toggleGlobalChoice();
-
-    const meetings = [
-      { id: 'm' + currentConflict.id, type: currentConflict.left.type },
-      { id: 'm' + currentConflict.id + 'r', type: currentConflict.right.type }
-    ];
-    meetings.forEach(m => {
-      if (m.type !== 'video') return;
-      const note = document.getElementById('note-' + m.id);
-      if (!note) return;
-      note.style.visibility = 'visible';
-    });
   }
 
   function openConflictManager(mode) {
