@@ -543,6 +543,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   }
 
   function closeMeetingModal() {
+    applyRestoredConflicts();
     document.getElementById('meeting-modal').classList.remove('active');
   }
 
@@ -609,6 +610,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   let activeConflicts = [];
   let currentConflictIndex = 0;
   let localResolvedConflicts = [];
+  let pendingRestoreConflicts = [];
 
   // Mock fallback — used when calendar not connected
   const MOCK_CONFLICTS = [
@@ -1005,24 +1007,44 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         <div style=\"font-size:10px;color:var(--text-muted);margin-top:2px\">${c.created_at || ''}</div>
       </div>`;
     });
+    if (conflicts.length > 1) {
+      html += `<div style=\"padding:4px 0;text-align:center\">
+        <span class=\"btn btn-ghost btn-sm\" onclick=\"restoreAllConflicts()\" style=\"border-color:var(--emerald);color:var(--emerald);font-size:10px\">Restore all (${conflicts.length}) ↩</span>
+      </div>`;
+    }
     html += `</div>`;
     document.querySelector('.modal-detail').innerHTML = html;
   }
 
   function undoResolveConflict(id) {
-    // Find and remove from local cache
     const idx = localResolvedConflicts.findIndex(c => c.id === id);
     if (idx === -1) return;
     const entry = localResolvedConflicts[idx];
-    // Restore the full conflict back to active list
-    if (entry.fullConflict) {
-      activeConflicts.push(entry.fullConflict);
-      currentConflictIndex = activeConflicts.length - 1;
-    }
+    if (entry.fullConflict) pendingRestoreConflicts.push(entry.fullConflict);
     localResolvedConflicts.splice(idx, 1);
-    // Close modal and re-render conflict card
-    document.getElementById('meeting-modal').classList.remove('active');
-    renderConflictCard();
+    // Re-render the list in modal — don't close modal
+    if (localResolvedConflicts.length > 0) {
+      renderResolvedConflicts(localResolvedConflicts);
+    } else {
+      document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">All conflicts restored.</div>`;
+    }
+  }
+
+  function restoreAllConflicts() {
+    localResolvedConflicts.forEach(c => {
+      if (c.fullConflict) pendingRestoreConflicts.push(c.fullConflict);
+    });
+    localResolvedConflicts = [];
+    document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">All conflicts restored.</div>`;
+  }
+
+  function applyRestoredConflicts() {
+    if (pendingRestoreConflicts.length > 0) {
+      pendingRestoreConflicts.forEach(c => activeConflicts.push(c));
+      currentConflictIndex = activeConflicts.length - 1;
+      pendingRestoreConflicts = [];
+      renderConflictCard();
+    }
   }
 
   function openConflictManager(mode) {
