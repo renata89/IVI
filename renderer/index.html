@@ -4515,22 +4515,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       var totalAll = source.length;
       summaryEl.textContent = totalAll + ' list' + (totalAll > 1 ? 's' : '') + ' · ' + totalActive + ' open';
 
-      // Show latest 2 lists
-      var html = '';
-      var show = source.slice(0, 2);
-      show.forEach(function(list) {
-        var status = list.assigned_to_meeting_id ? '📌 Assigned' : '📋 Pending assign';
-        html += '<div style="padding:6px 8px;background:var(--card-hover);border-radius:6px;cursor:pointer" onclick="openTodoDetail(' + list.id + ')">' +
-          '<div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + list.meeting_title + '</div>' +
-          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px">' +
-            '<span>' + list.done_items + '/' + list.active_items + ' done</span>' +
-            '<span>' + status + '</span>' +
-          '</div></div>';
-      });
-      if (source.length > 2) {
-        html += '<div style="font-size:10px;color:var(--text-muted);text-align:center">+' + (source.length - 2) + ' more</div>';
-      }
-      itemsEl.innerHTML = html;
+      // Don't touch items HTML — static card content is authoritative
+      // Only update per-list counts in static HTML if needed
 
       // Show notification badge if there are unassigned lists
       var unassigned = source.filter(function(l) { return !l.assigned_to_meeting_id; });
