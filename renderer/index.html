@@ -5274,10 +5274,17 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       if (e.key === 'Escape') cancelEdit();
     });
     select.addEventListener('change', saveEdit);
-    // Also save on blur of input (if not cancelled)
-    input.addEventListener('blur', function() {
-      // Small delay to allow button clicks
-      setTimeout(saveEdit, 150);
+    // Save on blur only if focus didn't move to the select
+    input.addEventListener('blur', function(e) {
+      // If focus went to the select, don't save yet
+      if (e.relatedTarget && e.relatedTarget === select) return;
+      if (e.relatedTarget && e.relatedTarget.tagName === 'SELECT') return;
+      setTimeout(saveEdit, 200);
+    });
+    // Also prevent select close when clicking in it
+    select.addEventListener('mousedown', function() {
+      // Mark that we're in select so blur doesn't trigger save
+      select.dataset.editing = '1';
     });
   }
 
