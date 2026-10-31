@@ -754,15 +754,38 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       buildMeetingColumn(conflict.left, 'm' + conflict.id, getPlatformColor(conflict.left.platform), true, conflict.right.createdByMe) +
       buildMeetingColumn(conflict.right, 'm' + conflict.id + 'r', getPlatformColor(conflict.right.platform), false, conflict.left.createdByMe);
 
-    // Reset global toggle to IVI for each conflict
+    // Reset global toggle — default to IVI
     globalChoiceIsIVI = true;
-    renderGlobalToggleUI();
 
-    // Show/hide "IVI covers both" based on both being video calls
+    // Determine toggle visibility and labels based on meeting types
     const bothVideo = conflict.left.type === 'video' && conflict.right.type === 'video';
-    // Show/hide IVI toggle based on both being video calls
+    const oneF2F = (conflict.left.type !== 'video') !== (conflict.right.type !== 'video');
+
     var toggleContainer = document.getElementById('global-toggle');
-    if (toggleContainer) toggleContainer.parentElement.style.display = bothVideo ? 'flex' : 'none';
+    var sliderEl = document.getElementById('global-toggle-slider');
+    var iviLabel = document.querySelector('#global-toggle div:nth-child(2)');
+    var userLabel = document.querySelector('#global-toggle div:nth-child(3)');
+
+    if (toggleContainer && toggleContainer.parentElement) {
+      if (bothVideo) {
+        // Both video — show toggle with default labels
+        toggleContainer.parentElement.style.display = 'flex';
+        if (iviLabel) iviLabel.innerHTML = '🎙️ IVI';
+        if (userLabel) userLabel.innerHTML = '👤 USER';
+      } else if (oneF2F) {
+        // One F2F — show toggle, default IVI covers the video call
+        toggleContainer.parentElement.style.display = 'flex';
+        const videoTitle = conflict.left.type === 'video' ? conflict.left.title : conflict.right.title;
+        const f2fTitle = conflict.left.type !== 'video' ? conflict.left.title : conflict.right.title;
+        if (iviLabel) iviLabel.innerHTML = '🎙️ ' + videoTitle.substring(0, 14);
+        if (userLabel) userLabel.innerHTML = '👤 ' + f2fTitle.substring(0, 14);
+        globalChoiceIsIVI = true;
+      } else {
+        // Both F2F — hide toggle
+        toggleContainer.parentElement.style.display = 'none';
+      }
+    }
+    renderGlobalToggleUI();
 
     // Show/hide Reschedule button based on whether user created any meeting in this conflict
     const canReschedule = conflict.left.createdByMe || conflict.right.createdByMe;
@@ -963,13 +986,29 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       html += `<div style=\"padding:10px;border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px\">
         <div style=\"display:flex;align-items:center;justify-content:space-between\">
           <div style=\"font-weight:500;font-size:13px\">${meetingA} vs ${meetingB}</div>
-          <span class=\"badge-status ${badgeClass}\">${label}</span>
+          <div style=\"display:flex;align-items:center;gap:6px\">
+            <span class=\"badge-status ${badgeClass}\" style=\"font-size:10px\">${label}</span>
+            <span class=\"btn btn-ghost btn-sm\" onclick=\"undoResolveConflict('${c.id}')\" style=\"font-size:10px;padding:2px 6px;cursor:pointer\" title=\"Change decision\">↩</span>
+          </div>
         </div>
         <div style=\"font-size:10px;color:var(--text-muted);margin-top:2px\">${c.created_at || ''}</div>
       </div>`;
     });
     html += `</div>`;
     document.querySelector('.modal-detail').innerHTML = html;
+  }
+
+  function undoResolveConflict(id) {
+    // Find and remove from local cache
+    const idx = localResolvedConflicts.findIndex(c => c.id === id);
+    if (idx === -1) return;
+    localResolvedConflicts.splice(idx, 1);
+    // Re-render the list
+    if (localResolvedConflicts.length > 0) {
+      renderResolvedConflicts(localResolvedConflicts);
+    } else {
+      document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">No resolved conflicts yet.</div>`;
+    }
   }
 
   function openConflictManager(mode) {
