@@ -4677,7 +4677,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
       var cellStyle = 'padding:8px 4px;text-align:center;font-size:12px;border-radius:8px;cursor:pointer;position:relative';
       if (isSelected) cellStyle += ';background:var(--emerald);color:#fff;font-weight:600';
-      else if (isToday) cellStyle += ';background:var(--emerald-light);color:var(--emerald);font-weight:600';
+      else if (isToday) cellStyle += ';border:2px solid var(--emerald);color:var(--text);font-weight:700;background:transparent';
 
       // Platform-colored background (pastel) — split if multiple platforms
       if (!isSelected && !isToday && platformKeys.length > 0) {
@@ -4733,13 +4733,17 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       { id: 'cal_m1', title: 'Daily Stand-up', time: '09:15', daysFromStart: 1, platform: 'teams' },
       { id: 'cal_m2', title: 'Product Sprint Review', time: '14:00', daysFromStart: 2, platform: 'zoom' },
       { id: 'cal_m3', title: 'Design Sync', time: '11:00', daysFromStart: 3, platform: 'teams' },
+      { id: 'cal_m3b', title: 'Client Sync', time: '13:00', daysFromStart: 3, platform: 'zoom' },
       { id: 'cal_m4', title: 'Client Sync — e-Krew', time: '10:30', daysFromStart: 4, platform: 'google-meets' },
       { id: 'cal_m5', title: 'Teacher Lab UI Review', time: '09:00', daysFromStart: 5, platform: 'zoom' },
       { id: 'cal_m6', title: 'Weekly Team Retro', time: '16:00', daysFromStart: 6, platform: 'teams' },
       { id: 'cal_m7', title: '1:1 with Marek', time: '13:30', daysFromStart: 7, platform: 'zoom' },
+      { id: 'cal_m7b', title: 'Daily Stand-up', time: '09:15', daysFromStart: 7, platform: 'teams' },
       { id: 'cal_m8', title: 'Architecture Review', time: '15:00', daysFromStart: 8, platform: 'google-meets' },
       { id: 'cal_m9', title: 'Q4 Planning Prep', time: '10:00', daysFromStart: 10, platform: 'teams' },
-      { id: 'cal_m10', title: 'Design Review — v3', time: '14:30', daysFromStart: 12, platform: 'google-meets' }
+      { id: 'cal_m10', title: 'Design Review — v3', time: '14:30', daysFromStart: 12, platform: 'google-meets' },
+      { id: 'cal_m10b', title: 'Sprint Sync', time: '11:00', daysFromStart: 12, platform: 'teams' },
+      { id: 'cal_m10c', title: 'Focus Session', time: '16:00', daysFromStart: 12, platform: 'zoom' }
     ];
 
     var firstOfMonth = new Date(year, month, 1);
