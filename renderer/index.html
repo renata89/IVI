@@ -4444,17 +4444,17 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           </div>`;
         });
 
-        // Bulk action bar – actions on left, select all on right
+        // Bulk action bar – select all + actions on right near checkboxes
         html += `<div style="display:flex;align-items:center;gap:8px;padding:10px 0 0;margin-top:4px;border-top:1px solid var(--card-border)">
-          <select id="bulk-assign-${listId}" onchange="bulkAssignItems(${listId}, this.value)" style="padding:4px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5" disabled>
-            ${bulkMeetingOpts}
-          </select>
-          <span class="btn btn-primary btn-sm" id="bulk-export-${listId}" onclick="bulkExportItems(${listId})" style="font-size:11px;padding:4px 10px;opacity:0.5;pointer-events:none">📤 Export selected</span>
           <div style="flex:1"></div>
           <label class="select-all-label" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);cursor:pointer">
             <input type="checkbox" onchange="toggleSelectAll(this, ${listId})" style="accent-color:var(--emerald);width:13px;height:13px;cursor:pointer"> Select all
           </label>
-          <span id="selected-count-${listId}" style="font-size:10px;color:var(--text-muted)">0 selected</span>
+          <select id="bulk-assign-${listId}" onchange="bulkAssignItems(${listId}, this.value)" style="padding:4px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5" disabled>
+            ${bulkMeetingOpts}
+          </select>
+          <span class="btn btn-primary btn-sm" id="bulk-export-${listId}" onclick="bulkExportItems(${listId})" style="font-size:11px;padding:4px 10px;opacity:0.5;pointer-events:none">📤 Export selected</span>
+          <span id="selected-count-${listId}" style="font-size:10px;color:var(--text-muted);margin-left:2px">0 selected</span>
         </div>`;
       }
 
