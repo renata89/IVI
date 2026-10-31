@@ -727,8 +727,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       <div style="font-size:15px;font-weight:700;color:#111827;min-height:2.8em;line-height:1.3">${meeting.title}</div>
       <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
       <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📍 In-person Meeting</div>
-      <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">👥 ${meeting.participants} participants</div>
-      <div style="margin-top:auto;font-size:11px;color:#6b7280;font-style:italic">Face-to-face — no recording</div>
+      <div style="margin-top:auto;font-size:11px;color:#6b7280;font-style:italic">No recording</div>
     </div>`;
   }
 
