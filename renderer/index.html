@@ -3763,7 +3763,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   // Also check on initial load
   setTimeout(checkCalendarStatus, 2000);
   // Load recordings on initial load
-  setTimeout(loadIVIRecordings, 1500);
+  loadIVIRecordings();
   // Start prep alert loop on initial load
   setTimeout(startPrepAlertLoop, 2000);
   setTimeout(renderDocReminderAlert, 2500);
