@@ -3548,7 +3548,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     const list = document.getElementById('recordings-list');
     if (!list) return;
     const hasConflicts = activeConflicts.length > 0;
-    const showCount = (!hasConflicts || compact) ? 2 : 5;
+    const showCount = (!hasConflicts || compact) ? 5 : 5;
 
     // Apply compact class
     list.classList.toggle('compact-recordings', !hasConflicts || compact);
