@@ -78,7 +78,7 @@
       'calendar-alert': 'CALENDAR ALERT', 'meetings-overlap': '{n} meetings overlap',
       'ivi-record': 'IVI Record', 'user-only': 'User Only', 'ivi-covers-both': '✓ IVI covers both',
       'reschedule': 'Reschedule', 'ignore-conflict': 'Ignore Conflict',
-      'conflict-of': 'Conflict {current} of {total}', 'manage-conflicts': 'Manage all conflicts',
+      'conflict-of': 'Conflict {current} of {total}', 'manage-conflicts': 'Manage conflicts',
       'your-event': 'Your event', 'ivi-will-take-notes': 'IVI will take notes & summarize',
       'teams-sync': 'TEAMS SYNC', 'connected': 'Connected',
       'recordings-to-process': '{n} recordings', 'unprocessed': '{n} unprocessed', 'last-sync': 'Last sync: {time} ago',
