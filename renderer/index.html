@@ -5226,27 +5226,23 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     input.focus();
     input.select();
 
-    // Replace person with select
-    var select = document.createElement('select');
-    select.style.cssText = 'font-size:11px;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-family:inherit;background:#fff;margin-top:2px';
-    var people = ['', 'Marek', 'Ania', 'Krzysiek', 'Renata', 'Tomek'];
-    people.forEach(function(p) {
-      var opt = document.createElement('option');
-      opt.value = p;
-      opt.textContent = p || '(none)';
-      if (p === currentPerson) opt.selected = true;
-      select.appendChild(opt);
-    });
+    // Replace person with text input
+    var personInput = document.createElement('input');
+    personInput.type = 'text';
+    personInput.placeholder = 'Person (optional)';
+    personInput.value = currentPerson;
+    personInput.style.cssText = 'font-size:11px;padding:2px 6px;border:1px solid var(--card-border);border-radius:4px;font-family:inherit;width:140px;margin-top:2px';
 
     if (personContainer) {
       personContainer.innerHTML = '👤 ';
-      personContainer.appendChild(select);
+      personContainer.appendChild(personInput);
+      personInput.focus();
     }
 
     // Save on Enter, cancel on Escape
     function saveEdit() {
       var newDesc = input.value.trim();
-      var newPerson = select ? select.value : '';
+      var newPerson = personInput ? personInput.value.trim() : '';
       if (!newDesc) { input.focus(); return; }
 
       // Update MOCK_TODO_LISTS
@@ -5273,18 +5269,18 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       if (e.key === 'Enter') saveEdit();
       if (e.key === 'Escape') cancelEdit();
     });
-    select.addEventListener('change', saveEdit);
-    // Save on blur only if focus didn't move to the select
+    personInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') saveEdit();
+      if (e.key === 'Escape') cancelEdit();
+    });
+    // Save on blur of input (if not clicking personInput)
     input.addEventListener('blur', function(e) {
-      // If focus went to the select, don't save yet
-      if (e.relatedTarget && e.relatedTarget === select) return;
-      if (e.relatedTarget && e.relatedTarget.tagName === 'SELECT') return;
+      if (e.relatedTarget && (e.relatedTarget === personInput || e.relatedTarget.tagName === 'INPUT')) return;
       setTimeout(saveEdit, 200);
     });
-    // Also prevent select close when clicking in it
-    select.addEventListener('mousedown', function() {
-      // Mark that we're in select so blur doesn't trigger save
-      select.dataset.editing = '1';
+    personInput.addEventListener('blur', function(e) {
+      if (e.relatedTarget && (e.relatedTarget === input || e.relatedTarget === input)) return;
+      setTimeout(saveEdit, 200);
     });
   }
 
