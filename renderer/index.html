@@ -4678,20 +4678,41 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   }
 
   function getMeetingsForDate(dateStr) {
-    // Return mock meetings that fall on this date
+    // Return meetings that fall on this date — from calendar data + custom meetings
     var res = [];
-    for (var i = 0; i < MOCK_MEETINGS_FOR_ASSIGN.length; i++) {
-      var m = MOCK_MEETINGS_FOR_ASSIGN[i];
-      // Parse date from m.date (e.g. 'Fri, Oct 30')
-      // For simplicity, just check if the date string contains the month info
-      // Also add custom meetings created via the calendar
-      var mDate = new Date(m.createdDate || Date.parse(m.date));
-      if (!isNaN(mDate.getTime())) {
-        var ds = mDate.getFullYear() + '-' + String(mDate.getMonth()+1).padStart(2,'0') + '-' + String(mDate.getDate()).padStart(2,'0');
-        if (ds === dateStr) res.push(m);
+
+    // Generate meetings from the full calendar for the current month
+    var today = new Date();
+    var year = parseInt(dateStr.substring(0,4));
+    var month = parseInt(dateStr.substring(5,7)) - 1;
+    var day = parseInt(dateStr.substring(8,10));
+
+    // Mock calendar meetings spread across month days
+    var mockCalendarMeetings = [
+      { id: 'cal_m1', title: 'Daily Stand-up', time: '09:15', daysFromStart: 1 },
+      { id: 'cal_m2', title: 'Product Sprint Review', time: '14:00', daysFromStart: 2 },
+      { id: 'cal_m3', title: 'Design Sync', time: '11:00', daysFromStart: 3 },
+      { id: 'cal_m4', title: 'Client Sync — e-Krew', time: '10:30', daysFromStart: 4 },
+      { id: 'cal_m5', title: 'Teacher Lab UI Review', time: '09:00', daysFromStart: 5 },
+      { id: 'cal_m6', title: 'Weekly Team Retro', time: '16:00', daysFromStart: 6 },
+      { id: 'cal_m7', title: '1:1 with Marek', time: '13:30', daysFromStart: 7 },
+      { id: 'cal_m8', title: 'Architecture Review', time: '15:00', daysFromStart: 8 },
+      { id: 'cal_m9', title: 'Q4 Planning Prep', time: '10:00', daysFromStart: 10 },
+      { id: 'cal_m10', title: 'Design Review — v3', time: '14:30', daysFromStart: 12 }
+    ];
+
+    var firstOfMonth = new Date(year, month, 1);
+    mockCalendarMeetings.forEach(function(m) {
+      var mDate = new Date(firstOfMonth);
+      mDate.setDate(firstOfMonth.getDate() + m.daysFromStart - 1);
+      if (mDate.getMonth() !== month) return; // skip if rolled over
+      var ds = mDate.getFullYear() + '-' + String(mDate.getMonth()+1).padStart(2,'0') + '-' + String(mDate.getDate()).padStart(2,'0');
+      if (ds === dateStr) {
+        res.push({ id: m.id, title: m.title, date: ds, time: m.time, createdDate: ds });
       }
-    }
-    // Also check custom meetings
+    });
+
+    // Also check custom meetings created via the calendar
     var custom = getCustomMeetings();
     for (var i = 0; i < custom.length; i++) {
       if (custom[i].date === dateStr) res.push(custom[i]);
@@ -4725,9 +4746,16 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     // Assign selected items to this meeting
     if (!calListId) return;
     var meetingName = '';
-    // Find in mock + custom
-    for (var i = 0; i < MOCK_MEETINGS_FOR_ASSIGN.length; i++) {
-      if (MOCK_MEETINGS_FOR_ASSIGN[i].id === meetingId) { meetingName = MOCK_MEETINGS_FOR_ASSIGN[i].title; break; }
+    // Find in calendar mock meetings
+    var calMocks = [
+      { id: 'cal_m1', title: 'Daily Stand-up' }, { id: 'cal_m2', title: 'Product Sprint Review' },
+      { id: 'cal_m3', title: 'Design Sync' }, { id: 'cal_m4', title: 'Client Sync — e-Krew' },
+      { id: 'cal_m5', title: 'Teacher Lab UI Review' }, { id: 'cal_m6', title: 'Weekly Team Retro' },
+      { id: 'cal_m7', title: '1:1 with Marek' }, { id: 'cal_m8', title: 'Architecture Review' },
+      { id: 'cal_m9', title: 'Q4 Planning Prep' }, { id: 'cal_m10', title: 'Design Review — v3' }
+    ];
+    for (var i = 0; i < calMocks.length; i++) {
+      if (calMocks[i].id === meetingId) { meetingName = calMocks[i].title; break; }
     }
     if (!meetingName) {
       var custom = getCustomMeetings();
