@@ -4549,12 +4549,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
           // Status checkbox — styled div, not unicode
           var statusHtml;
+          var statusClick = isDismissed ? '' : `onclick="toggleTodoStatus(${item.id}, ${listId})"`;
+          var statusCursor = isDismissed ? 'default' : 'pointer';
           if (isDone) {
-            statusHtml = `<div class="todo-status done" onclick="toggleTodoStatus(${item.id}, ${listId})" style="cursor:pointer;width:18px;height:18px;flex-shrink:0;margin-top:2px;border-radius:4px;border:2px solid #22c55e;background:#22c55e;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;line-height:1">✓</div>`;
+            statusHtml = `<div class="todo-status done" ${statusClick} style="cursor:${statusCursor};width:18px;height:18px;flex-shrink:0;margin-top:2px;border-radius:4px;border:2px solid #22c55e;background:#22c55e;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;line-height:1">✓</div>`;
           } else if (isNotDone) {
-            statusHtml = `<div class="todo-status not-done" onclick="toggleTodoStatus(${item.id}, ${listId})" style="cursor:pointer;width:18px;height:18px;flex-shrink:0;margin-top:2px;border-radius:4px;border:2px solid #ef4444;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:11px;color:#ef4444;line-height:1">✕</div>`;
+            statusHtml = `<div class="todo-status not-done" ${statusClick} style="cursor:${statusCursor};width:18px;height:18px;flex-shrink:0;margin-top:2px;border-radius:4px;border:2px solid #ef4444;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:11px;color:#ef4444;line-height:1">✕</div>`;
           } else {
-            statusHtml = `<div class="todo-status pending" onclick="toggleTodoStatus(${item.id}, ${listId})" style="cursor:pointer;width:18px;height:18px;flex-shrink:0;margin-top:2px;border-radius:4px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;line-height:1">✓</div>`;
+            statusHtml = `<div class="todo-status pending" ${statusClick} style="cursor:${statusCursor};width:18px;height:18px;flex-shrink:0;margin-top:2px;border-radius:4px;border:2px solid ${isDismissed ? '#ef4444' : '#d1d5db'};background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;line-height:1">✓</div>`;
           }
 
           html += `<div class="todo-detail-item" data-item-id="${item.id}" data-list-id="${listId}" style="display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--card-border);align-items:flex-start">
@@ -4568,7 +4570,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
               ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 ${item.person}</div>` : `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 <span style="color:#d1d5db">(none)</span></div>`}
               ${isNotDone && item.not_done_reason ? `<div style="font-size:11px;color:#ef4444;margin-top:2px">💬 ${item.not_done_reason}</div>` : ''}
             </div>
-            <input type="checkbox" onchange="toggleSelectItem(this, ${listId})" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer;margin-top:4px">
+            <input type="checkbox" onchange="toggleSelectItem(this, ${listId})" ${isDismissed ? 'disabled' : ''} style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:${isDismissed ? 'default' : 'pointer'};margin-top:4px${isDismissed ? ';opacity:0.35' : ''}">
           </div>`;
         });
 
