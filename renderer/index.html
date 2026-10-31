@@ -4391,14 +4391,36 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       titleEl.textContent = `📋 ${list.meeting_title}`;
       metaEl.textContent = `${list.meeting_date} ${list.meeting_time} · ${list.participants || 'No participants'}`;
 
-      // Meeting info header
+      // Build meeting options for bulk action bar (needed in header)
+      var bulkMeetingOpts = '<option value="">→ Assign to meeting...</option>';
+      MOCK_MEETINGS_FOR_ASSIGN.forEach(function(m) {
+        bulkMeetingOpts += '<option value="' + m.id + '">' + m.title + ' (' + m.date + ' ' + m.time + ')</option>';
+      });
+      bulkMeetingOpts += '<option value="__personal__">📝 Not assigned (personal note)</option>';
+
+      // Meeting info header with bulk actions on the right
       let html = `<div style="background:var(--card-hover);border-radius:8px;padding:12px;margin-bottom:16px">
-        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap">
-          <span>📅 ${list.meeting_date} ${list.meeting_time}</span>
-          <span>👥 ${list.participants || '—'}</span>
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px">
-          <span class="btn btn-ghost btn-sm" onclick="showNoteDetail('${list.meeting_id}', '${list.meeting_title.replace(/'/g, "\\'")}')">📝 Meeting notes</span>
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap">
+              <span>📅 ${list.meeting_date} ${list.meeting_time}</span>
+              <span>👥 ${list.participants || '—'}</span>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <span class="btn btn-ghost btn-sm" onclick="showNoteDetail('${list.meeting_id}', '${list.meeting_title.replace(/'/g, "\\'")}')">📝 IVI notes</span>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <label class="select-all-label" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);cursor:pointer">
+              <input type="checkbox" onchange="toggleSelectAll(this, ${listId})" style="accent-color:var(--emerald);width:13px;height:13px;cursor:pointer"> Select all
+            </label>
+            <select id="bulk-assign-${listId}" onchange="bulkAssignItems(${listId}, this.value)" style="padding:4px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5" disabled>
+              ${bulkMeetingOpts}
+            </select>
+            <span class="btn btn-primary btn-sm" id="bulk-export-${listId}" onclick="bulkExportItems(${listId})" style="font-size:11px;padding:4px 10px;opacity:0.5;pointer-events:none">📤 Export selected</span>
+            <span id="selected-count-${listId}" style="font-size:10px;color:var(--text-muted);margin-left:2px">0 selected</span>
+          </div>
         </div>
       </div>`;
 
@@ -4406,12 +4428,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         html += '<div style="text-align:center;padding:20px;color:var(--text-muted)">No items in this list</div>';
       } else {
         html += `<div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase">Items (${items.length})</div>`;
-        // Build meeting options for bulk action bar
-        var bulkMeetingOpts = '<option value="">→ Assign to meeting...</option>';
-        MOCK_MEETINGS_FOR_ASSIGN.forEach(function(m) {
-          bulkMeetingOpts += '<option value="' + m.id + '">' + m.title + ' (' + m.date + ' ' + m.time + ')</option>';
-        });
-        bulkMeetingOpts += '<option value="__personal__">📝 Not assigned (personal note)</option>';
 
         items.forEach(item => {
           const isDone = item.status === 'done';
@@ -4443,19 +4459,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
             <input type="checkbox" onchange="toggleSelectItem(this, ${listId})" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer;margin-top:4px">
           </div>`;
         });
-
-        // Bulk action bar – select all + actions on right near checkboxes
-        html += `<div style="display:flex;align-items:center;gap:8px;padding:10px 0 0;margin-top:4px;border-top:1px solid var(--card-border)">
-          <div style="flex:1"></div>
-          <label class="select-all-label" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);cursor:pointer">
-            <input type="checkbox" onchange="toggleSelectAll(this, ${listId})" style="accent-color:var(--emerald);width:13px;height:13px;cursor:pointer"> Select all
-          </label>
-          <select id="bulk-assign-${listId}" onchange="bulkAssignItems(${listId}, this.value)" style="padding:4px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5" disabled>
-            ${bulkMeetingOpts}
-          </select>
-          <span class="btn btn-primary btn-sm" id="bulk-export-${listId}" onclick="bulkExportItems(${listId})" style="font-size:11px;padding:4px 10px;opacity:0.5;pointer-events:none">📤 Export selected</span>
-          <span id="selected-count-${listId}" style="font-size:10px;color:var(--text-muted);margin-left:2px">0 selected</span>
-        </div>`;
       }
 
       bodyEl.innerHTML = html;
