@@ -1088,8 +1088,8 @@ body {
               <div style="display:flex" id="ivi-covers-both-row">
               <div style="position:relative;display:flex;width:100%;height:36px;background:#f3f4f6;border-radius:18px;cursor:pointer;overflow:hidden;border:1px solid #e5e7eb" id="global-toggle" onclick="toggleGlobalChoice()">
                 <div id="global-toggle-slider" style="position:absolute;top:2px;left:2px;width:calc(50% - 2px);height:calc(100% - 4px);background:#15803d;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.12);transition:left .2s ease;z-index:1"></div>
-                <div style="position:absolute;top:0;left:0;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:#fff;z-index:2">🎙️ IVI</div>
-                <div style="position:absolute;top:0;left:50%;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:400;color:#9ca3af;z-index:2">👤 USER</div>
+                <div style="position:absolute;top:0;left:0;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:10px;font-weight:700;color:#fff;z-index:2">🎙️ IVI covers LEFT</div>
+                <div style="position:absolute;top:0;left:50%;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:10px;font-weight:400;color:#9ca3af;z-index:2">RIGHT 👤 USER</div>
               </div>
             </div>
               <div style="display:flex;gap:6px">
@@ -2955,10 +2955,12 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var labelRight = toggle.querySelector('div:nth-child(3)');
     slider.style.left = globalChoiceIsIVI ? '2px' : 'calc(50% + 2px)';
     if (labelLeft) {
+      labelLeft.innerHTML = globalChoiceIsIVI ? '🎙️ IVI covers LEFT' : 'LEFT 👤 USER';
       labelLeft.style.color = globalChoiceIsIVI ? '#fff' : '#9ca3af';
       labelLeft.style.fontWeight = globalChoiceIsIVI ? '700' : '400';
     }
     if (labelRight) {
+      labelRight.innerHTML = globalChoiceIsIVI ? 'RIGHT 👤 USER' : '🎙️ IVI covers RIGHT';
       labelRight.style.color = globalChoiceIsIVI ? '#9ca3af' : '#fff';
       labelRight.style.fontWeight = globalChoiceIsIVI ? '400' : '700';
     }
