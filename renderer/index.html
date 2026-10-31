@@ -2001,8 +2001,78 @@ body {
       <div id="cal-selected-day" style="font-size:12px;font-weight:600;margin-bottom:8px"></div>
       <div id="cal-meetings-list" style="min-height:80px"></div>
 
+      <!-- New Meeting Form (hidden by default) -->
+      <div id="cal-new-meeting-form" style="display:none">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">➕ New Meeting</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Title *</div>
+            <input id="cal-form-title" type="text" placeholder="Meeting title" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Date *</div>
+            <input id="cal-form-date" type="date" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Time *</div>
+            <input id="cal-form-time" type="time" value="12:00" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Platform *</div>
+            <select id="cal-form-platform" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
+              <option value="">— Select —</option>
+              <option value="teams">Teams</option>
+              <option value="zoom">Zoom</option>
+              <option value="google-meets">Google Meet</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Repeat -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 0;border-top:1px solid var(--card-border);border-bottom:1px solid var(--card-border)">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="cal-form-repeat" onchange="calToggleRepeat()" style="accent-color:var(--emerald);width:14px;height:14px;cursor:pointer"> Repeat
+          </label>
+          <select id="cal-form-repeat-interval" disabled style="padding:4px 6px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="other">Other</option>
+          </select>
+          <span style="font-size:11px;color:var(--text-muted)">|</span>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer;opacity:0.5">
+            <input type="checkbox" id="cal-form-repeat-items" disabled style="accent-color:var(--emerald);width:12px;height:12px;cursor:pointer"> Keep items on repeats
+          </label>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">People</div>
+            <input id="cal-form-people" type="text" placeholder="Marek, Ania, Krzysiek" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Meeting link</div>
+            <div style="display:flex;gap:4px">
+              <input id="cal-form-link" type="text" placeholder="https://..." style="flex:1;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+              <span class="btn btn-ghost btn-sm" onclick="calCopyLink()" style="font-size:11px;padding:4px 8px;flex-shrink:0">📋</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Notes <span style="font-weight:400;color:#9ca3af">(optional)</span></div>
+          <textarea id="cal-form-notes" rows="2" placeholder="Anything to remember..." style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <span class="btn btn-ghost btn-sm" onclick="calCancelNewMeeting()">Back</span>
+          <span class="btn btn-primary btn-sm" onclick="calSaveNewMeeting()">💾 Save & Assign</span>
+        </div>
+      </div>
+
       <!-- Actions -->
-      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end" id="cal-actions-bar">
         <span class="btn btn-ghost btn-sm" onclick="calNewMeeting()">➕ New meeting</span>
         <span class="btn btn-ghost btn-sm" onclick="closeAssignCalendar()">Cancel</span>
       </div>
@@ -4836,23 +4906,103 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   }
 
   function calNewMeeting() {
-    var title = prompt('New meeting title:', '');
-    if (!title || title.trim() === '') return;
-    var dayStr = calSelectedDate || (new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0'));
-    var time = prompt('Time (e.g. 14:00):', '12:00');
-    if (!time) time = '12:00';
+    // Show form, hide calendar
+    document.getElementById('cal-new-meeting-form').style.display = 'block';
+    document.getElementById('cal-actions-bar').style.display = 'none';
+    document.getElementById('cal-prev-month').parentElement.style.display = 'none';
+    document.getElementById('cal-day-labels').style.display = 'none';
+    document.getElementById('cal-grid').style.display = 'none';
+    document.getElementById('cal-selected-day').style.display = 'none';
+    document.getElementById('cal-meetings-list').style.display = 'none';
+    // Pre-fill date
+    var dateStr = calSelectedDate || (new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0'));
+    document.getElementById('cal-form-date').value = dateStr;
+  }
+
+  function calCancelNewMeeting() {
+    // Hide form, show calendar
+    document.getElementById('cal-new-meeting-form').style.display = 'none';
+    document.getElementById('cal-actions-bar').style.display = 'flex';
+    document.getElementById('cal-prev-month').parentElement.style.display = 'flex';
+    document.getElementById('cal-day-labels').style.display = 'grid';
+    document.getElementById('cal-grid').style.display = 'grid';
+    document.getElementById('cal-selected-day').style.display = 'block';
+    document.getElementById('cal-meetings-list').style.display = 'block';
+  }
+
+  function calToggleRepeat() {
+    var repeatCb = document.getElementById('cal-form-repeat');
+    var interval = document.getElementById('cal-form-repeat-interval');
+    var repeatItems = document.getElementById('cal-form-repeat-items');
+    var isOn = repeatCb.checked;
+    interval.disabled = !isOn;
+    interval.style.opacity = isOn ? '1' : '0.5';
+    repeatItems.disabled = !isOn;
+    repeatItems.parentElement.style.opacity = isOn ? '1' : '0.5';
+  }
+
+  function calCopyLink() {
+    var linkEl = document.getElementById('cal-form-link');
+    if (linkEl.value) {
+      navigator.clipboard.writeText(linkEl.value).then(function() {
+        showToast('📋 Link copied!');
+      });
+    }
+  }
+
+  function calSaveNewMeeting() {
+    var title = document.getElementById('cal-form-title').value.trim();
+    var dateVal = document.getElementById('cal-form-date').value;
+    var timeVal = document.getElementById('cal-form-time').value;
+    var platform = document.getElementById('cal-form-platform').value;
+    var people = document.getElementById('cal-form-people').value.trim();
+    var notes = document.getElementById('cal-form-notes').value.trim();
+    var link = document.getElementById('cal-form-link').value.trim();
+    var repeat = document.getElementById('cal-form-repeat').checked;
+    var repeatInterval = repeat ? document.getElementById('cal-form-repeat-interval').value : '';
+    var repeatItems = repeat ? document.getElementById('cal-form-repeat-items').checked : false;
+
+    // Validation
+    if (!title) { showToast('⚠️ Title is required'); return; }
+    if (!dateVal) { showToast('⚠️ Date is required'); return; }
+    if (!timeVal) { showToast('⚠️ Time is required'); return; }
+    if (!platform) { showToast('⚠️ Platform is required'); return; }
+
+    // Create meeting
     var custom = getCustomMeetings();
     var newId = 'custom_' + Date.now();
-    custom.push({
+
+    var meeting = {
       id: newId,
-      title: title.trim(),
-      date: dayStr,
-      time: time,
-      createdDate: dayStr
-    });
+      title: title,
+      date: dateVal,
+      time: timeVal,
+      platform: platform,
+      people: people,
+      notes: notes,
+      link: link,
+      repeat: repeat,
+      repeatInterval: repeatInterval,
+      repeatItems: repeatItems,
+      createdDate: dateVal
+    };
+    custom.push(meeting);
     saveCustomMeetings(custom);
+
+    // Auto-assign currently selected items from the todo detail
+    var checked = document.querySelectorAll('#todo-detail-body .todo-detail-item input[type="checkbox"]:checked');
+    checked.forEach(function(c) {
+      var itemEl = c.closest('.todo-detail-item');
+      var itemId = itemEl ? itemEl.dataset.itemId : null;
+      if (itemId) {
+        saveItemAssignment(parseInt(itemId), newId);
+      }
+    });
+
+    var itemCount = checked.length;
+    calCancelNewMeeting();
     calRender();
-    showToast('✅ Meeting "' + title + '" created — now click Assign to add items');
+    showToast('✅ "' + title + '" created — ' + itemCount + ' item(s) assigned');
   }
 
   // Map meeting title from Upcoming Meetings to a To-Do list ID
