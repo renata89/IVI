@@ -176,7 +176,7 @@
           </div>
 
           <!-- Active conflict content -->
-          <div id="conflict-active-content" style="display:flex;flex-direction:column;flex:1">
+          <div id="conflict-active-content" style="display:flex;flex-direction:column;flex:1;justify-content:space-between">
             <div style="border-radius:20px;box-shadow:0 12px 28px rgba(239,68,68,0.35);overflow:hidden;border:1px solid #e5e7eb;background:#fff">
               <div style="display:grid;grid-template-columns:1fr 1fr" id="conflict-meetings-grid">
               </div>
@@ -191,10 +191,10 @@
                 <span class="btn" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="rescheduleConflict()">Reschedule</span>
                 <span class="btn" style="border:1px solid #9ca3af;background:transparent;color:#374151;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="ignoreConflict()">Ignore Conflict</span>
               </div>
-              <div style="border-top:1px solid #f3f4f6;padding:5px 12px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:16px;font-size:10px;color:#374151;font-weight:500">
-                <span id="conflict-counter" style="white-space:nowrap">Conflict 1 of 3</span>
-                <span class="btn btn-ghost btn-sm" onclick="openConflictManager('manage')" style="white-space:nowrap">Manage conflicts</span>
-              </div>
+            </div>
+            <div style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:16px;font-size:10px;color:#374151;font-weight:500">
+              <span id="conflict-counter" style="white-space:nowrap">Conflict 1 of 3</span>
+              <span class="btn btn-ghost btn-sm" onclick="openConflictManager('manage')" style="white-space:nowrap">Manage conflicts</span>
             </div>
           </div>
         </div>
