@@ -1086,8 +1086,12 @@ body {
             <!-- Actions Section -->
             <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
               <div style="display:flex" id="ivi-covers-both-row">
-                <span class="btn" style="display:flex;width:100%;background:#15803d;color:#fff;border:none;padding:6px 10px;border-radius:14px;font-size:11px;font-weight:600;align-items:center;justify-content:center;gap:4px;cursor:default;white-space:nowrap" onclick="coverBoth()">✓ IVI covers both</span>
+              <div style="position:relative;display:flex;width:100%;height:36px;background:#f3f4f6;border-radius:18px;cursor:pointer;overflow:hidden;border:1px solid #e5e7eb" id="global-toggle" onclick="toggleGlobalChoice()">
+                <div id="global-toggle-slider" style="position:absolute;top:2px;left:2px;width:calc(50% - 2px);height:calc(100% - 4px);background:#15803d;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.12);transition:left .2s ease;z-index:1"></div>
+                <div style="position:absolute;top:0;left:0;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:#fff;z-index:2">🎙️ IVI</div>
+                <div style="position:absolute;top:0;left:50%;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:400;color:#9ca3af;z-index:2">👤 USER</div>
               </div>
+            </div>
               <div style="display:flex;gap:6px">
                 <span class="btn" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="rescheduleConflict()">Reschedule</span>
                 <span class="btn" style="border:1px solid #9ca3af;background:transparent;color:#374151;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="ignoreConflict()">Ignore Conflict</span>
@@ -2735,19 +2739,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         <div style="font-size:13px;color:#4b5563;font-weight:500">${meeting.time}</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📹 Video Call (${meeting.platform})</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">👥 ${meeting.participants} participants</div>
-        <div class="choice-group" style="display:flex;gap:6px;margin-top:auto">
-          <div style="position:relative;width:100%;height:52px;background:#f3f4f6;border-radius:10px;cursor:pointer;overflow:hidden;border:1px solid #e5e7eb" onclick="toggleMeetingChoice('${meetingId}')" id="toggle-${meetingId}">
-            <div id="toggle-slider-${meetingId}" style="position:absolute;top:${isLeft ? '2px' : 'calc(50% + 2px)'};left:2px;right:2px;height:calc(50% - 4px);background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.12);transition:top .2s ease;z-index:1"></div>
-            <div style="position:absolute;top:0;left:0;right:0;height:50%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:${isLeft ? '700' : '400'};color:${isLeft ? '#7c3aed' : '#9ca3af'};z-index:2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg> IVI
-            </div>
-            <div style="position:absolute;top:50%;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:${isLeft ? '400' : '700'};color:${isLeft ? '#9ca3af' : '#3b82f6'};z-index:2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> USER
-            </div>
-          </div>
-          <input type="hidden" id="choice-${meetingId}" value="${isLeft ? 'ivi' : 'user'}">
-        </div>
-        <div id="note-${meetingId}" style="font-size:11px;color:${borderColor};font-weight:500;visibility:${isLeft ? 'visible' : 'hidden'}">ℹ️ IVI will take notes & summarize</div>
+        <div id="note-${meetingId}" style="font-size:11px;color:${borderColor};font-weight:500;visibility:${isLeft ? 'visible' : 'hidden'};margin-top:8px">ℹ️ IVI will take notes & summarize</div>
       </div>`;
     }
 
@@ -2794,6 +2786,10 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     document.getElementById('conflict-meetings-grid').innerHTML =
       buildMeetingColumn(conflict.left, 'm' + conflict.id, '#3b82f6', true, conflict.right.createdByMe) +
       buildMeetingColumn(conflict.right, 'm' + conflict.id + 'r', '#8b5cf6', false, conflict.left.createdByMe);
+
+    // Reset global toggle to IVI for each conflict
+    globalChoiceIsIVI = true;
+    renderGlobalToggleUI();
 
     // Show/hide "IVI covers both" based on both being video calls
     const bothVideo = conflict.left.type === 'video' && conflict.right.type === 'video';
@@ -2935,6 +2931,39 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     renderConflictCard();
   }
 
+  // Global IVI/USER toggle for all meetings in conflict
+  var globalChoiceIsIVI = true;
+
+  function toggleGlobalChoice() {
+    globalChoiceIsIVI = !globalChoiceIsIVI;
+    renderGlobalToggleUI();
+    // Update all meeting notes in current conflict
+    var conflict = activeConflicts[currentConflictIndex];
+    if (!conflict) return;
+    [conflict.left, conflict.right].forEach(function(m) {
+      if (!m || m.type !== 'video') return;
+      var note = document.getElementById('note-' + m.id);
+      if (note) note.style.visibility = globalChoiceIsIVI ? 'visible' : 'hidden';
+    });
+  }
+
+  function renderGlobalToggleUI() {
+    var slider = document.getElementById('global-toggle-slider');
+    var toggle = document.getElementById('global-toggle');
+    if (!slider || !toggle) return;
+    var labelLeft = toggle.querySelector('div:nth-child(2)');
+    var labelRight = toggle.querySelector('div:nth-child(3)');
+    slider.style.left = globalChoiceIsIVI ? '2px' : 'calc(50% + 2px)';
+    if (labelLeft) {
+      labelLeft.style.color = globalChoiceIsIVI ? '#fff' : '#9ca3af';
+      labelLeft.style.fontWeight = globalChoiceIsIVI ? '700' : '400';
+    }
+    if (labelRight) {
+      labelRight.style.color = globalChoiceIsIVI ? '#9ca3af' : '#fff';
+      labelRight.style.fontWeight = globalChoiceIsIVI ? '400' : '700';
+    }
+  }
+
   // Cover both meetings with IVI
   function coverBoth() {
     const currentConflict = activeConflicts[currentConflictIndex];
@@ -2949,6 +2978,9 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       }).catch(() => {});
     }
 
+    // Set global toggle to IVI
+    if (!globalChoiceIsIVI) toggleGlobalChoice();
+
     const meetings = [
       { id: 'm' + currentConflict.id, type: currentConflict.left.type },
       { id: 'm' + currentConflict.id + 'r', type: currentConflict.right.type }
@@ -2957,7 +2989,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       if (m.type !== 'video') return;
       const note = document.getElementById('note-' + m.id);
       if (!note) return;
-      toggleMeetingChoice(m.id);
+      note.style.visibility = 'visible';
     });
   }
 
