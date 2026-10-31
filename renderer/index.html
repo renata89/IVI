@@ -5203,13 +5203,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   // ---------- Edit item (text + person) in detail modal ----------
   function editTodoItem(itemId, listId) {
+    showToast('✏️ Editing...');
     var mockList = null;
     for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
       if (MOCK_TODO_LISTS[i].id === listId) { mockList = MOCK_TODO_LISTS[i]; break; }
     }
-    if (!mockList) return;
+    if (!mockList) { showToast('⚠️ No mock list found for ID ' + listId); return; }
     var mockItem = mockList.items[itemId - 1];
-    if (!mockItem) return;
+    if (!mockItem) { showToast('⚠️ No item found at index ' + (itemId - 1)); return; }
     var newDesc = prompt('Edit item text:', mockItem.description);
     if (newDesc === null) return;
     mockItem.description = newDesc.trim() || mockItem.description;
