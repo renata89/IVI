@@ -1976,7 +1976,10 @@ body {
 <div class="modal-overlay" id="assign-calendar-modal">
   <div class="modal" style="width:680px;max-width:90vw">
     <div class="modal-header">
-      <div class="modal-title">📅 Assign to meeting</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-title">📅 Assign to meeting</div>
+        <span id="cal-legend-inline" style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-muted)"></span>
+      </div>
       <span class="modal-close" onclick="closeAssignCalendar()">✕</span>
     </div>
     <div id="assign-calendar-body" style="padding:16px 24px 24px;max-height:70vh;overflow-y:auto;font-size:13px">
@@ -4633,14 +4636,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   };
 
   function calRender() {
-    // Legend
-    var legendHtml = '<div style="display:flex;align-items:center;gap:12px;font-size:10px;color:var(--text-muted);margin-bottom:10px;padding:6px 0;border-bottom:1px solid var(--card-border)">';
+    // Legend in header
+    var legendHtml = '';
     var keys = Object.keys(PLATFORM_COLORS);
     for (var li = 0; li < keys.length; li++) {
       var pc = PLATFORM_COLORS[keys[li]];
-      legendHtml += '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span> ' + pc.label + '</span>';
+      legendHtml += '<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span> ' + pc.label + '</span>';
     }
-    legendHtml += '</div>';
+    document.getElementById('cal-legend-inline').innerHTML = legendHtml;
 
     // Day labels
     var labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -4657,7 +4660,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var today = new Date();
 
-    var grid = legendHtml;
+    var grid = '';
     // Empty cells before first day
     for (var i = 0; i < firstDay; i++) grid += '<span></span>';
 
@@ -4672,22 +4675,35 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       meetings.forEach(function(m) { if (m.platform) platforms[m.platform] = true; });
       var platformKeys = Object.keys(platforms);
 
-      var cellStyle = 'padding:6px 4px 2px;text-align:center;font-size:12px;border-radius:6px;cursor:pointer;position:relative';
-      if (isSelected) cellStyle += ';background:var(--emerald);color:#fff';
+      var cellStyle = 'padding:8px 4px;text-align:center;font-size:12px;border-radius:8px;cursor:pointer;position:relative';
+      if (isSelected) cellStyle += ';background:var(--emerald);color:#fff;font-weight:600';
       else if (isToday) cellStyle += ';background:var(--emerald-light);color:var(--emerald);font-weight:600';
 
-      // Dots for platforms
-      var dotsHtml = '';
-      if (platformKeys.length > 0) {
-        dotsHtml = '<div style="display:flex;justify-content:center;gap:2px;margin-top:1px">';
-        platformKeys.forEach(function(pk) {
-          var pc = PLATFORM_COLORS[pk];
-          if (pc) dotsHtml += '<span style="width:5px;height:5px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span>';
-        });
-        dotsHtml += '</div>';
+      // Platform-colored background (pastel) — split if multiple platforms
+      if (!isSelected && !isToday && platformKeys.length > 0) {
+        if (platformKeys.length === 1) {
+          var pc = PLATFORM_COLORS[platformKeys[0]];
+          if (pc) cellStyle += ';background:' + pc.bg;
+        } else if (platformKeys.length === 2) {
+          var pc1 = PLATFORM_COLORS[platformKeys[0]];
+          var pc2 = PLATFORM_COLORS[platformKeys[1]];
+          if (pc1 && pc2) cellStyle += ';background:linear-gradient(90deg,' + pc1.bg + ' 50%,' + pc2.bg + ' 50%)';
+        } else if (platformKeys.length >= 3) {
+          var pcts = [33, 66];
+          var stops = '';
+          platformKeys.forEach(function(pk, idx) {
+            var pc = PLATFORM_COLORS[pk];
+            if (pc) {
+              if (idx === 0) stops += pc.bg + ' 0% ' + pcts[0] + '%';
+              else if (idx === 1) stops += ',' + pc.bg + ' ' + pcts[0] + '% ' + pcts[1] + '%';
+              else stops += ',' + pc.bg + ' ' + pcts[1] + '% 100%';
+            }
+          });
+          cellStyle += ';background:linear-gradient(90deg,' + stops + ')';
+        }
       }
 
-      grid += '<span style="' + cellStyle + '" onclick="calSelectDate(\'' + dateStr + '\')">' + d + dotsHtml + '</span>';
+      grid += '<span style="' + cellStyle + '" onclick="calSelectDate(\'' + dateStr + '\')">' + d + '</span>';
     }
 
     document.getElementById('cal-grid').innerHTML = grid;
