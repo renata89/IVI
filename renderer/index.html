@@ -2612,17 +2612,33 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     if (e.target === this) this.classList.remove('active');
   });
 
-  // Choice button toggle
-  function setChoice(el, meeting) {
-    const container = el.parentElement;
-    container.querySelectorAll('.choice-btn').forEach(b => {
-      b.className = 'choice-btn inactive';
-    });
-    const isIVIRecord = el.textContent.includes('IVI Record');
-    el.className = 'choice-btn ' + (isIVIRecord ? 'active-purple' : 'active-blue');
+  // Choice toggle switch
+  function toggleMeetingChoice(meetingId) {
+    var slider = document.getElementById('toggle-slider-' + meetingId);
+    var toggle = document.getElementById('toggle-' + meetingId);
+    var note = document.getElementById('note-' + meetingId);
+    var hidden = document.getElementById('choice-' + meetingId);
+    if (!slider || !toggle) return;
 
-    const note = document.getElementById('note-' + meeting);
-    if (note) note.style.visibility = isIVIRecord ? 'visible' : 'hidden';
+    var current = hidden ? hidden.value : 'ivi';
+    var newVal = current === 'ivi' ? 'user' : 'ivi';
+    if (hidden) hidden.value = newVal;
+
+    var isIVI = newVal === 'ivi';
+    slider.style.top = isIVI ? '2px' : 'calc(50% + 2px)';
+
+    // Update all labels inside the toggle
+    var labels = toggle.querySelectorAll('div[style*="position:absolute"]');
+    if (labels.length >= 2) {
+      // First label (IVI)
+      labels[0].style.fontWeight = isIVI ? '700' : '400';
+      labels[0].style.color = isIVI ? '#7c3aed' : '#9ca3af';
+      // Second label (USER)
+      labels[1].style.fontWeight = isIVI ? '400' : '700';
+      labels[1].style.color = isIVI ? '#9ca3af' : '#3b82f6';
+    }
+
+    if (note) note.style.visibility = isIVI ? 'visible' : 'hidden';
   }
 
   // ---------- Conflict card: data & dynamic rendering ----------
@@ -2720,14 +2736,16 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">📹 Video Call (${meeting.platform})</div>
         <div style="font-size:11px;color:#4b5563;display:flex;align-items:center;gap:6px">👥 ${meeting.participants} participants</div>
         <div class="choice-group" style="display:flex;gap:6px;margin-top:auto">
-          <button class="choice-btn ${isLeft ? 'active-purple' : 'inactive'}" onclick="setChoice(this,'${meetingId}')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="15" x2="8" y2="15" stroke-linecap="round" stroke-width="3"/><line x1="16" y1="15" x2="16" y2="15" stroke-linecap="round" stroke-width="3"/></svg>
-            IVI Record
-          </button>
-          <button class="choice-btn ${isLeft ? 'inactive' : 'active-blue'}" onclick="setChoice(this,'${meetingId}')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            User Only
-          </button>
+          <div style="position:relative;width:100%;height:52px;background:#f3f4f6;border-radius:10px;cursor:pointer;overflow:hidden;border:1px solid #e5e7eb" onclick="toggleMeetingChoice('${meetingId}')" id="toggle-${meetingId}">
+            <div id="toggle-slider-${meetingId}" style="position:absolute;top:${isLeft ? '2px' : 'calc(50% + 2px)'};left:2px;right:2px;height:calc(50% - 4px);background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.12);transition:top .2s ease;z-index:1"></div>
+            <div style="position:absolute;top:0;left:0;right:0;height:50%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:${isLeft ? '700' : '400'};color:${isLeft ? '#7c3aed' : '#9ca3af'};z-index:2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg> IVI
+            </div>
+            <div style="position:absolute;top:50%;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:${isLeft ? '400' : '700'};color:${isLeft ? '#9ca3af' : '#3b82f6'};z-index:2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> USER
+            </div>
+          </div>
+          <input type="hidden" id="choice-${meetingId}" value="${isLeft ? 'ivi' : 'user'}">
         </div>
         <div id="note-${meetingId}" style="font-size:11px;color:${borderColor};font-weight:500;visibility:${isLeft ? 'visible' : 'hidden'}">ℹ️ IVI will take notes & summarize</div>
       </div>`;
@@ -2939,11 +2957,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       if (m.type !== 'video') return;
       const note = document.getElementById('note-' + m.id);
       if (!note) return;
-      const container = note.parentElement;
-      const iviBtn = container.querySelector('.choice-btn');
-      if (iviBtn && iviBtn.textContent.includes('IVI Record')) {
-        setChoice(iviBtn, m.id);
-      }
+      toggleMeetingChoice(m.id);
     });
   }
 
