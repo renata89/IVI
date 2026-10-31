@@ -608,6 +608,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   let activeConflicts = [];
   let currentConflictIndex = 0;
+  let localResolvedConflicts = [];
 
   // Mock fallback — used when calendar not connected
   const MOCK_CONFLICTS = [
@@ -778,6 +779,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   function ignoreConflict() {
     const conflict = activeConflicts[currentConflictIndex];
     if (!conflict) return;
+    // Store locally as resolved
+    localResolvedConflicts.push({
+      id: 'local_' + Date.now(),
+      meeting_a_id: conflict.left.title,
+      meeting_b_id: conflict.right.title,
+      resolution: 'ignore',
+      created_at: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    });
     // Persist to backend if we have real meeting IDs
     if (conflict._meetingA) {
       fetch('http://127.0.0.1:8765/api/conflicts/resolve', {
@@ -944,9 +953,31 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     if (!globalChoiceIsIVI) toggleGlobalChoice();
   }
 
+  function renderResolvedConflicts(conflicts) {
+    let html = `<div style=\"padding:8px 0\">`;
+    conflicts.forEach(c => {
+      const label = c.resolution === 'cover_both' ? 'IVI covers both' : c.resolution === 'reschedule' ? 'Rescheduled' : 'Ignored';
+      const badgeClass = c.resolution === 'cover_both' ? 'badge-done' : c.resolution === 'reschedule' ? 'badge-wip' : 'badge-todo';
+      const meetingA = c.meeting_a_id && c.meeting_a_id.length > 20 ? c.meeting_a_id.substring(0, 12) + '...' : (c.meeting_a_id || 'Meeting A');
+      const meetingB = c.meeting_b_id && c.meeting_b_id.length > 20 ? c.meeting_b_id.substring(0, 12) + '...' : (c.meeting_b_id || 'Meeting B');
+      html += `<div style=\"padding:10px;border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px\">
+        <div style=\"display:flex;align-items:center;justify-content:space-between\">
+          <div style=\"font-weight:500;font-size:13px\">${meetingA} vs ${meetingB}</div>
+          <span class=\"badge-status ${badgeClass}\">${label}</span>
+        </div>
+        <div style=\"font-size:10px;color:var(--text-muted);margin-top:2px\">${c.created_at || ''}</div>
+      </div>`;
+    });
+    html += `</div>`;
+    document.querySelector('.modal-detail').innerHTML = html;
+  }
+
   function openConflictManager(mode) {
     const title = mode === 'review' ? 'Resolved Conflicts' : 'Conflict Manager';
-    const meta = mode === 'review' ? '1 resolved · Oct 21 (Fri)' : '3 unresolved conflicts · Oct 20-23';
+    const totalResolved = localResolvedConflicts.length;
+    const meta = mode === 'review'
+      ? (totalResolved > 0 ? totalResolved + ' resolved' : 'No resolved conflicts')
+      : '3 unresolved conflicts · Oct 20-23';
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-meta').textContent = meta;
     document.getElementById('meeting-modal').classList.add('active');
@@ -960,30 +991,22 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         .then(r => r.json())
         .then(data => {
           const resolved = data.resolved || [];
-          if (resolved.length === 0) {
-            document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">No resolved conflicts yet.</div>`;
+          if (resolved.length > 0) {
+            renderResolvedConflicts(resolved);
+          } else if (localResolvedConflicts.length > 0) {
+            renderResolvedConflicts(localResolvedConflicts);
           } else {
-            let html = `<div style="padding:8px 0">`;
-            resolved.forEach(c => {
-              const label = c.resolution === 'cover_both' ? 'IVI covers both' : c.resolution === 'reschedule' ? 'Rescheduled' : 'Ignored';
-              const badgeClass = c.resolution === 'cover_both' ? 'badge-done' : c.resolution === 'reschedule' ? 'badge-wip' : 'badge-todo';
-              html += `<div style="padding:10px;border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px">
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                  <div style="font-weight:500;font-size:13px">Conflict resolved</div>
-                  <span class="badge-status ${badgeClass}">${label}</span>
-                </div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Meetings: ${c.meeting_a_id.substring(0,12)}… vs ${c.meeting_b_id.substring(0,12)}…</div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${c.created_at || ''}</div>
-              </div>`;
-            });
-            html += `</div>`;
-            document.querySelector('.modal-detail').innerHTML = html;
+            document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">No resolved conflicts yet.</div>`;
           }
           lucide.createIcons();
         })
         .catch(() => {
-          // Fallback to hardcoded review data
-          document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">Could not load resolved conflicts.</div>`;
+          // Fallback to local cache if backend unavailable
+          if (localResolvedConflicts.length > 0) {
+            renderResolvedConflicts(localResolvedConflicts);
+          } else {
+            document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">Could not load resolved conflicts.</div>`;
+          }
         });
     } else {
       // Conflict list data (simulated)
