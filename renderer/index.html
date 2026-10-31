@@ -4861,8 +4861,11 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     // Also check custom meetings created via the calendar
     var custom = getCustomMeetings();
+    var seenIds = {};
     for (var i = 0; i < custom.length; i++) {
+      if (seenIds[custom[i].id]) continue;
       if (custom[i].date === dateStr) {
+        seenIds[custom[i].id] = true;
         res.push(custom[i]);
       } else if (custom[i].repeat && custom[i].repeatInterval) {
         // Check if this date falls within the recurrence pattern
@@ -4873,6 +4876,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
             var num = parseInt(parts[1]);
             var unit = parts[2];
             if (num > 0 && isDateInRecurrence(custom[i].createdDate, dateStr, num, unit)) {
+              seenIds[custom[i].id] = true;
               res.push(custom[i]);
             }
           }
