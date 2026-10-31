@@ -1972,6 +1972,41 @@ body {
   </div>
 </div>
 
+<!-- Assign to meeting: calendar modal -->
+<div class="modal-overlay" id="assign-calendar-modal">
+  <div class="modal" style="width:680px;max-width:90vw">
+    <div class="modal-header">
+      <div class="modal-title">📅 Assign to meeting</div>
+      <span class="modal-close" onclick="closeAssignCalendar()">✕</span>
+    </div>
+    <div id="assign-calendar-body" style="padding:16px 24px 24px;max-height:70vh;overflow-y:auto;font-size:13px">
+
+      <!-- Month navigation -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="btn btn-ghost btn-sm" id="cal-prev-month" onclick="calNavMonth(-1)">◀</span>
+        <span id="cal-month-label" style="font-weight:600;font-size:15px"></span>
+        <span class="btn btn-ghost btn-sm" id="cal-next-month" onclick="calNavMonth(1)">▶</span>
+      </div>
+
+      <!-- Day labels -->
+      <div id="cal-day-labels" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;font-size:10px;color:var(--text-muted);text-align:center;font-weight:600"></div>
+
+      <!-- Calendar grid -->
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:16px"></div>
+
+      <!-- Selected day meetings -->
+      <div id="cal-selected-day" style="font-size:12px;font-weight:600;margin-bottom:8px"></div>
+      <div id="cal-meetings-list" style="min-height:80px"></div>
+
+      <!-- Actions -->
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <span class="btn btn-ghost btn-sm" onclick="calNewMeeting()">➕ New meeting</span>
+        <span class="btn btn-ghost btn-sm" onclick="closeAssignCalendar()">Cancel</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   lucide.createIcons();
 
@@ -4414,9 +4449,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           <div style="flex:1"></div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
             <span class="btn btn-primary btn-sm" id="bulk-export-${listId}" onclick="bulkExportItems(${listId})" style="font-size:11px;padding:4px 10px;opacity:0.5;pointer-events:none">📤 Export</span>
-            <select id="bulk-assign-${listId}" onchange="bulkAssignItems(${listId}, this.value)" style="padding:4px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5" disabled>
-              ${bulkMeetingOpts}
-            </select>
+            <span class="btn btn-ghost btn-sm" id="bulk-assign-btn-${listId}" onclick="openAssignCalendar(${listId})" style="font-size:11px;padding:4px 8px;opacity:0.5;pointer-events:none">→ Assign to meeting</span>
           </div>
         </div>
       </div>`;
@@ -4457,8 +4490,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           </div>`;
         });
 
-        // Bottom select all bar
-        html += `<div style=\"display:flex;align-items:center;gap:8px;padding:8px 0 0;margin-top:4px;border-top:1px solid var(--card-border)\">
+        // Bottom select all bar — on the right
+        html += `<div style=\"display:flex;align-items:center;gap:8px;padding:8px 0 0;margin-top:4px;border-top:1px solid var(--card-border);justify-content:flex-end\">
           <label class=\"select-all-label\" style=\"display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);cursor:pointer\">
             <input type=\"checkbox\" onchange=\"toggleSelectAll(this, ${listId})\" style=\"accent-color:var(--emerald);width:13px;height:13px;cursor:pointer\"> Select all
           </label>
@@ -4501,14 +4534,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     if (selectAllCb) selectAllCb.checked = (count > 0 && count === total);
 
     var exportBtn = document.getElementById('bulk-export-' + listId);
-    var assignSelect = document.getElementById('bulk-assign-' + listId);
+    var assignBtn = document.getElementById('bulk-assign-btn-' + listId);
 
     if (count > 0) {
       if (exportBtn) { exportBtn.style.opacity = '1'; exportBtn.style.pointerEvents = 'auto'; }
-      if (assignSelect) { assignSelect.disabled = false; assignSelect.style.opacity = '1'; }
+      if (assignBtn) { assignBtn.style.opacity = '1'; assignBtn.style.pointerEvents = 'auto'; }
     } else {
       if (exportBtn) { exportBtn.style.opacity = '0.5'; exportBtn.style.pointerEvents = 'none'; }
-      if (assignSelect) { assignSelect.disabled = true; assignSelect.style.opacity = '0.5'; }
+      if (assignBtn) { assignBtn.style.opacity = '0.5'; assignBtn.style.pointerEvents = 'none'; }
     }
   }
 
@@ -4569,6 +4602,179 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:opacity .3s;opacity:1';
     document.body.appendChild(toast);
     setTimeout(function() { toast.style.opacity = '0'; setTimeout(function() { toast.remove(); }, 300); }, 2000);
+  }
+
+  // ===== Assign Calendar =====
+  var calCurrentDate = new Date();
+  var calListId = null;
+  var calSelectedDate = null;
+
+  function openAssignCalendar(listId) {
+    calListId = listId;
+    calCurrentDate = new Date();
+    calSelectedDate = null;
+    document.getElementById('assign-calendar-modal').classList.add('active');
+    calRender();
+  }
+
+  function closeAssignCalendar() {
+    document.getElementById('assign-calendar-modal').classList.remove('active');
+  }
+
+  function calNavMonth(delta) {
+    calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+    calRender();
+  }
+
+  function calRender() {
+    // Day labels
+    var labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    document.getElementById('cal-day-labels').innerHTML = labels.map(function(l) { return '<span>' + l + '</span>'; }).join('');
+
+    // Month label
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('cal-month-label').textContent = months[calCurrentDate.getMonth()] + ' ' + calCurrentDate.getFullYear();
+
+    // Calendar grid
+    var year = calCurrentDate.getFullYear();
+    var month = calCurrentDate.getMonth();
+    var firstDay = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var today = new Date();
+
+    var grid = '';
+    // Empty cells before first day
+    for (var i = 0; i < firstDay; i++) grid += '<span></span>';
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      var isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      var isSelected = calSelectedDate === dateStr;
+      // Check if there are meetings on this day
+      var hasMeetings = false;
+      var meetings = getMeetingsForDate(dateStr);
+      if (meetings.length > 0) hasMeetings = true;
+
+      var style = 'padding:6px 4px;text-align:center;font-size:12px;border-radius:6px;cursor:pointer';
+      if (isSelected) style += ';background:var(--emerald);color:#fff';
+      else if (isToday) style += ';background:var(--emerald-light);color:var(--emerald);font-weight:600';
+      else style += ';color:var(--text)';
+      style += ';position:relative';
+      if (hasMeetings && !isSelected) style += ';font-weight:600';
+
+      grid += '<span style="' + style + '" onclick="calSelectDate(\'' + dateStr + '\')">' + d + '</span>';
+    }
+
+    document.getElementById('cal-grid').innerHTML = grid;
+
+    // Selected day section
+    if (calSelectedDate) {
+      document.getElementById('cal-selected-day').textContent = '📅 ' + calSelectedDate;
+      calRenderMeetings(calSelectedDate);
+    } else {
+      document.getElementById('cal-selected-day').textContent = '';
+      document.getElementById('cal-meetings-list').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:16px">Click a day to see meetings</div>';
+    }
+  }
+
+  function getMeetingsForDate(dateStr) {
+    // Return mock meetings that fall on this date
+    var res = [];
+    for (var i = 0; i < MOCK_MEETINGS_FOR_ASSIGN.length; i++) {
+      var m = MOCK_MEETINGS_FOR_ASSIGN[i];
+      // Parse date from m.date (e.g. 'Fri, Oct 30')
+      // For simplicity, just check if the date string contains the month info
+      // Also add custom meetings created via the calendar
+      var mDate = new Date(m.createdDate || Date.parse(m.date));
+      if (!isNaN(mDate.getTime())) {
+        var ds = mDate.getFullYear() + '-' + String(mDate.getMonth()+1).padStart(2,'0') + '-' + String(mDate.getDate()).padStart(2,'0');
+        if (ds === dateStr) res.push(m);
+      }
+    }
+    // Also check custom meetings
+    var custom = getCustomMeetings();
+    for (var i = 0; i < custom.length; i++) {
+      if (custom[i].date === dateStr) res.push(custom[i]);
+    }
+    return res;
+  }
+
+  function calSelectDate(dateStr) {
+    calSelectedDate = dateStr;
+    calRender();
+  }
+
+  function calRenderMeetings(dateStr) {
+    var meetings = getMeetingsForDate(dateStr);
+    if (meetings.length === 0) {
+      document.getElementById('cal-meetings-list').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:16px">No meetings on this day</div>';
+      return;
+    }
+    var html = '';
+    meetings.forEach(function(m) {
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--card-border);margin-bottom:6px;cursor:pointer" onclick="calSelectMeeting(\'' + m.id + '\')" onmouseover="this.style.background=\'var(--card-hover)\'" onmouseout="this.style.background=\'\'">' +
+        '<span style="flex:1;font-size:12px;font-weight:500">' + m.title + '</span>' +
+        '<span style="font-size:10px;color:var(--text-muted)">' + m.date + ' ' + m.time + '</span>' +
+        '<span class="btn btn-primary btn-sm" style="font-size:10px;padding:2px 8px">Assign ✓</span>' +
+      '</div>';
+    });
+    document.getElementById('cal-meetings-list').innerHTML = html;
+  }
+
+  function calSelectMeeting(meetingId) {
+    // Assign selected items to this meeting
+    if (!calListId) return;
+    var meetingName = '';
+    // Find in mock + custom
+    for (var i = 0; i < MOCK_MEETINGS_FOR_ASSIGN.length; i++) {
+      if (MOCK_MEETINGS_FOR_ASSIGN[i].id === meetingId) { meetingName = MOCK_MEETINGS_FOR_ASSIGN[i].title; break; }
+    }
+    if (!meetingName) {
+      var custom = getCustomMeetings();
+      for (var i = 0; i < custom.length; i++) {
+        if (custom[i].id === meetingId) { meetingName = custom[i].title; break; }
+      }
+    }
+    var checked = document.querySelectorAll('#todo-detail-body .todo-detail-item input[type="checkbox"]:checked');
+    checked.forEach(function(c) {
+      var itemEl = c.closest('.todo-detail-item');
+      var itemId = itemEl ? itemEl.dataset.itemId : null;
+      if (itemId) {
+        saveItemAssignment(parseInt(itemId), meetingId);
+      }
+    });
+    closeAssignCalendar();
+    showToast('📌 Assigned ' + checked.length + ' item(s) to ' + (meetingName || meetingId));
+  }
+
+  function getCustomMeetings() {
+    try {
+      return JSON.parse(localStorage.getItem('ivi_custom_meetings') || '[]');
+    } catch(e) { return []; }
+  }
+
+  function saveCustomMeetings(meetings) {
+    localStorage.setItem('ivi_custom_meetings', JSON.stringify(meetings));
+  }
+
+  function calNewMeeting() {
+    var title = prompt('New meeting title:', '');
+    if (!title || title.trim() === '') return;
+    var dayStr = calSelectedDate || (new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0'));
+    var time = prompt('Time (e.g. 14:00):', '12:00');
+    if (!time) time = '12:00';
+    var custom = getCustomMeetings();
+    var newId = 'custom_' + Date.now();
+    custom.push({
+      id: newId,
+      title: title.trim(),
+      date: dayStr,
+      time: time,
+      createdDate: dayStr
+    });
+    saveCustomMeetings(custom);
+    calRender();
+    showToast('✅ Meeting "' + title + '" created — now click Assign to add items');
   }
 
   // Map meeting title from Upcoming Meetings to a To-Do list ID
