@@ -4565,7 +4565,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
               <div style="display:flex;align-items:center;gap:4px">
                 <span style="font-size:13px;font-weight:500;${isDone || isDismissed ? 'text-decoration:line-through;' : ''}${isDismissed ? 'color:#ef4444;text-decoration-color:#ef4444' : isDone ? 'color:var(--text-muted)' : ''}">${item.description}</span>
               </div>
-              ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 ${item.person}</div>` : ''}
+              ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 ${item.person}</div>` : `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 <span style="color:#d1d5db">(none)</span></div>`}
               ${isNotDone && item.not_done_reason ? `<div style="font-size:11px;color:#ef4444;margin-top:2px">💬 ${item.not_done_reason}</div>` : ''}
             </div>
             <input type="checkbox" onchange="toggleSelectItem(this, ${listId})" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer;margin-top:4px">
@@ -5212,9 +5212,16 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     var currentDesc = descSpan.textContent;
 
-    // Find person element
+    // Find or create person container
     var personContainer = itemEl.querySelector('div[style*="font-size:11px;color:var(--text-muted)"]');
-    var currentPerson = personContainer ? personContainer.textContent.replace('👤 ', '').trim() : '';
+    if (!personContainer) {
+      // Create one if it doesn't exist (person was empty)
+      personContainer = document.createElement('div');
+      personContainer.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:2px';
+      var descDiv = itemEl.querySelector('div[style*="flex:1;min-width:0"]');
+      if (descDiv) descDiv.appendChild(personContainer);
+    }
+    var currentPerson = personContainer.textContent.replace('👤 ', '').trim();
 
     // Replace description with input
     var input = document.createElement('input');
