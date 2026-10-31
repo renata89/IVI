@@ -635,10 +635,12 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       const data = await resp.json();
       if (data.conflicts && data.conflicts.length > 0) {
         // Transform backend events into the format expected by the UI
-        activeConflicts = data.conflicts.map(c => ({
+        var allConflicts = data.conflicts.map(c => ({
           id: c.id.replace(/[|]/g, '_'),
           _meetingA: c.left.id,
           _meetingB: c.right.id,
+          _endA: c.left.end,
+          _endB: c.right.end,
           left: {
             title: c.left.title,
             time: formatConflictTime(c.left.start, c.left.end),
@@ -656,6 +658,13 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
             createdByMe: false
           }
         }));
+        // Filter out past conflicts — keep only those where at least one meeting hasn't ended yet
+        var now = new Date();
+        activeConflicts = allConflicts.filter(c => {
+          var endA = c._endA ? new Date(c._endA) : null;
+          var endB = c._endB ? new Date(c._endB) : null;
+          return (endA && endA > now) || (endB && endB > now) || (!endA && !endB);
+        });
         currentConflictIndex = 0;
         renderConflictCard();
         return;
@@ -789,7 +798,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     // Show/hide Reschedule button based on whether user created any meeting in this conflict
     const canReschedule = conflict.left.createdByMe || conflict.right.createdByMe;
-    document.querySelector('.btn-reschedule').style.display = canReschedule ? 'flex' : 'none';
+    var reschedBtn = document.querySelector('.btn-reschedule');
+    if (reschedBtn) reschedBtn.style.display = canReschedule ? 'flex' : 'none';
 
     document.getElementById('conflict-active-content').style.display = 'block';
     document.getElementById('conflict-none').style.display = 'none';
@@ -802,9 +812,10 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   function ignoreConflict() {
     const conflict = activeConflicts[currentConflictIndex];
     if (!conflict) return;
-    // Store locally as resolved
+    // Store FULL conflict locally for undo
     localResolvedConflicts.push({
       id: 'local_' + Date.now(),
+      fullConflict: conflict,
       meeting_a_id: conflict.left.title,
       meeting_b_id: conflict.right.title,
       resolution: 'ignore',
@@ -1002,13 +1013,16 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     // Find and remove from local cache
     const idx = localResolvedConflicts.findIndex(c => c.id === id);
     if (idx === -1) return;
-    localResolvedConflicts.splice(idx, 1);
-    // Re-render the list
-    if (localResolvedConflicts.length > 0) {
-      renderResolvedConflicts(localResolvedConflicts);
-    } else {
-      document.querySelector('.modal-detail').innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-muted)">No resolved conflicts yet.</div>`;
+    const entry = localResolvedConflicts[idx];
+    // Restore the full conflict back to active list
+    if (entry.fullConflict) {
+      activeConflicts.push(entry.fullConflict);
+      currentConflictIndex = activeConflicts.length - 1;
     }
+    localResolvedConflicts.splice(idx, 1);
+    // Close modal and re-render conflict card
+    document.getElementById('meeting-modal').classList.remove('active');
+    renderConflictCard();
   }
 
   function openConflictManager(mode) {
