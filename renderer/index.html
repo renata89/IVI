@@ -867,6 +867,12 @@ body {
   .cloud-btn.active { background: var(--emerald-light); border-color: var(--emerald); color: var(--emerald); font-weight: 600; }
   .urgent .todo-mock-item { font-size: 12px !important; }
   .urgent .todo-text { font-size: 12px !important; }
+  .meeting-readiness-row .status-chip {
+    border: 1px solid transparent;
+  }
+  .meeting-readiness-row .status-chip.ready { border-color: #86efac; }
+  .meeting-readiness-row .status-chip.partial { border-color: #fde047; }
+  .meeting-readiness-row .status-chip.missing { border-color: #fca5a5; }
   .settings-checkbox input[type="checkbox"] {
     width: 16px; height: 16px; margin-top: 2px;
     accent-color: var(--emerald); cursor: pointer; flex-shrink: 0;
@@ -1224,7 +1230,7 @@ body {
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openPrepareContext('Product Sprint Review')" title="Add documents">Docs</span>
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()" title="Go to Library">Prep</span>
-                <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="openTodoManager()" title="View To-Do list">To-Do 1/3</span>
+                <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="openTodoDetail(getTodoListIdForMeeting('Product Sprint Review'))" title="View To-Do list">To-Do 1/3</span>
               </div>
             </div>
             <!-- Today: Client Sync -->
@@ -1238,7 +1244,7 @@ body {
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;cursor:pointer" onclick="openPrepareContext('Client Sync')" title="Add documents">Docs</span>
                 <span class="status-chip missing" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()" title="Go to Library">Prep</span>
-                <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openTodoManager()" title="View To-Do list">To-Do 3/3</span>
+                <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openTodoDetail(getTodoListIdForMeeting('Client Sync'))" title="View To-Do list">To-Do 3/3</span>
               </div>
             </div>
             <!-- Tomorrow: Teacher Lab -->
@@ -1252,7 +1258,7 @@ body {
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
                 <span class="status-chip ready" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;cursor:pointer" onclick="openPrepareContext('Teacher Lab UI Review')" title="Add documents">Docs</span>
                 <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()" title="Go to Library">Prep</span>
-                <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="openTodoManager()" title="View To-Do list">To-Do 2/4</span>
+                <span class="status-chip partial" style="display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:4px;background:#fef3c7;color:#d97706;cursor:pointer" onclick="openTodoDetail(getTodoListIdForMeeting('Teacher Lab UI Review'))" title="View To-Do list">To-Do 2/4</span>
               </div>
             </div>
           </div>
@@ -4516,6 +4522,26 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:opacity .3s;opacity:1';
     document.body.appendChild(toast);
     setTimeout(function() { toast.style.opacity = '0'; setTimeout(function() { toast.remove(); }, 300); }, 2000);
+  }
+
+  // Map meeting title from Upcoming Meetings to a To-Do list ID
+  function getTodoListIdForMeeting(meetingTitle) {
+    var map = {
+      'Product Sprint Review': 1,
+      'Client Sync': null, // no dedicated todo list — open detail with empty
+      'Teacher Lab UI Review': 2
+    };
+    var id = map[meetingTitle];
+    if (id) return id;
+    // Fallback: try fuzzy match by substring
+    var q = meetingTitle.toLowerCase();
+    for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
+      if (MOCK_TODO_LISTS[i].meeting_title.toLowerCase().indexOf(q) !== -1 || q.indexOf(MOCK_TODO_LISTS[i].meeting_title.toLowerCase()) !== -1) {
+        return MOCK_TODO_LISTS[i].id;
+      }
+    }
+    // If nothing found, set mock item[0] as fallback so detail isn't completely empty
+    return 1;
   }
 
   async function toggleTodoStatus(itemId, listId) {
