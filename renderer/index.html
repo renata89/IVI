@@ -1079,14 +1079,14 @@ body {
           <!-- Active conflict content -->
           <div id="conflict-active-content">
             <div style="border-radius:20px;box-shadow:0 12px 28px rgba(239,68,68,0.35);overflow:hidden;border:1px solid #e5e7eb;background:#fff">
-              <div style="display:flex;padding:8px 12px;border-bottom:1px solid #f3f4f6">
+              <div style="display:grid;grid-template-columns:1fr 1fr" id="conflict-meetings-grid">
+              </div>
+              <div style="display:flex;padding:8px 12px;border-top:1px solid #f3f4f6">
                 <div style="position:relative;display:flex;width:100%;height:32px;background:#f3f4f6;border-radius:16px;cursor:pointer;overflow:hidden;border:1px solid #e5e7eb" id="global-toggle" onclick="toggleGlobalChoice()">
                   <div id="global-toggle-slider" style="position:absolute;top:2px;left:2px;width:calc(50% - 2px);height:calc(100% - 4px);background:#15803d;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.12);transition:left .2s ease;z-index:1"></div>
                   <div style="position:absolute;top:0;left:0;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:#fff;z-index:2">🎙️ IVI</div>
                   <div style="position:absolute;top:0;left:50%;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:400;color:#9ca3af;z-index:2">👤 USER</div>
                 </div>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr" id="conflict-meetings-grid">
               </div>
             </div>
 
