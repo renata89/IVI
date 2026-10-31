@@ -1,0 +1,12 @@
+# Docker ignore — backend only build context
+venv/
+node_modules/
+release/
+renderer/
+assets/
+build/
+*.md
+.DS_Store
+.git/
+.gitignore
+.env

@@ -330,7 +330,7 @@ async def calendar_status():
 
     # MOCK MODE: return fake events without Google API
     if MOCK_MODE:
-        from tests.mock.data import MOCK_CALENDAR_EVENTS
+        from backend.mock_data import MOCK_CALENDAR_EVENTS
         return {"connected": True, "events": MOCK_CALENDAR_EVENTS, "auth_url": "", "mock": True}
 
     if _calendar is None:
@@ -369,7 +369,7 @@ async def detect_conflicts():
 
     # MOCK MODE: detect conflicts using mock calendar events
     if MOCK_MODE:
-        from tests.mock.data import MOCK_CALENDAR_EVENTS
+        from backend.mock_data import MOCK_CALENDAR_EVENTS
         events = MOCK_CALENDAR_EVENTS
     else:
         if _calendar is None:
@@ -674,7 +674,7 @@ def main():
     )
     uvicorn.run(
         "backend.main:app",
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=BACKEND_PORT,
         log_level="info",
         reload=True,

@@ -8,6 +8,7 @@ const http = require('http');
 
 let intervalId = null;
 let onEvent = null;
+let cachedMeetings = [];
 const POLL_INTERVAL = 30000;
 
 // --------------- Calendar fetch ---------------
@@ -55,6 +56,8 @@ async function poll() {
         id: e.id,
       }))
     : getMockEvents();
+
+  cachedMeetings = meetingList;
 
   // Check meetings
   for (const meeting of meetingList) {
@@ -155,8 +158,7 @@ function stopTracker() {
 }
 
 function getUpcomingMeetings() {
-  // Return the latest meeting list
-  return []; // Will be populated via backend API
+  return cachedMeetings;
 }
 
 module.exports = { startTracker, stopTracker, getUpcomingMeetings };

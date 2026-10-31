@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Check Python syntax
+        run: |
+          python3 -c "import py_compile; py_compile.compile('backend/main.py', doraise=True)"
+          python3 -c "import py_compile; py_compile.compile('backend/db.py', doraise=True)"
+          python3 -c "import py_compile; py_compile.compile('backend/mock_data.py', doraise=True)"
+          echo "✓ Python syntax OK"
+
+      - name: Check backend starts
+        run: |
+          timeout 5 python3 -m backend.main &
+          sleep 2
+          curl -s http://127.0.0.1:8765/health | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='ok'; print('✓ Backend health OK')"
+          kill %1 2>/dev/null || true
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check JS syntax
+        run: |
+          npx -y acorn --module main.js > /dev/null 2>&1 && echo "✓ main.js OK"
+          npx -y acorn --module preload.js > /dev/null 2>&1 && echo "✓ preload.js OK"
+          npx -y acorn --module tracker.js > /dev/null 2>&1 && echo "✓ tracker.js OK"
+          npx -y acorn --module audio-capture.js > /dev/null 2>&1 && echo "✓ audio-capture.js OK"
+          npx -y acorn --module renderer/js/app.js > /dev/null 2>&1 && echo "✓ app.js OK"
+          npx -y acorn --module renderer/js/login.js > /dev/null 2>&1 && echo "✓ login.js OK"
+          npx -y acorn --module renderer/js/mock-panel.js > /dev/null 2>&1 && echo "✓ mock-panel.js OK"
+
+      - name: Check Electron can parse config
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            assert(pkg.version, 'version missing');
+            assert(pkg.main === 'main.js', 'entry point mismatch');
+            console.log('✓ package.json valid');
+          "

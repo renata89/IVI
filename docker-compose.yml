@@ -1,0 +1,17 @@
+# IVI Backend — Docker Compose
+# Start: docker compose up -d
+# Stop:  docker compose down
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8765:8765"
+    volumes:
+      - ~/.ivi:/root/.ivi
+    environment:
+      - IVI_BACKEND_PORT=8765
+      - IVI_MOCK=${IVI_MOCK:-1}
+    restart: unless-stopped
