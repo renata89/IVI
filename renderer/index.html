@@ -2034,12 +2034,21 @@ body {
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
             <input type="checkbox" id="cal-form-repeat" onchange="calToggleRepeat()" style="accent-color:var(--emerald);width:14px;height:14px;cursor:pointer"> Repeat
           </label>
-          <select id="cal-form-repeat-interval" disabled style="padding:4px 6px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5">
+          <select id="cal-form-repeat-interval" onchange="calCheckRepeatInterval()" disabled style="padding:4px 6px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5">
             <option value="daily">Daily</option>
             <option value="weekly" selected>Weekly</option>
             <option value="biweekly">Every 2 weeks</option>
             <option value="other">Other</option>
           </select>
+          <span id="cal-repeat-custom" style="display:none;align-items:center;gap:4px;font-size:11px">
+            <span style="color:var(--text-muted)">every</span>
+            <input id="cal-form-repeat-num" type="number" min="1" value="3" style="width:40px;padding:3px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit;text-align:center">
+            <select id="cal-form-repeat-unit" style="padding:3px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit;background:#fff">
+              <option value="days">day(s)</option>
+              <option value="weeks" selected>week(s)</option>
+              <option value="months">month(s)</option>
+            </select>
+          </span>
           <span style="font-size:11px;color:var(--text-muted)">|</span>
           <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer;opacity:0.5">
             <input type="checkbox" id="cal-form-repeat-items" disabled style="accent-color:var(--emerald);width:12px;height:12px;cursor:pointer"> Keep items on repeats
@@ -4957,11 +4966,28 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var repeatCb = document.getElementById('cal-form-repeat');
     var interval = document.getElementById('cal-form-repeat-interval');
     var repeatItems = document.getElementById('cal-form-repeat-items');
+    var custom = document.getElementById('cal-repeat-custom');
     var isOn = repeatCb.checked;
     interval.disabled = !isOn;
     interval.style.opacity = isOn ? '1' : '0.5';
     repeatItems.disabled = !isOn;
     repeatItems.parentElement.style.opacity = isOn ? '1' : '0.5';
+    // Show/hide custom interval
+    if (isOn && interval.value === 'other') {
+      custom.style.display = 'flex';
+    } else {
+      custom.style.display = 'none';
+    }
+  }
+
+  function calCheckRepeatInterval() {
+    var interval = document.getElementById('cal-form-repeat-interval');
+    var custom = document.getElementById('cal-repeat-custom');
+    if (interval.value === 'other' && !interval.disabled) {
+      custom.style.display = 'flex';
+    } else {
+      custom.style.display = 'none';
+    }
   }
 
   function calCopyLink() {
@@ -4983,6 +5009,11 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var link = document.getElementById('cal-form-link').value.trim();
     var repeat = document.getElementById('cal-form-repeat').checked;
     var repeatInterval = repeat ? document.getElementById('cal-form-repeat-interval').value : '';
+    if (repeatInterval === 'other') {
+      var num = document.getElementById('cal-form-repeat-num').value || '3';
+      var unit = document.getElementById('cal-form-repeat-unit').value;
+      repeatInterval = 'every_' + num + '_' + unit;
+    }
     var repeatItems = repeat ? document.getElementById('cal-form-repeat-items').checked : false;
 
     // Validation
