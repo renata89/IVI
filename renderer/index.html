@@ -4435,11 +4435,11 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
             <div style="flex:1;min-width:0">
               <div style="display:flex;align-items:center;gap:4px">
                 <span style="font-size:13px;font-weight:500;${isDone || isDismissed ? 'text-decoration:line-through;' : ''}${isDismissed ? 'color:#ef4444;text-decoration-color:#ef4444' : isDone ? 'color:var(--text-muted)' : ''}">${item.description}</span>
-                <span onclick="editTodoItem(${item.id}, ${listId})" style="cursor:pointer;font-size:12px;color:#9ca3af;flex-shrink:0;opacity:0.6;margin-left:2px" title="Edit">✏️</span>
               </div>
-              ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:4px">👤 ${item.person} <span onclick="editTodoPerson(${item.id}, ${listId})" style="cursor:pointer;font-size:10px;color:#9ca3af;opacity:0.6" title="Change person">✏️</span></div>` : ''}
+              ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 ${item.person}</div>` : ''}
               ${isNotDone && item.not_done_reason ? `<div style="font-size:11px;color:#ef4444;margin-top:2px">💬 ${item.not_done_reason}</div>` : ''}
             </div>
+            <span onclick="editTodoItem(${item.id}, ${listId})" style="cursor:pointer;font-size:14px;color:#9ca3af;flex-shrink:0;line-height:1;margin-top:4px;opacity:0.5" title="Edit item">✏️</span>
             <input type="checkbox" onchange="toggleSelectItem(this, ${listId})" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer;margin-top:4px">
           </div>`;
         });
@@ -4626,7 +4626,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     }
   }
 
-  // ---------- Edit item / person in detail modal ----------
+  // ---------- Edit item (text + person) in detail modal ----------
   function editTodoItem(itemId, listId) {
     var mockList = null;
     for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
@@ -4636,20 +4636,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var mockItem = mockList.items[itemId - 1];
     if (!mockItem) return;
     var newDesc = prompt('Edit item text:', mockItem.description);
-    if (newDesc === null || newDesc.trim() === '') return;
-    mockItem.description = newDesc.trim();
-    openTodoDetail(listId);
-    loadTodoLists();
-  }
-
-  function editTodoPerson(itemId, listId) {
-    var mockList = null;
-    for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
-      if (MOCK_TODO_LISTS[i].id === listId) { mockList = MOCK_TODO_LISTS[i]; break; }
-    }
-    if (!mockList) return;
-    var mockItem = mockList.items[itemId - 1];
-    if (!mockItem) return;
+    if (newDesc === null) return;
+    mockItem.description = newDesc.trim() || mockItem.description;
     var newPerson = prompt('Assign to person (name):', mockItem.person || '');
     if (newPerson === null) return;
     mockItem.person = newPerson.trim() || '';
