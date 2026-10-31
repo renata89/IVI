@@ -11,6 +11,7 @@ Desktop meeting companion app. Captures system audio, transcribes meetings, gene
 ## Architecture
 
 > 📐 Visual diagram available: [`IVI-architecture.html`](./IVI-architecture.html) — open in any browser.
+> 🌐 Web companion available: [`web/`](./web/) — open `web/index.html` in any browser.
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -130,6 +131,13 @@ IVI/
 │   ├── mock/data.py        # Mock calendar events
 │   ├── manual/             # Manual test scenarios
 │   └── seed/               # Seed data for testing
+│
+├── web/                    # Web companion app
+│   ├── index.html          # Entry point
+│   ├── css/main.css        # Styles
+│   └── js/
+│       ├── api.js          # Backend API client
+│       └── app.js          # Application logic
 │
 ├── assets/                 # Icons & branding
 ├── build/                  # Build config (entitlements)

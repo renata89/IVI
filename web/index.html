@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IVI — Web</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/icon_32.png">
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <img src="../assets/logo_sidebar.png" alt="IVI" class="ivi-logo">
+      <h1>IVI Web</h1>
+      <p class="sub">Meeting Assistant — browser companion</p>
+
+      <div class="connection-status" id="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-text">Checking connection...</span>
+      </div>
+
+      <div class="login-field-group">
+        <input type="text" class="login-field" id="backend-url" placeholder="Backend URL" value="http://127.0.0.1:8765">
+        <button class="login-btn login-btn-primary" onclick="handleConnect()">Connect</button>
+      </div>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app-layout hidden" id="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-wrapper">
+        <img src="../assets/logo_sidebar.png" alt="IVI" class="logo-img">
+      </div>
+
+      <nav class="nav">
+        <a class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a class="nav-item" data-page="meetings" onclick="switchPage('meetings')">
+          <span class="nav-icon">📅</span> Calendar
+        </a>
+        <a class="nav-item" data-page="notes" onclick="switchPage('notes')">
+          <span class="nav-icon">📝</span> Notes
+        </a>
+        <a class="nav-item" data-page="settings" onclick="switchPage('settings')" style="margin-top:4px">
+          <span class="nav-icon">⚙️</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="plan-name">IVI Web</div>
+        <div class="plan" id="sidebar-status">Disconnected</div>
+      </div>
+    </aside>
+
+    <!-- Main Area -->
+    <main class="main">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="page-title" id="page-title">Dashboard</span>
+        </div>
+        <div class="topbar-right">
+          <span class="backend-badge" id="backend-badge">⚡ Backend</span>
+          <span class="version-badge" id="version-badge">v0.1.0</span>
+        </div>
+      </header>
+
+      <!-- Dashboard Page -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="card">
+            <div class="card-label">Upcoming Meetings</div>
+            <div class="card-value" id="dash-meetings-count">—</div>
+            <div class="card-sub" id="dash-meetings-sub">Loading...</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Total Notes</div>
+            <div class="card-value" id="dash-notes-count">—</div>
+            <div class="card-sub" id="dash-notes-sub">From all meetings</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Action Items</div>
+            <div class="card-value" id="dash-todo-count">—</div>
+            <div class="card-sub" id="dash-todo-sub">Pending</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Calendar Connected</div>
+            <div class="card-value" id="dash-calendar-status">—</div>
+            <div class="card-sub" id="dash-calendar-sub">Google Calendar</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Upcoming Meetings</div>
+          <table class="table" id="dash-meetings-table">
+            <thead>
+              <tr><th>Title</th><th>Time</th><th>Platform</th><th>Participants</th></tr>
+            </thead>
+            <tbody id="dash-meetings-body">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No meetings loaded</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Meetings Page -->
+      <div class="page" id="page-meetings">
+        <div class="card">
+          <div class="card-label">Meeting Calendar</div>
+          <table class="table" id="meetings-table">
+            <thead>
+              <tr><th>Title</th><th>Date</th><th>Time</th><th>Platform</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="meetings-body">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No meetings loaded</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Notes Page -->
+      <div class="page" id="page-notes">
+        <div class="card">
+          <div class="card-label">Meeting Notes</div>
+          <div id="notes-list">
+            <div style="text-align:center;color:var(--text-muted);padding:40px">No notes loaded. Connect to backend first.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page" id="page-settings">
+        <div class="card">
+          <div class="card-label">Backend Connection</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input type="text" class="login-field" id="settings-backend-url" value="http://127.0.0.1:8765" style="margin-bottom:0">
+            <button class="btn btn-primary btn-sm" onclick="reconnect()">Reconnect</button>
+          </div>
+          <div class="card-sub" id="settings-conn-status">Status: Disconnected</div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-label">About IVI</div>
+          <div style="font-size:13px;color:var(--text-muted)">
+            <p style="margin-bottom:8px">IVI — Meeting Assistant. Desktop companion with web access.</p>
+            <p style="margin-bottom:4px"><strong>Version:</strong> <span id="settings-version">0.1.0</span></p>
+            <p><strong>Domain:</strong> iviapp.pl</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
