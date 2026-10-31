@@ -4408,18 +4408,15 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
             </div>
             <div style="margin-top:8px;display:flex;gap:8px">
               <span class="btn btn-ghost btn-sm" onclick="showNoteDetail('${list.meeting_id}', '${list.meeting_title.replace(/'/g, "\\'")}')">📝 IVI notes</span>
+              <span class="btn btn-ghost btn-sm" onclick="addTodoItem(${listId})">➕ Add item</span>
             </div>
           </div>
           <div style="flex:1"></div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <label class="select-all-label" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);cursor:pointer">
-              <input type="checkbox" onchange="toggleSelectAll(this, ${listId})" style="accent-color:var(--emerald);width:13px;height:13px;cursor:pointer"> Select all
-            </label>
             <select id="bulk-assign-${listId}" onchange="bulkAssignItems(${listId}, this.value)" style="padding:4px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit;background:#fff;color:var(--text-muted);opacity:0.5" disabled>
               ${bulkMeetingOpts}
             </select>
             <span class="btn btn-primary btn-sm" id="bulk-export-${listId}" onclick="bulkExportItems(${listId})" style="font-size:11px;padding:4px 10px;opacity:0.5;pointer-events:none">📤 Export selected</span>
-            <span id="selected-count-${listId}" style="font-size:10px;color:var(--text-muted);margin-left:2px">0 selected</span>
           </div>
         </div>
       </div>`;
@@ -4448,6 +4445,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           html += `<div class="todo-detail-item" data-item-id="${item.id}" data-list-id="${listId}" style="display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--card-border);align-items:flex-start">
             ${statusHtml}
             <span class="todo-dismiss" onclick="event.stopPropagation();toggleDismissItem(this);return false" style="cursor:pointer;font-size:14px;color:#9ca3af;flex-shrink:0;line-height:1;margin-top:4px">${dismissMark}</span>
+            <span onclick="editTodoItem(${item.id}, ${listId})" style="cursor:pointer;font-size:14px;color:#9ca3af;flex-shrink:0;line-height:1;margin-top:4px;opacity:0.5" title="Edit item">✏️</span>
             <div style="flex:1;min-width:0">
               <div style="display:flex;align-items:center;gap:4px">
                 <span style="font-size:13px;font-weight:500;${isDone || isDismissed ? 'text-decoration:line-through;' : ''}${isDismissed ? 'color:#ef4444;text-decoration-color:#ef4444' : isDone ? 'color:var(--text-muted)' : ''}">${item.description}</span>
@@ -4455,10 +4453,17 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
               ${item.person ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">👤 ${item.person}</div>` : ''}
               ${isNotDone && item.not_done_reason ? `<div style="font-size:11px;color:#ef4444;margin-top:2px">💬 ${item.not_done_reason}</div>` : ''}
             </div>
-            <span onclick="editTodoItem(${item.id}, ${listId})" style="cursor:pointer;font-size:14px;color:#9ca3af;flex-shrink:0;line-height:1;margin-top:4px;opacity:0.5" title="Edit item">✏️</span>
             <input type="checkbox" onchange="toggleSelectItem(this, ${listId})" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0;cursor:pointer;margin-top:4px">
           </div>`;
         });
+
+        // Bottom select all bar
+        html += `<div style=\"display:flex;align-items:center;gap:8px;padding:8px 0 0;margin-top:4px;border-top:1px solid var(--card-border)\">
+          <label class=\"select-all-label\" style=\"display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);cursor:pointer\">
+            <input type=\"checkbox\" onchange=\"toggleSelectAll(this, ${listId})\" style=\"accent-color:var(--emerald);width:13px;height:13px;cursor:pointer\"> Select all
+          </label>
+          <span id=\"selected-count-${listId}\" style=\"font-size:10px;color:var(--text-muted);margin-left:4px\">0 selected</span>
+        </div>`;
       }
 
       bodyEl.innerHTML = html;
@@ -4627,6 +4632,25 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       openTodoDetail(listId);
       loadTodoLists();
     }
+  }
+
+  // ---------- Edit item (text + person) in detail modal ----------
+  function addTodoItem(listId) {
+    var mockList = null;
+    for (var i = 0; i < MOCK_TODO_LISTS.length; i++) {
+      if (MOCK_TODO_LISTS[i].id === listId) { mockList = MOCK_TODO_LISTS[i]; break; }
+    }
+    if (!mockList) return;
+    var desc = prompt('New item text:', '');
+    if (!desc || desc.trim() === '') return;
+    var person = prompt('Assign to person (name, optional):', '');
+    mockList.items.push({
+      person: person ? person.trim() : '',
+      description: desc.trim(),
+      status: 'pending'
+    });
+    openTodoDetail(listId);
+    loadTodoLists();
   }
 
   // ---------- Edit item (text + person) in detail modal ----------
