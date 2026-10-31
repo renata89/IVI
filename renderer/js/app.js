@@ -202,6 +202,61 @@ function loadPrepSettings() {
   } catch(e) {}
 }
 
+// ---------- AI Suggestions Settings ----------
+function toggleAISuggestions() {
+  var toggle = document.getElementById('ai-suggestions-enabled');
+  var status = document.getElementById('ai-suggestions-status');
+  var info = document.getElementById('ai-suggestions-info');
+  var enabled = toggle.checked;
+
+  if (enabled) {
+    // Check if there are documents in Library
+    var hasDocs = checkHasDocuments();
+
+    if (hasDocs) {
+      status.textContent = '✅ ON — AI will suggest based on your documents';
+    } else {
+      // Show info about no-doc mode
+      status.textContent = '✅ ON — AI will use general knowledge (no documents found)';
+      info.style.display = 'block';
+    }
+  } else {
+    status.textContent = 'AI will suggest talking points based on your documents';
+    info.style.display = 'none';
+  }
+
+  localStorage.setItem('ivi_ai_suggestions_enabled', enabled ? 'true' : 'false');
+}
+
+function checkHasDocuments() {
+  // Check from the Library UI state
+  var libraryItems = document.querySelectorAll('#library-list .library-item, .doc-item, .library-file');
+  if (libraryItems.length > 0) return true;
+
+  // Fallback: check if there's any "no documents" message hidden
+  var noDocs = document.getElementById('no-documents-message');
+  if (noDocs && noDocs.style.display === 'none') return true;
+
+  // Check from actual API data if available
+  if (window.ivi && window.ivi.fetchAPI) {
+    // Don't block, just return false for now — data will be fetched later
+  }
+
+  return false;
+}
+
+function loadAISuggestionsSettings() {
+  try {
+    var saved = localStorage.getItem('ivi_ai_suggestions_enabled');
+    var toggle = document.getElementById('ai-suggestions-enabled');
+    if (toggle && saved === 'true') {
+      toggle.checked = true;
+      // Trigger the UI update
+      toggleAISuggestions();
+    }
+  } catch(e) {}
+}
+
 // ---------- Document Reminder Settings ----------
 function saveDocReminderSettings() {
   var enabled = document.getElementById('doc-reminder-enabled').checked;

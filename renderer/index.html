@@ -176,7 +176,7 @@
           </div>
 
           <!-- Active conflict content -->
-          <div id="conflict-active-content">
+          <div id="conflict-active-content" style="display:flex;flex-direction:column;flex:1">
             <div style="border-radius:20px;box-shadow:0 12px 28px rgba(239,68,68,0.35);overflow:hidden;border:1px solid #e5e7eb;background:#fff">
               <div style="display:grid;grid-template-columns:1fr 1fr" id="conflict-meetings-grid">
               </div>
@@ -187,14 +187,14 @@
                   <div style="position:absolute;top:0;left:50%;width:50%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:400;color:#9ca3af;z-index:2">👤 USER</div>
                 </div>
               </div>
-              <div style="padding:8px 12px 6px;display:flex;gap:6px">
+              <div style="padding:8px 12px 6px;border-top:1px solid #f3f4f6;display:flex;gap:6px">
                 <span class="btn" style="border:1px solid #15803d;background:transparent;color:#15803d;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="rescheduleConflict()">Reschedule</span>
                 <span class="btn" style="border:1px solid #9ca3af;background:transparent;color:#374151;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;flex:1;min-width:0" onclick="ignoreConflict()">Ignore Conflict</span>
               </div>
-              <div style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding:0 12px 10px;font-size:12px;color:#374151;font-weight:500">
-                <span id="conflict-counter" style="white-space:nowrap">Conflict 1 of 3</span>
-                <span class="btn btn-ghost btn-sm" onclick="openConflictManager('manage')" style="border-color:#15803d;color:#15803d;font-size:10px;white-space:nowrap">Manage all conflicts</span>
-              </div>
+            </div>
+            <div style="margin-top:auto;padding-top:8px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;font-size:12px;color:#374151;font-weight:500">
+              <span id="conflict-counter" style="white-space:nowrap">Conflict 1 of 3</span>
+              <span class="btn btn-ghost btn-sm" onclick="openConflictManager('manage')" style="border-color:#15803d;color:#15803d;font-size:10px;white-space:nowrap">Manage all conflicts</span>
             </div>
           </div>
         </div>
@@ -777,6 +777,30 @@
             <div><div style="font-weight:600;font-size:15px">Alex Kowalski</div><div style="font-size:13px;color:var(--text-muted)">alex@example.com</div></div>
           </div>
           <div style="font-size:13px;color:var(--text-muted)">App version: 0.1.0 · macOS</div>
+        </div>
+
+        <!-- AI Suggestions Toggle -->
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="font-size:14px;font-weight:600">AI Live Suggestions</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-weight:500;font-size:13px">Live suggestions during meetings</div>
+                <div style="font-size:11px;color:var(--text-muted)" id="ai-suggestions-status">AI will suggest talking points based on your documents</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ai-suggestions-enabled" onchange="toggleAISuggestions()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="ai-suggestions-info" style="display:none;font-size:11px;color:var(--text-muted);background:#f9fafb;padding:10px 12px;border-radius:8px;border:1px solid var(--card-border);line-height:1.5">
+              <strong>📄 With documents:</strong> AI suggests based on your uploaded context.<br>
+              <strong>🌐 Without documents:</strong> AI uses general knowledge + live data.<br>
+              <span style="font-size:10px;color:var(--text-muted)">Upload documents in the <span style="color:var(--emerald);cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()">Library</span> tab.</span>
+            </div>
+          </div>
         </div>
 
       </div>
