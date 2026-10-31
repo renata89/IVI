@@ -683,6 +683,14 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   // Initial render — load from backend or fallback to mock
   loadConflicts();
 
+  function getPlatformColor(platform) {
+    const p = (platform || '').toLowerCase();
+    if (p.includes('teams')) return '#7C3AED';
+    if (p.includes('zoom')) return '#2563EB';
+    if (p.includes('google meet') || p.includes('meet')) return '#D97706';
+    return '#6B7280';
+  }
+
   function buildMeetingColumn(meeting, meetingId, borderColor, isLeft, showSpacer) {
     const borderRight = isLeft ? 'border-right:1px solid #f3f4f6;' : '';
 
@@ -742,8 +750,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     document.getElementById('conflict-counter').textContent = `Conflict ${currentConflictIndex + 1} of ${total}`;
 
     document.getElementById('conflict-meetings-grid').innerHTML =
-      buildMeetingColumn(conflict.left, 'm' + conflict.id, '#3b82f6', true, conflict.right.createdByMe) +
-      buildMeetingColumn(conflict.right, 'm' + conflict.id + 'r', '#8b5cf6', false, conflict.left.createdByMe);
+      buildMeetingColumn(conflict.left, 'm' + conflict.id, getPlatformColor(conflict.left.platform), true, conflict.right.createdByMe) +
+      buildMeetingColumn(conflict.right, 'm' + conflict.id + 'r', getPlatformColor(conflict.right.platform), false, conflict.left.createdByMe);
 
     // Reset global toggle to IVI for each conflict
     globalChoiceIsIVI = true;
