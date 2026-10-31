@@ -4291,6 +4291,9 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       }
       // Re-render
       openTodoDetail(listId);
+      loadTodoLists();
+      // Also sync dashboard card
+      syncDashboardTodoCard();
       return;
     }
 
@@ -4299,7 +4302,21 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     if (!label) return;
     var cb = label.querySelector('input[type="checkbox"]');
     var text = label.querySelector('.todo-text');
-    if (el.textContent === '✕') {
+    var isDismissing = el.textContent === '✕';
+    // Also update MOCK_TODO_LISTS for reverse sync
+    var listEl = label.closest('.todo-mock-list');
+    if (listEl) {
+      var listIdx = -1;
+      var allLists = document.querySelectorAll('.todo-mock-list');
+      allLists.forEach(function(l, li) { if (l === listEl) listIdx = li; });
+      var itemIdx = -1;
+      var items = listEl.querySelectorAll('.todo-mock-item');
+      items.forEach(function(it, ii) { if (it === label) itemIdx = ii; });
+      if (listIdx >= 0 && listIdx < MOCK_TODO_LISTS.length && itemIdx >= 0 && MOCK_TODO_LISTS[listIdx].items && itemIdx < MOCK_TODO_LISTS[listIdx].items.length) {
+        MOCK_TODO_LISTS[listIdx].items[itemIdx].status = isDismissing ? 'dismissed' : 'pending';
+      }
+    }
+    if (isDismissing) {
       label.classList.add('dismissed');
       cb.checked = false;
       cb.disabled = true;
@@ -4330,6 +4347,20 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     } else {
       textSpan.style.textDecoration = 'none';
       textSpan.style.color = '';
+    }
+    // Sync with MOCK_TODO_LISTS
+    var label = cb.closest('.todo-mock-item');
+    var listEl = cb.closest('.todo-mock-list');
+    if (label && listEl) {
+      var listIdx = -1;
+      var allLists = document.querySelectorAll('.todo-mock-list');
+      allLists.forEach(function(l, li) { if (l === listEl) listIdx = li; });
+      var itemIdx = -1;
+      var items = listEl.querySelectorAll('.todo-mock-item');
+      items.forEach(function(it, ii) { if (it === label) itemIdx = ii; });
+      if (listIdx >= 0 && listIdx < MOCK_TODO_LISTS.length && itemIdx >= 0 && MOCK_TODO_LISTS[listIdx].items && itemIdx < MOCK_TODO_LISTS[listIdx].items.length) {
+        MOCK_TODO_LISTS[listIdx].items[itemIdx].status = cb.checked ? 'done' : 'pending';
+      }
     }
     // Recalculate counts for this list
     var listEl = cb.closest('.todo-mock-list');
@@ -4380,6 +4411,52 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         list.style.padding = '8px 10px';
       }
     });
+  }
+
+  function syncDashboardTodoCard() {
+    var lists = document.querySelectorAll('.todo-mock-list');
+    lists.forEach(function(listEl) {
+      var items = listEl.querySelectorAll('.todo-mock-item');
+      items.forEach(function(itemEl, idx) {
+        var cb = itemEl.querySelector('input[type="checkbox"]');
+        var text = itemEl.querySelector('.todo-text');
+        var dismiss = itemEl.querySelector('.todo-dismiss');
+        if (!cb || !text) return;
+        var mockListIdx = -1;
+        for (var i = 0; i < MOCK_TODO_LISTS.length && mockListIdx === -1; i++) {
+          if (MOCK_TODO_LISTS[i].items && idx < MOCK_TODO_LISTS[i].items.length) {
+            var item = MOCK_TODO_LISTS[i].items[idx];
+            var txt = text.textContent.replace('👤','').trim();
+            if (txt.indexOf(item.description.substring(0, Math.min(8, item.description.length))) !== -1) {
+              mockListIdx = i;
+            }
+          }
+        }
+        if (mockListIdx === -1 || !MOCK_TODO_LISTS[mockListIdx] || !MOCK_TODO_LISTS[mockListIdx].items[idx]) return;
+        var mockItem = MOCK_TODO_LISTS[mockListIdx].items[idx];
+        if (mockItem.status === 'dismissed') {
+          itemEl.classList.add('dismissed');
+          cb.checked = false; cb.disabled = true;
+          text.style.color = '#ef4444'; text.style.textDecoration = 'line-through'; text.style.textDecorationColor = '#ef4444';
+          itemEl.style.opacity = '0.5';
+          if (dismiss) { dismiss.textContent = '↩'; dismiss.style.color = 'var(--emerald)'; }
+        } else if (mockItem.status === 'done') {
+          itemEl.classList.remove('dismissed');
+          cb.checked = true; cb.disabled = false;
+          text.style.color = '#6b7280'; text.style.textDecoration = 'line-through'; text.style.textDecorationColor = '#6b7280';
+          itemEl.style.opacity = '1';
+          if (dismiss) { dismiss.textContent = '✕'; dismiss.style.color = '#9ca3af'; }
+        } else {
+          itemEl.classList.remove('dismissed');
+          cb.checked = false; cb.disabled = false;
+          text.style.color = ''; text.style.textDecoration = 'none';
+          itemEl.style.opacity = '1';
+          if (dismiss) { dismiss.textContent = '✕'; dismiss.style.color = '#9ca3af'; }
+        }
+      });
+    });
+    updateTodoSummary();
+    updateUrgentState();
   }
 
   async function loadTodoLists() {
