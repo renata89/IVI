@@ -2057,10 +2057,13 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       // Close the inner grid
       gridHtml += '</div>';
 
+      // Calculate full grid height for overlay containers (header row + time rows)
+      var totalGridHeight = (hours.length + 1) * ROW_HEIGHT + 8;
+
       // Now overlay meetings on top — one absolute-positioned wrapper per day column
       var dayColumnWrappers = '';
       for (var d = 0; d < 7; d++) {
-        dayColumnWrappers += '<div class="cal-day-col" data-day="' + d + '" style="position:absolute;top:0;left:' + (60 + d * (100/7)) + '%;width:' + (100/7) + '%;height:100%;pointer-events:none">';
+        dayColumnWrappers += '<div class="cal-day-col" data-day="' + d + '" style="position:absolute;top:0;left:' + (60 + d * (100/7)) + '%;width:' + (100/7) + '%;height:' + totalGridHeight + 'px;pointer-events:none">';
         var dayDate = new Date(startOfWeek);
         dayDate.setDate(startOfWeek.getDate() + d);
 
@@ -2077,7 +2080,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           var endH = parseInt(endStr.split(':')[0]);
           var endM = parseInt(endStr.split(':')[1]);
 
-          // Calculate position: find which hour row this meeting starts in
           var startHourIndex = -1;
           for (var hi = 0; hi < hours.length; hi++) {
             var hourVal = parseInt(hours[hi].split(':')[0]);
@@ -4146,6 +4148,33 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var el = document.getElementById(docId);
     if (el) el.remove();
     calUpdateIVICheckbox();
+  }
+
+  function calUploadDocument() {
+    document.getElementById('cal-file-picker').click();
+  }
+
+  function calHandleFileSelect(input) {
+    if (!input.files || input.files.length === 0) return;
+    var container = document.getElementById('cal-form-docs');
+    if (!container) return;
+    for (var fi = 0; fi < input.files.length; fi++) {
+      var file = input.files[fi];
+      var docId = 'doc_' + Date.now() + '_' + fi;
+      var row = '<div class="cal-doc-row" id="' + docId + '" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+        '<input type="checkbox" class="cal-doc-ivi" checked onchange="calUpdateIVICheckbox()" style="accent-color:var(--emerald);width:12px;height:12px;flex-shrink:0" title="Include in IVI prep">' +
+        '<span style="font-size:11px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + file.name + '</span>' +
+        '<span style="font-size:9px;color:var(--text-muted);flex-shrink:0">' + (file.size > 1024 ? Math.round(file.size/1024) + 'KB' : file.size + 'B') + '</span>' +
+        '<select class="cal-doc-vis" style="padding:5px 4px;border:1px solid var(--card-border);border-radius:6px;font-size:10px;font-family:inherit;background:#fff">' +
+          '<option value="me">👤 Only me</option>' +
+          '<option value="all">👥 All participants</option>' +
+        '</select>' +
+        '<span class="btn btn-ghost btn-sm" onclick="calRemoveDocumentField(\'' + docId + '\')" style="font-size:10px;padding:2px 6px;color:#ef4444">✕</span>' +
+      '</div>';
+      container.insertAdjacentHTML('beforeend', row);
+    }
+    calUpdateIVICheckbox();
+    input.value = ''; // reset so same file can be picked again
   }
 
   function calUpdateIVICheckbox() {

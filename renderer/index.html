@@ -1323,11 +1323,15 @@
         <div style="margin-bottom:10px;padding-top:8px;border-top:1px solid var(--card-border)">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <div style="font-size:11px;font-weight:500;color:var(--text-muted)">Documents</div>
-            <span class="btn btn-ghost btn-sm" onclick="calAddDocumentField()" style="font-size:10px;padding:2px 8px">+ Add document</span>
+            <div style="display:flex;gap:4px">
+              <span class="btn btn-ghost btn-sm" onclick="calAddDocumentField()" style="font-size:10px;padding:2px 8px">+ Add name</span>
+              <span class="btn btn-ghost btn-sm" onclick="calUploadDocument()" style="font-size:10px;padding:2px 8px">📁 Upload from disk</span>
+            </div>
           </div>
           <div id="cal-form-docs">
             <!-- Document rows added by JS -->
           </div>
+          <input type="file" id="cal-file-picker" style="display:none" multiple onchange="calHandleFileSelect(this)">
           <div style="margin-top:6px;font-size:10px;color:var(--text-muted)">
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer" id="cal-form-docs-ivi-label">
               <input type="checkbox" id="cal-form-docs-ivi" disabled style="accent-color:var(--emerald);width:12px;height:12px"> IVI should learn from these documents (prep &amp; live suggestions)
