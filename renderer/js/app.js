@@ -2047,7 +2047,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       }
 
       // Time rows — build column-based grid with absolute meeting positioning
-      var ROW_HEIGHT = 33; // approximate row height in px
+      var ROW_HEIGHT = 35; // cell min-height 32px + padding 2px + gap 1px
       for (var h = 0; h < hours.length; h++) {
         gridHtml += '<div style="background:var(--card);padding:4px 6px;font-size:10px;color:var(--text-muted);text-align:right">' + hours[h] + '</div>';
         for (var d = 0; d < 7; d++) {
