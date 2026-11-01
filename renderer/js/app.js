@@ -2046,8 +2046,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         gridHtml += '<div style="' + dayCellStyle + '" onclick="calSelectDay(\'' + dateStr + '\')">' + dayNames[d] + ' ' + dayDate.getDate() + '</div>';
       }
 
-      // Time rows — build column-based grid with absolute meeting positioning
-      var ROW_HEIGHT = 35; // cell min-height 32px + padding 2px + gap 1px
+      // Time rows — render grid cells first
+      var ROW_HEIGHT = 35;
       for (var h = 0; h < hours.length; h++) {
         gridHtml += '<div style="background:var(--card);padding:4px 6px;font-size:10px;color:var(--text-muted);text-align:right">' + hours[h] + '</div>';
         for (var d = 0; d < 7; d++) {
@@ -2057,79 +2057,31 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           gridHtml += '<div style="' + cellStyle + '"></div>';
         }
       }
+      gridHtml += '</div>'; // close inner grid
 
-      // Close the inner grid
-      gridHtml += '</div>';
-
-      // Calculate full grid height for overlay containers (header row + time rows)
-      var totalGridHeight = (hours.length + 1) * ROW_HEIGHT + 8;
-
-      // Now overlay meetings on top — one absolute-positioned wrapper per day column
-      var dayColumnWrappers = '';
-      for (var d = 0; d < 7; d++) {
-        var colLeft = 'calc(60px + ' + d + ' * ((100% - 60px) / 7))';
-        var colWidth = 'calc((100% - 60px) / 7)';
-        dayColumnWrappers += '<div class="cal-day-col" data-day="' + d + '" style="position:absolute;top:0;left:' + colLeft + ';width:' + colWidth + ';height:' + totalGridHeight + 'px;pointer-events:none">';
-        var dayDate = new Date(startOfWeek);
-        dayDate.setDate(startOfWeek.getDate() + d);
-
-        for (var mi = 0; mi < displayMeetings.length; mi++) {
-          var m = displayMeetings[mi];
-          if (!m.time || mi !== d) continue; // meeting index matches day column
-
-          // Parse start/end times
-          var timeParts = m.time.split('-');
-          var startStr = timeParts[0] || '09:00';
-          var endStr = timeParts[1] || startStr;
-          var startH = parseInt(startStr.split(':')[0]);
-          var startM = parseInt(startStr.split(':')[1]);
-          var endH = parseInt(endStr.split(':')[0]);
-          var endM = parseInt(endStr.split(':')[1]);
-
-          var startHourIndex = -1;
-          for (var hi = 0; hi < hours.length; hi++) {
-            var hourVal = parseInt(hours[hi].split(':')[0]);
-            if (hourVal === startH) { startHourIndex = hi; break; }
-            else if (hourVal > startH) { startHourIndex = hi; break; } // partial hour
-          }
-          if (startHourIndex < 0) continue;
-
-          // Calculate position with minute-level precision
-          var blockTop = (startHourIndex + 1) * ROW_HEIGHT;
-          // Add minute offset within the hour
-          if (startM > 0) {
-            blockTop += Math.round((startM / 60) * ROW_HEIGHT);
-          }
-
-          // Calculate height based on duration (minimum 1 row height)
-          var MIN_BLOCK_HEIGHT = ROW_HEIGHT;
-          var durMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-          if (durMinutes <= 0) durMinutes = 30; // minimum
-          var blockHeight = Math.max(MIN_BLOCK_HEIGHT, Math.round((durMinutes / 60) * ROW_HEIGHT));
-
-          // Check if meeting is in the past
-          var isPast = false;
-          if (m.dateStr) {
-            var meetingDt = new Date(m.dateStr + 'T' + startStr + ':00');
-            if (!isNaN(meetingDt.getTime()) && meetingDt < new Date()) isPast = true;
-          }
-
-          var downloadIcon = isPast ? '<span style="display:inline-flex;align-items:center;margin-left:2px;flex-shrink:0" title="Notes ready for download"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>' : '';
-
-          var meetingBlock = '<div onclick="openMeetingDetail(\'' + (m.id || '') + '\',\'' + (m.title || '').replace(/'/g,"\\'") + '\',\'' + (m.platform || '') + '\',\'' + (m.creator || '') + '\',\'' + (m.time || '') + '\')" style="position:absolute;left:2px;right:2px;top:' + blockTop + 'px;height:' + blockHeight + 'px;background:' + m.color + '15;border-left:3px solid ' + m.color + ';border-radius:4px;padding:2px 4px;font-size:9px;line-height:1.3;overflow:hidden;cursor:pointer;pointer-events:auto;z-index:5;display:flex;flex-direction:column;min-height:28px">' +
-            '<div style="font-weight:600;color:' + m.color + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:2px">' + m.title + downloadIcon + '</div>' +
-            '<div style="color:var(--text-muted);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + formatTimeDisplay(m.time) + '</div>' +
-            '</div>';
-          dayColumnWrappers += meetingBlock;
-        }
-        dayColumnWrappers += '</div>';
+      // Render meetings as CSS Grid items with explicit grid-row/column
+      for (var mi = 0; mi < displayMeetings.length; mi++) {
+        var m = displayMeetings[mi];
+        if (!m.time) continue;
+        var tp = m.time.split('-');
+        var sS = tp[0] || '09:00', eS = tp[1] || sS;
+        var sH = parseInt(sS.split(':')[0]), sM = parseInt(sS.split(':')[1]);
+        var eH = parseInt(eS.split(':')[0]), eM = parseInt(eS.split(':')[1]);
+        var sHi = -1;
+        for (var hi = 0; hi < hours.length; hi++) { if (parseInt(hours[hi].split(':')[0]) >= sH) { sHi = hi; break; } }
+        if (sHi < 0) continue;
+        var gRowS = sHi + 2;
+        var durM = (eH * 60 + eM) - (sH * 60 + sM); if (durM <= 0) durM = 30;
+        var gRowE = gRowS + Math.max(1, Math.ceil(durM / 60));
+        var gCol = 2 + mi;
+        var isPast = m.dateStr && !isNaN(new Date(m.dateStr + 'T' + sS + ':00').getTime()) && new Date(m.dateStr + 'T' + sS + ':00') < new Date();
+        var dIcon = isPast ? '<span style="display:inline-flex;align-items:center;margin-left:2px;flex-shrink:0" title="Notes ready for download"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>' : '';
+        gridHtml += '<div onclick="openMeetingDetail(\'' + (m.id || '') + '\',\'' + (m.title || '').replace(/'/g,"\\'") + '\',\'' + (m.platform || '') + '\',\'' + (m.creator || '') + '\',\'' + (m.time || '') + '\')" style="grid-column:' + gCol + ';grid-row:' + gRowS + ' / ' + gRowE + ';background:' + m.color + '15;border-left:3px solid ' + m.color + ';border-radius:4px;padding:2px 4px;font-size:9px;line-height:1.3;overflow:hidden;cursor:pointer;z-index:5;display:flex;flex-direction:column;margin:1px 2px;min-height:28px">' +
+          '<div style="font-weight:600;color:' + m.color + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:2px">' + m.title + dIcon + '</div>' +
+          '<div style="color:var(--text-muted);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + formatTimeDisplay(m.time) + '</div></div>';
       }
 
-      // Wrap everything in a scrollable container
-      container.innerHTML = '<div class="cal-week-scroll" style="position:relative;overflow-x:hidden;border-radius:8px">' + gridHtml + dayColumnWrappers + '</div></div>';
-      // Close: dayColumnWrappers were inside position:relative, which is inside cal-week-scroll
-      // The inner structure: cal-week-scroll > position:relative > [grid + overlays]
-      // Apply saved scroll behavior
+      container.innerHTML = '<div class="cal-week-scroll" style="position:relative;overflow-x:hidden;border-radius:8px">' + gridHtml + '</div>';
       setTimeout(applyCalScrollBehavior, 10);
     } else {
       header.textContent = monthNames[month] + ' ' + year;
