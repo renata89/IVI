@@ -2211,7 +2211,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var html = '';
     for (var i = 0; i < filteredMeetings.length; i++) {
       var m = filteredMeetings[i];
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--card-border)">' +
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--card-border);cursor:pointer" onclick="openMeetingDetail(\'' + (m.id || '') + '\',\'' + (m.title || '').replace(/'/g,"\\'") + '\',\'' + (m.platform || '') + '\',\'' + (m.creator || '') + '\',\'' + (m.time || '') + '\')">' +
         '<div style="width:3px;height:24px;border-radius:2px;background:' + m.color + ';flex-shrink:0"></div>' +
         '<div style="flex:1;min-width:0">' +
         '<div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.title + '</div>' +
@@ -2251,6 +2251,185 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     document.getElementById('cal-selected-day').style.display = 'block';
     document.getElementById('cal-meetings-list').style.display = 'block';
     calRender();
+  }
+
+  // ---------- Calendar Search ----------
+  function openCalSearch() {
+    document.getElementById('cal-search-modal').classList.add('active');
+    document.getElementById('cal-search-input').value = '';
+    document.getElementById('cal-search-results').innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:24px">Start typing to search meetings...</div>';
+    setTimeout(function() { document.getElementById('cal-search-input').focus(); }, 100);
+  }
+
+  function closeCalSearch() {
+    document.getElementById('cal-search-modal').classList.remove('active');
+  }
+
+  function calSearchMeetings(query) {
+    var resultsEl = document.getElementById('cal-search-results');
+    if (!resultsEl) return;
+    if (!query || query.trim() === '') {
+      resultsEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:24px">Start typing to search meetings...</div>';
+      return;
+    }
+    var q = query.toLowerCase().trim();
+
+    // Gather all meetings from mock data + custom meetings + calendar mock meetings
+    var allMeetings = [];
+
+    // From calendar mock meetings (Assign to meeting data)
+    var mockCalendarMeetings = [
+      { id: 'cal_m1', title: 'Daily Stand-up', time: '09:15', platform: 'teams', creator: 'Marek K.' },
+      { id: 'cal_m2', title: 'Product Sprint Review', time: '14:00', platform: 'zoom', creator: 'Krzysiek P.' },
+      { id: 'cal_m3', title: 'Design Sync', time: '11:00', platform: 'teams' },
+      { id: 'cal_m4', title: 'Client Sync — e-Krew', time: '10:30', platform: 'google-meets', creator: 'Renata L.' },
+      { id: 'cal_m5', title: 'Teacher Lab UI Review', time: '09:00', platform: 'zoom', creator: 'Renata L.' },
+      { id: 'cal_m6', title: 'Weekly Team Retro', time: '16:00', platform: 'teams' },
+      { id: 'cal_m7', title: '1:1 with Marek', time: '13:30', platform: 'zoom' }
+    ];
+
+    // From the current week grid meetings
+    var gridMeetings = calRenderGrid._lastMeetings || [];
+    for (var gi = 0; gi < gridMeetings.length; gi++) {
+      allMeetings.push(gridMeetings[gi]);
+    }
+
+    // Custom meetings
+    var custom = getCustomMeetings();
+    for (var ci = 0; ci < custom.length; ci++) {
+      allMeetings.push(custom[ci]);
+    }
+
+    // Calendar mock meetings (for more data)
+    for (var mi = 0; mi < mockCalendarMeetings.length; mi++) {
+      allMeetings.push(mockCalendarMeetings[mi]);
+    }
+
+    // Filter
+    var results = [];
+    var seen = {};
+    for (var i = 0; i < allMeetings.length; i++) {
+      var m = allMeetings[i];
+      if (seen[m.id]) continue;
+      seen[m.id] = true;
+      var match = (m.title && m.title.toLowerCase().indexOf(q) !== -1) ||
+                  (m.creator && m.creator.toLowerCase().indexOf(q) !== -1) ||
+                  (m.platform && m.platform.toLowerCase().indexOf(q) !== -1) ||
+                  (m.date && m.date.indexOf(q.replace(/-/g,'')) !== -1) ||
+                  (m.time && m.time.toLowerCase().indexOf(q) !== -1);
+      if (match) results.push(m);
+      if (results.length >= 20) break;
+    }
+
+    if (results.length === 0) {
+      resultsEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:24px">No meetings found for "' + query + '"</div>';
+      return;
+    }
+    var html = '<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">' + results.length + ' result(s) for "' + query + '"</div>';
+    for (var ri = 0; ri < results.length; ri++) {
+      var r = results[ri];
+      var platformColor = '#7C3AED';
+      if (r.platform === 'zoom') platformColor = '#2563EB';
+      else if (r.platform === 'google-meets') platformColor = '#D97706';
+      else if (r.platform === 'teams') platformColor = '#7C3AED';
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:1px solid var(--card-border);margin-bottom:6px;cursor:pointer;transition:background .15s" onclick="closeCalSearch();openMeetingDetail(\'' + (r.id || '') + '\',\'' + (r.title || '').replace(/'/g,"\\'") + '\',\'' + (r.platform || '') + '\',\'' + (r.creator || '') + '\',\'' + (r.time || '') + '\')" onmouseover="this.style.background=\'#f9fafb\'" onmouseout="this.style.background=\'\'">' +
+        '<div style="width:3px;height:28px;border-radius:2px;background:' + platformColor + ';flex-shrink:0"></div>' +
+        '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (r.title || 'Untitled') + '</div>' +
+        '<div style="font-size:11px;color:var(--text-muted)">' + (r.creator ? r.creator + ' · ' : '') + (r.time || '') + '</div></div>' +
+        '</div>';
+    }
+    resultsEl.innerHTML = html;
+    lucide.createIcons();
+  }
+
+  // ---------- Meeting Detail Modal ----------
+  function openMeetingDetail(id, title, platform, creator, time) {
+    var modal = document.getElementById('meeting-modal');
+    var titleEl = document.getElementById('modal-title');
+    var metaEl = document.getElementById('modal-meta');
+    var bodyEl = document.getElementById('modal-body');
+    if (!modal || !titleEl || !metaEl || !bodyEl) return;
+
+    titleEl.textContent = title || 'Meeting';
+    metaEl.textContent = (time || '') + (platform ? ' · ' + platform : '') + (creator ? ' · ' + creator : '');
+
+    var isCustom = id && id.indexOf('custom_') === 0;
+    var now = new Date();
+    var isPast = false;
+    // Check if we can find this meeting's date
+    var customMeetings = getCustomMeetings();
+    var meetingData = null;
+    for (var i = 0; i < customMeetings.length; i++) {
+      if (customMeetings[i].id === id) { meetingData = customMeetings[i]; break; }
+    }
+
+    var docsHtml = '<div style="font-size:13px;font-weight:600;margin:16px 0 8px">📄 Documents</div>' +
+      '<div style="font-size:12px;color:var(--text-muted);padding:12px;background:#f9fafb;border-radius:8px;border:1px dashed var(--card-border);text-align:center">No documents attached yet</div>';
+
+    if (meetingData && meetingData.documents && meetingData.documents.length > 0) {
+      docsHtml = '<div style="font-size:13px;font-weight:600;margin:16px 0 8px">📄 Documents (' + meetingData.documents.length + ')</div>';
+      for (var di = 0; di < meetingData.documents.length; di++) {
+        var doc = meetingData.documents[di];
+        var visLabel = doc.visibility === 'all' ? '👥 All participants' : '👤 Only me';
+        docsHtml += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border);margin-bottom:4px">' +
+          '<span style="font-size:13px">📄</span>' +
+          '<span style="flex:1;font-size:12px;font-weight:500">' + (doc.name || 'Document') + '</span>' +
+          '<span style="font-size:10px;color:var(--text-muted)">' + visLabel + '</span></div>';
+      }
+      // IVI learns from docs
+      docsHtml += '<div style="margin-top:8px;font-size:11px;color:var(--emerald);background:var(--emerald-light);padding:8px 12px;border-radius:6px;display:flex;align-items:center;gap:8px">' +
+        '<span>🧠</span><span>IVI has <strong>' + meetingData.documents.length + ' document(s)</strong> to prepare for this meeting</span></div>';
+    }
+
+    var bodyHtml = '<div id="meeting-detail-body">' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
+        '<span class="btn btn-primary btn-sm" onclick="calNewMeetingOnPageFromDetail()" style="font-size:11px">📝 Join Meeting</span>' +
+        (isCustom ? '<span class="btn btn-ghost btn-sm" onclick="editMeetingFromDetail()" style="font-size:11px">✏️ Edit</span>' : '') +
+      '</div>';
+
+    if (meetingData) {
+      if (meetingData.people) bodyHtml += '<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--text-muted);font-weight:500">People</div><div style="font-size:13px">' + meetingData.people + '</div></div>';
+      if (meetingData.link) bodyHtml += '<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--text-muted);font-weight:500">Link</div><div style="font-size:13px"><a href="' + meetingData.link + '" target="_blank" style="color:var(--emerald);text-decoration:none">' + meetingData.link + '</a></div></div>';
+      if (meetingData.notes) bodyHtml += '<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--text-muted);font-weight:500">Notes</div><div style="font-size:13px">' + meetingData.notes + '</div></div>';
+    }
+
+    bodyHtml += docsHtml;
+
+    if (isPast) {
+      bodyHtml += '<div style="margin-top:12px;font-size:11px;color:var(--text-muted);padding:8px 12px;background:#f9fafb;border-radius:6px;border:1px solid var(--card-border);display:flex;align-items:center;gap:8px">' +
+        '<span>📄</span><span>Notes from this meeting are available for download</span></div>';
+    }
+
+    bodyHtml += '</div>';
+    bodyEl.innerHTML = bodyHtml;
+    modal.classList.add('active');
+  }
+
+  function editMeetingFromDetail() {
+    // Navigate to the new meeting form pre-filled
+    document.getElementById('meeting-modal').classList.remove('active');
+    calNewMeetingOnPage();
+    // Pre-fill with current meeting data - find in custom
+    var title = document.getElementById('modal-title').textContent;
+    var custom = getCustomMeetings();
+    for (var i = 0; i < custom.length; i++) {
+      if (custom[i].title === title) {
+        document.getElementById('cal-form-title').value = custom[i].title || '';
+        document.getElementById('cal-form-date').value = custom[i].date || '';
+        document.getElementById('cal-form-time').value = custom[i].time || '';
+        document.getElementById('cal-form-platform').value = custom[i].platform || '';
+        document.getElementById('cal-form-people').value = custom[i].people || '';
+        document.getElementById('cal-form-notes').value = custom[i].notes || '';
+        document.getElementById('cal-form-link').value = custom[i].link || '';
+        break;
+      }
+    }
+    calSetView('week');
+  }
+
+  function calNewMeetingOnPageFromDetail() {
+    document.getElementById('meeting-modal').classList.remove('active');
+    calNewMeetingOnPage();
   }
 
   function calShowMeetingDetail(meetingId) {
@@ -2309,6 +2488,74 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   }
   // Load on page load
   setTimeout(loadWeekStartSetting, 500);
+  setTimeout(loadTimeSystemSetting, 500);
+
+  // ---------- Settings tabs ----------
+  function switchSettingsTab(tab) {
+    document.querySelectorAll('.settings-tab').forEach(function(t) {
+      t.style.borderBottomColor = 'transparent';
+      t.style.color = 'var(--text-muted)';
+      t.style.fontWeight = '500';
+    });
+    var activeTab = document.querySelector('.settings-tab[data-tab="' + tab + '"]');
+    if (activeTab) {
+      activeTab.style.borderBottomColor = 'var(--emerald)';
+      activeTab.style.color = 'var(--emerald)';
+      activeTab.style.fontWeight = '600';
+    }
+    // Show correct content - mapping tabs to content divs
+    var contentMap = {
+      'general': ['settings-tab-general', 'settings-tab-general-extra'],
+      'dashboard': ['settings-tab-dashboard'],
+      'calendar': ['settings-tab-calendar'],
+      'library': ['settings-tab-library'],
+      'notes': ['settings-tab-notes'],
+      'storage': ['settings-tab-storage']
+    };
+    // Hide all
+    document.querySelectorAll('.settings-tab-content').forEach(function(c) { c.style.display = 'none'; });
+    // Show selected
+    var ids = contentMap[tab] || [];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      if (el) el.style.display = 'block';
+    }
+  }
+
+  // ---------- Calendar scroll behavior ----------
+  function getCalScrollBehavior() {
+    try { return localStorage.getItem('ivi_cal_scroll') || 'internal'; }
+    catch(e) { return 'internal'; }
+  }
+
+  function saveCalScrollBehavior(value) {
+    localStorage.setItem('ivi_cal_scroll', value);
+    applyCalScrollBehavior();
+  }
+
+  function applyCalScrollBehavior() {
+    var scrollContainers = document.querySelectorAll('.cal-week-scroll');
+    var mode = getCalScrollBehavior();
+    scrollContainers.forEach(function(el) {
+      if (mode === 'page') {
+        el.style.maxHeight = 'none';
+        el.style.overflowY = 'visible';
+      } else {
+        el.style.maxHeight = '445px';
+        el.style.overflowY = 'auto';
+      }
+    });
+  }
+
+  function loadCalScrollSetting() {
+    try {
+      var mode = getCalScrollBehavior();
+      var radios = document.querySelectorAll('input[name="cal-scroll"]');
+      radios.forEach(function(r) { r.checked = r.value === mode; });
+      applyCalScrollBehavior();
+    } catch(e) {}
+  }
+  setTimeout(loadCalScrollSetting, 500);
 
   // ---------- Time system (12h / 24h) ----------
   function getTimeSystem() {
@@ -3826,6 +4073,27 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     }
   }
 
+  function calAddDocumentField() {
+    var container = document.getElementById('cal-form-docs');
+    if (!container) return;
+    var count = container.querySelectorAll('.cal-doc-row').length;
+    var docId = 'doc_' + Date.now() + '_' + count;
+    var row = '<div class="cal-doc-row" id="' + docId + '" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+      '<input type="text" class="cal-doc-name" placeholder="Document name (e.g. Sprint_plan.md)" style="flex:1;padding:5px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit">' +
+      '<select class="cal-doc-vis" style="padding:5px 4px;border:1px solid var(--card-border);border-radius:6px;font-size:10px;font-family:inherit;background:#fff">' +
+        '<option value="me">👤 Only me</option>' +
+        '<option value="all">👥 All participants</option>' +
+      '</select>' +
+      '<span class="btn btn-ghost btn-sm" onclick="calRemoveDocumentField(\'' + docId + '\')" style="font-size:10px;padding:2px 6px;color:#ef4444">✕</span>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', row);
+  }
+
+  function calRemoveDocumentField(docId) {
+    var el = document.getElementById(docId);
+    if (el) el.remove();
+  }
+
   function calCheckRepeatInterval() {
     var interval = document.getElementById('cal-form-repeat-interval');
     var custom = document.getElementById('cal-repeat-custom');
@@ -3862,6 +4130,21 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     }
     var repeatItems = repeat ? document.getElementById('cal-form-repeat-items').checked : false;
 
+    // Collect documents
+    var docNames = document.querySelectorAll('.cal-doc-name');
+    var docVisibilities = document.querySelectorAll('.cal-doc-vis');
+    var documents = [];
+    for (var di = 0; di < docNames.length; di++) {
+      var dName = docNames[di].value.trim();
+      if (dName) {
+        documents.push({
+          name: dName,
+          visibility: docVisibilities[di] ? docVisibilities[di].value : 'me',
+          iviLearn: document.getElementById('cal-form-docs-ivi').checked
+        });
+      }
+    }
+
     // Validation
     if (!title) { showToast('⚠️ Title is required'); return; }
     if (!dateVal) { showToast('⚠️ Date is required'); return; }
@@ -3881,6 +4164,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       people: people,
       notes: notes,
       link: link,
+      documents: documents,
       repeat: repeat,
       repeatInterval: repeatInterval,
       repeatItems: repeatItems,
