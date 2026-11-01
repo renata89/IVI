@@ -2092,14 +2092,18 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           }
           if (startHourIndex < 0) continue;
 
-          // Duration in minutes
+          // Calculate position with minute-level precision
+          var blockTop = (startHourIndex + 1) * ROW_HEIGHT;
+          // Add minute offset within the hour
+          if (startM > 0) {
+            blockTop += Math.round((startM / 60) * ROW_HEIGHT);
+          }
+
+          // Calculate height based on duration (minimum 1 row height)
+          var MIN_BLOCK_HEIGHT = ROW_HEIGHT;
           var durMinutes = (endH * 60 + endM) - (startH * 60 + startM);
           if (durMinutes <= 0) durMinutes = 30; // minimum
-
-          // Height: minimum 30min = 1 row. Scale proportionally.
-          var spanRows = Math.max(1, Math.round(durMinutes / 60));
-          var blockHeight = spanRows * ROW_HEIGHT;
-          var blockTop = startHourIndex * ROW_HEIGHT;
+          var blockHeight = Math.max(MIN_BLOCK_HEIGHT, Math.round((durMinutes / 60) * ROW_HEIGHT));
 
           // Check if meeting is in the past
           var isPast = false;
