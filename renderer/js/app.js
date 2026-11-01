@@ -8,9 +8,10 @@
     const day = days[now.getDay()];
     const month = months[now.getMonth()];
     const date = now.getDate();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const mins = String(now.getMinutes()).padStart(2, '0');
-    document.getElementById('topbar-datetime').textContent = `${day}, ${month} ${date} · ${hours}:${mins}`;
+    const hours = now.getHours();
+    const mins = now.getMinutes();
+    var timeStr = formatTimeForDisplay(hours, mins);
+    document.getElementById('topbar-datetime').textContent = `${day}, ${month} ${date} · ${timeStr}`;
   }
   updateClock();
   setInterval(updateClock, 60000);
@@ -1986,7 +1987,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var month = calCurrentDate.getMonth();
     var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-    // Mock meetings data with full details
+    // Mock meetings data with full details — dateStr assigned by week day
     var mockMeetings = [
       { id: 'm1', title: 'Sprint Daily', time: '09:00-09:15', platform: 'Teams', color: '#7C3AED', creator: 'Marek K.', participants: 5, conflict: false },
       { id: 'm2', title: 'e-Krew sync', time: '11:00-12:00', platform: 'Zoom', color: '#2563EB', creator: 'Renata L.', participants: 3, conflict: true, conflictWith: 'm3' },
@@ -2007,6 +2008,13 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       var endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(endOfWeek.getDate() + 6);
       header.textContent = monthNames[startOfWeek.getMonth()] + ' ' + startOfWeek.getDate() + ' – ' + monthNames[endOfWeek.getMonth()] + ' ' + endOfWeek.getDate() + ', ' + endOfWeek.getFullYear();
+
+      // Assign actual dates to mock meetings based on week day column
+      for (var mi = 0; mi < displayMeetings.length; mi++) {
+        var md = new Date(startOfWeek);
+        md.setDate(startOfWeek.getDate() + mi);
+        displayMeetings[mi].dateStr = md.getFullYear() + '-' + String(md.getMonth()+1).padStart(2,'0') + '-' + String(md.getDate()).padStart(2,'0');
+      }
 
       var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       var hours = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
@@ -2044,7 +2052,15 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           var cellContent = '';
           if (d < displayMeetings.length && h < 1) {
             var m = displayMeetings[d];
-            cellContent = '<div style="background:' + m.color + '15;border-left:2px solid ' + m.color + ';border-radius:3px;padding:1px 4px;margin:1px 0;font-size:9px;line-height:1.3"><div style="font-weight:600;color:' + m.color + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.title + '</div><div style="color:var(--text-muted);font-size:8px">' + m.time + '</div></div>';
+            // Check if meeting is in the past
+            var isPast = false;
+            if (m.dateStr) {
+              var meetingStart = m.time ? m.time.split('-')[0] : '00:00';
+              var meetingDt = new Date(m.dateStr + 'T' + meetingStart + ':00');
+              if (!isNaN(meetingDt.getTime()) && meetingDt < new Date()) isPast = true;
+            }
+            var downloadIcon = isPast ? '<span style="float:right;font-size:9px;color:var(--text-muted);cursor:pointer" title="Download notes">📄</span>' : '';
+            cellContent = '<div style="background:' + m.color + '15;border-left:2px solid ' + m.color + ';border-radius:3px;padding:1px 4px;margin:1px 0;font-size:9px;line-height:1.3"><div style="font-weight:600;color:' + m.color + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.title + downloadIcon + '</div><div style="color:var(--text-muted);font-size:8px">' + formatTimeDisplay(m.time) + '</div></div>';
           }
           gridHtml += '<div style="' + cellStyle + '">' + cellContent + '</div>';
         }
@@ -2116,12 +2132,13 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
         monthHtml += '<div style="' + cellStyle + '" onclick="calSelectDay(\'' + dateStr + '\')"><div>' + d + '</div>';
         if (dayMeetings.length > 0) {
-          monthHtml += '<div style="display:flex;gap:2px;justify-content:center;margin-top:2px">';
+          monthHtml += '<div style="display:flex;gap:3px;justify-content:center;margin-top:3px">';
           for (var di = 0; di < Math.min(dayMeetings.length, 3); di++) {
-            monthHtml += '<span style="width:4px;height:4px;border-radius:50%;background:' + (isSelected ? '#fff' : dayMeetings[di].color) + ';display:inline-block"></span>';
+            var dm = dayMeetings[di];
+            monthHtml += '<span style="width:8px;height:8px;border-radius:50%;background:' + (isSelected ? '#fff' : dm.color) + ';display:inline-block;box-shadow:0 0 0 1px ' + (isSelected ? 'rgba(255,255,255,0.3)' : dm.color + '44') + '" title="' + dm.title + ' (' + dm.platform + ')"></span>';
           }
           if (dayMeetings.length > 3) {
-            monthHtml += '<span style="font-size:7px;color:' + (isSelected ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)') + '">+' + (dayMeetings.length - 3) + '</span>';
+            monthHtml += '<span style="font-size:8px;font-weight:600;color:' + (isSelected ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)') + '">+' + (dayMeetings.length - 3) + '</span>';
           }
           monthHtml += '</div>';
         }
@@ -2151,8 +2168,6 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     // Also render "Upcoming Today" section
     renderCalendarTodayMeetings(displayMeetings, showTodayMeetings);
-    // Also render "All Meetings" section
-    renderCalendarAllMeetings(displayMeetings);
   }
 
   function renderCalendarTodayMeetings(meetings, show) {
@@ -2163,93 +2178,46 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     if (parentCard) parentCard.style.display = show ? 'block' : 'none';
     if (!show) return;
 
+    // Determine target date: selected day or today
+    var targetDate = calRenderGrid.selectedDate;
+    if (!targetDate) {
+      var now = new Date();
+      targetDate = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    }
+
     // Update title based on selected date
     var cardLabel = parentCard ? parentCard.querySelector('.card-label') : null;
     if (cardLabel) {
-      var selectedDate = calRenderGrid.selectedDate;
-      if (selectedDate) {
-        var parts = selectedDate.split('-');
+      if (calRenderGrid.selectedDate) {
+        var parts = calRenderGrid.selectedDate.split('-');
         cardLabel.textContent = 'Upcoming ' + parts[2] + '-' + parts[1] + '-' + parts[0];
       } else {
         cardLabel.textContent = 'Upcoming Today';
       }
     }
 
-    if (!meetings || meetings.length === 0) {
-      container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">No meetings scheduled today</div>';
+    // Filter meetings by target date
+    var filteredMeetings = [];
+    for (var i = 0; i < meetings.length; i++) {
+      if (meetings[i].dateStr === targetDate) {
+        filteredMeetings.push(meetings[i]);
+      }
+    }
+
+    if (!filteredMeetings || filteredMeetings.length === 0) {
+      container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">No meetings on this day</div>';
       return;
     }
     var html = '';
-    for (var i = 0; i < meetings.length; i++) {
-      var m = meetings[i];
+    for (var i = 0; i < filteredMeetings.length; i++) {
+      var m = filteredMeetings[i];
       html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--card-border)">' +
         '<div style="width:3px;height:24px;border-radius:2px;background:' + m.color + ';flex-shrink:0"></div>' +
         '<div style="flex:1;min-width:0">' +
         '<div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.title + '</div>' +
-        '<div style="font-size:10px;color:var(--text-muted)">' + m.time + ' · ' + m.platform + '</div>' +
+        '<div style="font-size:10px;color:var(--text-muted)">' + formatTimeDisplay(m.time) + ' · ' + m.platform + '</div>' +
         '</div></div>';
     }
-    container.innerHTML = html;
-  }
-
-  function renderCalendarAllMeetings(meetings) {
-    var container = document.getElementById('cal-all-meetings');
-    if (!container) return;
-    var selectedDate = calRenderGrid.selectedDate;
-
-    // Update title
-    var meetingsCard = container.closest('.card');
-    if (meetingsCard) {
-      var titleEl = meetingsCard.querySelector('h3');
-      if (titleEl) {
-        if (selectedDate) {
-          // Format as DD/MM/YYYY
-          var parts = selectedDate.split('-');
-          titleEl.textContent = parts[2] + '/' + parts[1] + '/' + parts[0] + ' meetings';
-        } else {
-          titleEl.textContent = 'All Meetings';
-        }
-      }
-    }
-
-    // Filter by selected date if set — otherwise show all
-    var displayMeetings = meetings;
-    if (selectedDate) {
-      var parts = selectedDate.split('-');
-      var targetMonth = parseInt(parts[1]) - 1;
-      var targetDay = parseInt(parts[2]);
-      // Filter mock meetings to match this date (based on our distribution logic)
-      var filtered = [];
-      for (var i = 0; i < meetings.length; i++) {
-        var meetingDay = ((i * 7 + targetDay) % 31) + 1;
-        if (meetingDay === targetDay || targetDay <= meetings.length) {
-          filtered.push(meetings[i]);
-        }
-      }
-      if (filtered.length > 0) displayMeetings = filtered;
-      else displayMeetings = [];
-    }
-
-    if (!displayMeetings || displayMeetings.length === 0) {
-      container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:12px 0;text-align:center">' +
-        (selectedDate ? 'No meetings on this day' : 'No meetings found') + '</div>';
-      return;
-    }
-
-    var html = '<div style="display:flex;flex-direction:column;gap:6px">';
-    for (var i = 0; i < displayMeetings.length; i++) {
-      var m = displayMeetings[i];
-      html += '<div onclick="calShowMeetingDetail(\'' + m.id + '\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border);transition:background .15s" onmouseover="this.style.background=\'#f3f4f6\'" onmouseout="this.style.background=\'#f9fafb\'">' +
-        '<div style="width:3px;height:32px;border-radius:2px;background:' + m.color + ';flex-shrink:0"></div>' +
-        '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.title + '</div>' +
-        '<div style="font-size:10px;color:var(--text-muted);margin-top:1px">' + m.time + ' · ' + m.creator + ' · ' + m.participants + ' participants</div>' +
-        '</div>' +
-        (m.conflict ? '<span style="font-size:9px;background:#fef2f2;color:#dc2626;padding:2px 6px;border-radius:4px;white-space:nowrap">⚠️ Conflict</span>' : '') +
-        '<span style="font-size:10px;color:' + m.color + ';font-weight:500;padding:2px 6px;background:' + m.color + '18;border-radius:4px;white-space:nowrap">' + m.platform + '</span>' +
-        '</div>';
-    }
-    html += '</div>';
     container.innerHTML = html;
   }
 
@@ -2266,6 +2234,23 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     calRenderGrid.selectedDate = (calRenderGrid.selectedDate === dateStr) ? null : dateStr;
     // Re-render to update selection and meeting list
     calRenderGrid();
+  }
+
+  function calNewMeetingOnPage() {
+    // Open the Assign to meeting modal in "new meeting" mode
+    calListId = null;
+    calCurrentDate = new Date();
+    calSelectedDate = calRenderGrid.selectedDate || null;
+    document.getElementById('assign-calendar-modal').classList.add('active');
+    // Always start with calendar view
+    document.getElementById('cal-new-meeting-form').style.display = 'none';
+    document.getElementById('cal-actions-bar').style.display = 'flex';
+    document.getElementById('cal-prev-month').parentElement.style.display = 'flex';
+    document.getElementById('cal-day-labels').style.display = 'grid';
+    document.getElementById('cal-grid').style.display = 'grid';
+    document.getElementById('cal-selected-day').style.display = 'block';
+    document.getElementById('cal-meetings-list').style.display = 'block';
+    calRender();
   }
 
   function calShowMeetingDetail(meetingId) {
@@ -2324,6 +2309,65 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   }
   // Load on page load
   setTimeout(loadWeekStartSetting, 500);
+
+  // ---------- Time system (12h / 24h) ----------
+  function getTimeSystem() {
+    try { return localStorage.getItem('ivi_time_system') || '24h'; }
+    catch(e) { return '24h'; }
+  }
+
+  function saveTimeSystem(value) {
+    localStorage.setItem('ivi_time_system', value);
+    updateClock();
+    if (typeof calRenderGrid === 'function') calRenderGrid();
+  }
+
+  function loadTimeSystemSetting() {
+    try {
+      var ts = getTimeSystem();
+      var radios = document.querySelectorAll('input[name="time-system"]');
+      radios.forEach(function(r) { r.checked = r.value === ts; });
+    } catch(e) {}
+  }
+  setTimeout(loadTimeSystemSetting, 500);
+
+  function formatTimeForDisplay(hour24, minute, use12h) {
+    if (use12h === undefined) use12h = getTimeSystem() === '12h';
+    if (use12h) {
+      var period = hour24 >= 12 ? 'PM' : 'AM';
+      var h12 = hour24 % 12 || 12;
+      return h12 + ':' + String(minute).padStart(2,'0') + ' ' + period;
+    }
+    return String(hour24).padStart(2,'0') + ':' + String(minute).padStart(2,'0');
+  }
+
+  function formatTimeDisplay(timeStr, use12h) {
+    // Accepts "HH:MM" or "HH:MM-HH:MM" formats
+    if (use12h === undefined) use12h = getTimeSystem() === '12h';
+    if (!timeStr) return timeStr;
+    // Simple single time "HH:MM"
+    var parts = timeStr.split('-');
+    if (parts.length === 1) {
+      var t = parts[0].split(':');
+      if (t.length === 2) {
+        var h = parseInt(t[0]);
+        var m = parseInt(t[1]);
+        if (!isNaN(h) && !isNaN(m)) return formatTimeForDisplay(h, m, use12h);
+      }
+      return timeStr;
+    }
+    // Range "HH:MM-HH:MM"
+    var t1 = parts[0].split(':');
+    var t2 = parts[1].split(':');
+    if (t1.length === 2 && t2.length === 2) {
+      var h1 = parseInt(t1[0]), m1 = parseInt(t1[1]);
+      var h2 = parseInt(t2[0]), m2 = parseInt(t2[1]);
+      if (!isNaN(h1) && !isNaN(m1) && !isNaN(h2) && !isNaN(m2)) {
+        return formatTimeForDisplay(h1, m1, use12h) + '-' + formatTimeForDisplay(h2, m2, use12h);
+      }
+    }
+    return timeStr;
+  }
 
   // Apply calendar mock settings without page reload
   function applyCalendarMock() {
@@ -3655,13 +3699,30 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         var pc = PLATFORM_COLORS[m.platform];
         platformBadge = '<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:4px;background:' + pc.bg + ';color:' + pc.dot + ';font-weight:600;margin-left:6px"><span style="width:6px;height:6px;border-radius:50%;background:' + pc.dot + ';display:inline-block"></span>' + pc.label + '</span>';
       }
+      var isCustom = m.id && m.id.indexOf('custom_') === 0;
+      var actionsHtml = isCustom
+        ? '<span class="btn btn-ghost btn-sm" onclick="event.stopPropagation();calDeleteMeeting(\'' + m.id + '\')" style="font-size:9px;padding:1px 4px;color:#ef4444;flex-shrink:0" title="Delete meeting">✕</span>'
+        : '';
       html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--card-border);margin-bottom:6px;cursor:pointer" onclick="calSelectMeeting(\'' + m.id + '\')" onmouseover="this.style.background=\'var(--card-hover)\'" onmouseout="this.style.background=\'\'">' +
         '<span style="flex:1;font-size:12px;font-weight:500">' + m.title + platformBadge + '</span>' +
         '<span style="font-size:10px;color:var(--text-muted)">' + m.date + ' ' + m.time + '</span>' +
+        actionsHtml +
         '<span class="btn btn-primary btn-sm" style="font-size:10px;padding:2px 8px">Assign ✓</span>' +
       '</div>';
     });
     document.getElementById('cal-meetings-list').innerHTML = html;
+  }
+
+  function calDeleteMeeting(meetingId) {
+    var custom = getCustomMeetings();
+    var before = custom.length;
+    custom = custom.filter(function(m) { return m.id !== meetingId; });
+    if (custom.length < before) {
+      saveCustomMeetings(custom);
+      if (calSelectedDate) calRender();
+      calRenderGrid();
+      showToast('🗑️ Meeting deleted');
+    }
   }
 
   function calSelectMeeting(meetingId) {

@@ -70,13 +70,13 @@
   <!-- MAIN -->
   <div class="main">
 
-    <header class="topbar">
+    <header class="topbar" style="position: relative;">
       <div class="topbar-left">
         <span class="page-title" id="page-title">Dashboard</span>
         <span class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-size:11px;padding:3px 8px;color:var(--text-muted)" title="Refresh app (dev)"><i data-lucide="refresh-cw" style="width:14px;height:14px"></i></span>
         <span class="btn btn-ghost btn-sm" onclick="toggleMockPanel()" style="font-size:11px;padding:3px 8px;color:var(--text-muted)" title="Mock controls (dev)">🎛️ Mock</span>
       </div>
-      <div style="font-size:13px;color:var(--text-muted);font-weight:500" id="topbar-datetime"></div>
+      <div class="topbar-center" id="topbar-datetime"></div>
       <div class="topbar-right">
         <span class="topbar-user-name" id="topbar-username" onclick="toggleUserMenu()" style="cursor:default">Alex Kowalski</span>
         <div class="avatar" id="topbar-avatar" onclick="toggleUserMenu()">AK</div>
@@ -430,6 +430,8 @@
             <span style="display:flex;gap:4px">
               <span class="btn btn-primary btn-sm" id="cal-view-week-btn" onclick="calSetView('week')">Week</span>
               <span class="btn btn-ghost btn-sm" id="cal-view-month-btn" onclick="calSetView('month')">Month</span>
+              <span style="width:1px;height:20px;background:var(--card-border);margin:0 2px;align-self:center;display:inline-block"></span>
+              <span class="btn btn-ghost btn-sm" onclick="calNewMeetingOnPage()" style="font-size:11px;color:var(--emerald)">+ New</span>
             </span>
           </div>
           <div id="cal-grid-container">
@@ -445,23 +447,6 @@
           </div>
           <div id="checklist-items">
             <div style="font-size:12px;color:var(--text-muted);padding:8px 0" id="checklist-empty">No pending commitments.</div>
-          </div>
-        </div>
-
-        <!-- All meetings -->
-        <div class="card">
-          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h3 style="font-size:14px;font-weight:600">All Meetings</h3>
-            <div style="display:flex;gap:6px">
-              <span class="btn btn-ghost btn-sm" onclick="calFilterMeetings()" title="Filter meetings">Filter</span>
-              <span class="btn btn-ghost btn-sm" onclick="document.getElementById('cal-meetings-search').focus()" title="Search meetings"><i data-lucide="search" style="width:12px;height:12px"></i></span>
-            </div>
-          </div>
-          <div id="cal-meetings-search-row" style="display:none;margin-bottom:8px">
-            <input type="text" id="cal-meetings-search" placeholder="Search meetings..." oninput="calSearchMeetings(this.value)" style="width:100%;padding:6px 10px;border:1px solid var(--card-border);border-radius:6px;font-size:13px;font-family:inherit;outline:none">
-          </div>
-          <div id="cal-all-meetings">
-            <!-- Rendered by JS -->
           </div>
         </div>
       </div>
@@ -800,6 +785,18 @@
                 </label>
               </div>
               <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Choose which day the calendar week starts on. Monday is recommended for European users.</div>
+            </div>
+            <div>
+              <div style="font-weight:500;font-size:13px;margin-bottom:8px">Time system:</div>
+              <div style="display:flex;gap:12px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="radio" name="time-system" value="24h" checked onchange="saveTimeSystem(this.value)" style="accent-color:var(--emerald)"> 24-hour
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="radio" name="time-system" value="12h" onchange="saveTimeSystem(this.value)" style="accent-color:var(--emerald)"> 12-hour (AM/PM)
+                </label>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Choose how times are displayed throughout the app.</div>
             </div>
           </div>
         </div>
@@ -1377,15 +1374,15 @@
           </div>
         </div>
         <div style="margin-bottom:16px">
-          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📅 Upcoming Meetings</div>
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">📅 Upcoming & Calendar</div>
           <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
-              <input type="checkbox" id="mock-todays-meetings" checked onchange="saveMockState()" style="accent-color:var(--emerald)"> Show today's meetings card
+              <input type="checkbox" id="mock-todays-meetings" checked onchange="saveMockState();calRenderGrid()" style="accent-color:var(--emerald)"> Show upcoming meetings card
             </label>
             <div style="display:flex;align-items:center;gap:8px;font-size:12px">
               <span style="color:var(--text-muted);flex-shrink:0">Meetings count:</span>
-              <select id="mock-todays-count" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
-                <option value="1">1 (today only)</option><option value="3" selected>3 (today + tomorrow)</option><option value="6">6 (full week)</option>
+              <select id="mock-todays-count" onchange="saveMockState();calRenderGrid()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="1">1 (day 1 only)</option><option value="3" selected>3 (days 1-3)</option><option value="6">6 (full week)</option>
               </select>
             </div>
             <div style="display:flex;align-items:center;gap:8px;font-size:12px">
