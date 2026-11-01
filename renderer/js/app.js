@@ -2117,9 +2117,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           gridHtml += '<div style="' + cellStyle + '"></div>';
         }
       }
-      gridHtml += '</div>'; // close inner grid
-
-      // Render meetings as CSS Grid items with explicit grid-row/column
+      // Add meetings inside the grid before closing it
       for (var mi = 0; mi < displayMeetings.length; mi++) {
         var m = displayMeetings[mi];
         if (!m.time) continue;
@@ -2140,6 +2138,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
           '<div style="font-weight:600;color:' + m.color + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:2px">' + m.title + dIcon + '</div>' +
           '<div style="color:var(--text-muted);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + formatTimeDisplay(m.time) + '</div></div>';
       }
+      gridHtml += '</div>'; // close inner grid
 
       container.innerHTML = '<div class="cal-week-scroll" style="position:relative;overflow-x:hidden;border-radius:8px">' + gridHtml + '</div>';
       setTimeout(applyCalScrollBehavior, 10);
