@@ -11,7 +11,7 @@
   --emerald-dark: #059669;
   --radius: 16px;
   --shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
-  --sidebar-w: 240px;
+  --sidebar-w: 88px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,46 +32,67 @@ body {
 
 .sidebar {
   width: var(--sidebar-w);
-  background: var(--card);
+  background: rgba(255,255,255,0.88);
   backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 24px 16px;
+  padding: 14px 6px;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
 }
 .logo-wrapper {
-  background: #0F172A;
-  border-radius: 12px;
-  padding: 12px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .logo-img {
-  width: 100%;
-  height: auto;
+  width: 32px;
+  height: 32px;
   display: block;
 }
-.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
 .nav-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px 6px;
   border-radius: 10px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 9px;
   font-weight: 500;
-  transition: all 0.15s;
+  line-height: 1.2;
+  transition: all 0.12s;
   cursor: default;
+  width: 100%;
+  text-align: center;
 }
-.nav-item:hover, .nav-item.active {
-  background: var(--emerald-light);
-  color: var(--emerald);
+.nav-item:hover {
+  background: rgba(255,255,255,0.5);
+  color: var(--text);
 }
-.nav-item.active { font-weight: 600; }
+.nav-item.active {
+  background: #fff;
+  color: #0F172A;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.nav-item i, .nav-item svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
 .nav-icon {
   width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
@@ -80,13 +101,11 @@ body {
 
 .sidebar-footer {
   margin-top: auto;
-  padding: 12px;
-  background: var(--emerald-light);
-  border-radius: 10px;
-  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.sidebar-footer .plan { font-size: 12px; color: var(--text-muted); }
-.sidebar-footer .plan-name { font-size: 14px; font-weight: 600; color: var(--emerald); }
 
 .main {
   flex: 1;

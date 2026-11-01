@@ -22,13 +22,16 @@ function saveMockState() {
     'mock-conflicts','mock-conflicts-count','mock-conflict-state',
     'mock-recordings','mock-recordings-count','mock-recording-status',
     'mock-todo','mock-todo-count','mock-todo-state',
-    'mock-todays-meetings','mock-todays-count','mock-readiness-mix','mock-backend'];
+    'mock-todays-meetings','mock-todays-count','mock-readiness-mix','mock-backend',
+    'mock-fresh-install'];
   const state = {};
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (el) state[id] = el.type === 'checkbox' ? el.checked : el.value;
   });
   localStorage.setItem('ivi_mock_state', JSON.stringify(state));
+  // Apply fresh install immediately
+  if (typeof applyFreshInstall === 'function') applyFreshInstall();
 }
 
 function loadMockState() {

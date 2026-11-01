@@ -1261,10 +1261,84 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     alert('AI-generated summary of loaded documents:\n\n' + parts);
   }
 
-  // ---------- IVI notes all toggle ----------
-  function toggleIVIAll(checkbox) {
-    const warning = document.getElementById('plan-warning-sidebar');
-    warning.style.display = checkbox.checked ? 'block' : 'none';
+  // ---------- Recent Activity mock ----------
+
+  function isFreshInstall() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('ivi_mock_state'));
+      return saved && saved['mock-fresh-install'] === true;
+    } catch(e) { return false; }
+  }
+
+  function applyFreshInstall() {
+    var fresh = isFreshInstall();
+    document.querySelectorAll('#page-dashboard > div:not(#prep-alert-container):not(#doc-reminder-container)').forEach(function(el) {
+      el.style.display = fresh ? 'none' : '';
+    });
+    var existing = document.getElementById('fresh-install-msg');
+    if (fresh) {
+      if (!existing) {
+        var msg = document.createElement('div');
+        msg.id = 'fresh-install-msg';
+        msg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px;text-align:center';
+        msg.innerHTML = '<div style="font-size:48px;margin-bottom:16px">👋</div><div style="font-size:18px;font-weight:600;margin-bottom:8px">Welcome to IVI!</div><div style="font-size:13px;color:var(--text-muted);max-width:300px">Connect your calendar to get started.</div>';
+        document.getElementById('page-dashboard').appendChild(msg);
+      }
+    } else if (existing) {
+      existing.remove();
+    }
+  }
+
+  const MOCK_RECENT_ACTIVITY = [
+    { title: 'Product Sprint Review', status: 'recording', timestamp: Date.now() },
+    { title: 'Client Sync', status: 'processing', timestamp: Date.now() - 2 * 60000 },
+    { title: 'Teacher Lab — UI review', status: 'done', timestamp: Date.now() - 35 * 60000 },
+    { title: 'e-Krew technical sync', status: 'done', timestamp: Date.now() - 2 * 3600000 },
+    { title: 'Weekly Sync', status: 'done', timestamp: Date.now() - 6 * 3600000 },
+  ];
+
+  function timeAgo(ts) {
+    var diff = Date.now() - ts;
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return mins + 'm ago';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    var days = Math.floor(hrs / 24);
+    return days + 'd ago';
+  }
+
+  function renderRecentActivity() {
+    var table = document.getElementById('recent-activity-table');
+    if (!table) return;
+    while (table.rows.length > 1) table.deleteRow(-1);
+
+    MOCK_RECENT_ACTIVITY.forEach(function(item) {
+      var row = table.insertRow(-1);
+      var c1 = row.insertCell(0);
+      var c2 = row.insertCell(1);
+      var c3 = row.insertCell(2);
+
+      c1.textContent = item.title;
+      c1.style.cssText = 'font-size:13px;font-weight:500';
+
+      var badge = document.createElement('span');
+      badge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;display:inline-block';
+      if (item.status === 'recording') {
+        badge.style.cssText += ';background:#fef2f2;color:#dc2626';
+        badge.textContent = '\u25CF Recording';
+      } else if (item.status === 'processing') {
+        badge.style.cssText += ';background:#fffbeb;color:#d97706';
+        badge.textContent = '\u25CC Processing';
+      } else {
+        badge.style.cssText += ';background:#dcfce7;color:#16a34a';
+        badge.textContent = '\u2713 Done';
+      }
+      c2.appendChild(badge);
+
+      c3.textContent = (item.status === 'recording' || item.status === 'processing') ? 'Now' : timeAgo(item.timestamp);
+      c3.style.cssText = 'text-align:right;font-size:11px;color:var(--text-muted)';
+    });
   }
 
   // Click events
@@ -1868,6 +1942,10 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   setTimeout(checkCalendarStatus, 2000);
   // Load recordings on initial load
   loadIVIRecordings();
+  // Load recent activity
+  renderRecentActivity();
+  // Check fresh install state
+  applyFreshInstall();
   // Start prep alert loop on initial load
   setTimeout(startPrepAlertLoop, 2000);
   setTimeout(renderDocReminderAlert, 2500);

@@ -38,39 +38,32 @@
     </div>
     <nav class="nav">
       <a class="nav-item active" data-page="dashboard">
-        <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> Dashboard
+        <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+        <span>Dashboard</span>
       </a>
       <a class="nav-item" data-page="meetings">
-        <span class="nav-icon"><i data-lucide="calendar"></i></span> Calendar
+        <span class="nav-icon"><i data-lucide="calendar"></i></span>
+        <span>Calendar</span>
       </a>
       <a class="nav-item" data-page="series">
-        <span class="nav-icon"><i data-lucide="repeat"></i></span> Series
+        <span class="nav-icon"><i data-lucide="repeat"></i></span>
+        <span>Series</span>
       </a>
       <a class="nav-item" data-page="library">
-        <span class="nav-icon"><i data-lucide="file-text"></i></span> Library
+        <span class="nav-icon"><i data-lucide="file-text"></i></span>
+        <span>Library</span>
       </a>
       <a class="nav-item" data-page="notes">
-        <span class="nav-icon"><i data-lucide="sticky-note"></i></span> Notes
-      </a>
-      <a class="nav-item" data-page="settings" style="margin-top:4px">
-        <span class="nav-icon"><i data-lucide="settings"></i></span> Settings
+        <span class="nav-icon"><i data-lucide="sticky-note"></i></span>
+        <span>Notes</span>
       </a>
     </nav>
     <div class="sidebar-footer">
-      <!-- IVI notes all toggle -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--card-border)">
-        <input type="checkbox" id="ivi-all-sidebar" onchange="toggleIVIAll(this)" style="accent-color:var(--emerald);width:14px;height:14px">
-        <label for="ivi-all-sidebar" style="cursor:default;font-size:11px;flex:1;color:var(--text-muted)">IVI notes <strong style="color:var(--text)">all</strong> my meetings</label>
-      </div>
-      <div class="plan">Active plan</div>
-      <div class="plan-name">Pro · 14h / 30h used</div>
-      <div style="margin-top:8px;height:4px;background:rgba(16,185,129,0.2);border-radius:4px;overflow:hidden">
-        <div style="width:46%;height:100%;background:var(--emerald);border-radius:4px"></div>
-      </div>
-      <div style="margin-top:6px;font-size:10px;color:var(--text-muted);display:none" id="plan-warning-sidebar">⚠️ All meetings count toward your 30h limit</div>
-      <div style="margin-top:12px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--card-border);padding-top:10px">
-        Created by <strong>Testigo</strong>
-      </div>
+      <a class="nav-item" data-page="settings">
+        <span class="nav-icon"><i data-lucide="settings"></i></span>
+        <span>Settings</span>
+      </a>
+      <div style="font-size:8px;color:var(--text-muted);margin-top:6px;line-height:1.2;text-align:center">Pro · 14/30h</div>
     </div>
   </aside>
 
@@ -85,7 +78,6 @@
       </div>
       <div style="font-size:13px;color:var(--text-muted);font-weight:500" id="topbar-datetime"></div>
       <div class="topbar-right">
-        <span class="topbar-icon"><i data-lucide="bell"></i></span>
         <span class="topbar-user-name" id="topbar-username" onclick="toggleUserMenu()" style="cursor:default">Alex Kowalski</span>
         <div class="avatar" id="topbar-avatar" onclick="toggleUserMenu()">AK</div>
         <div class="user-menu" id="user-menu" style="display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid var(--card-border);border-radius:12px;padding:8px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:100;margin-top:4px">
@@ -177,7 +169,7 @@
 
           <!-- Active conflict content -->
           <div id="conflict-active-content" style="display:flex;flex-direction:column;flex:1">
-            <div style="border-radius:20px;box-shadow:0 12px 28px rgba(239,68,68,0.35);overflow:hidden;border:1px solid #e5e7eb;background:#fff">
+            <div style="border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;background:#fff">
               <div style="display:grid;grid-template-columns:1fr 1fr" id="conflict-meetings-grid">
               </div>
               <div style="display:flex;padding:8px 12px;border-top:1px solid #f3f4f6">
@@ -215,7 +207,7 @@
             3 lists · 3 open
           </div>
           <div id="todo-lists-items" style="margin-top:8px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px">
-            <div class="todo-mock-list urgent" style="padding:10px 12px;background:#f0f5ff;border-radius:8px;border:1px solid #c7d2fe;box-shadow:0 10px 40px -8px rgba(239,68,68,0.4),0 4px 20px -4px rgba(239,68,68,0.25);position:relative;transform:scale(1.06);margin:8px 0;z-index:1">
+            <div class="todo-mock-list" style="padding:10px 12px;background:#f0f5ff;border-radius:8px;border:1px solid #c7d2fe;position:relative;transform:scale(1.06);margin:8px 0;z-index:1">
               <div style="cursor:pointer" onclick="openTodoDetail(1)">
               <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sprint Review Follow-up</div>
               <div style="font-size:10px;color:#dc2626;margin-top:2px;font-weight:500">Today 17:45 · in 15 min</div>
@@ -239,7 +231,7 @@
               </div>
               <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid #c7d2fe">
                 <span class="todo-count">1/3 done</span>
-                <span style="color:var(--emerald)">📌 Assigned</span>
+                <span style="color:var(--emerald)">Assigned</span>
               </div>
             </div>
             <div class="todo-mock-list" style="padding:8px 10px;background:#fdf2f8;border-radius:8px;border:1px solid #fbcfe8">
@@ -293,7 +285,7 @@
               </div>
               <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid #fde68a">
                 <span class="todo-count">0/2 done</span>
-                <span style="color:var(--emerald)">📌 Assigned</span>
+                <span style="color:var(--emerald)">Assigned</span>
               </div>
             </div>
           </div>
@@ -360,26 +352,23 @@
               </div>
             </div>
           </div>
-          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);font-size:10px;color:var(--text-muted);text-align:center">
-            Showing 2 today · 1 tomorrow · <span style="color:var(--emerald);cursor:default" onclick="document.querySelector('.nav-item[data-page=meetings]').click()">See all 8 meetings →</span>
-          </div>
         </div>
 
         <div class="card">
           <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h3 style="font-size:14px;font-weight:600">Recent Activity</h3>
-            <span class="btn btn-ghost btn-sm">Clear</span>
           </div>
-          <table class="table">
-            <tr><th>Item</th><th>Status</th><th></th></tr>
-            <tr><td>Spec_API_v2.pdf</td><td><span class="badge" style="font-size:10px"> Loaded</span></td><td style="text-align:right;font-size:11px;color:var(--text-muted)">2h ago</td></tr>
-            <tr><td>e-Krew sprint review (recording)</td><td><span class="badge badge-amber" style="font-size:10px"> Processing</span></td><td style="text-align:right;font-size:11px;color:var(--text-muted)">1h ago</td></tr>
-            <tr><td>Teacher_Lab_req.pdf</td><td><span class="badge" style="font-size:10px"> Loaded</span></td><td style="text-align:right;font-size:11px;color:var(--text-muted)">1d ago</td></tr>
-            <tr><td>Notion — meeting notes</td><td><span class="badge" style="font-size:10px"> Loaded</span></td><td style="text-align:right;font-size:11px;color:var(--text-muted)">2d ago</td></tr>
-          </table>
+          <table class="table" id="recent-activity-table">
+                <tr><th>Item</th><th>Status</th><th></th></tr>
+              </table>
         </div>
 
       </div>
+
+      <div style="padding:6px 16px;text-align:center;font-size:10px;color:var(--text-muted)">
+        Created by <strong style="color:var(--emerald)">Testigo</strong>
+      </div>
+
     </div>
 
     <!-- PAGE: MEETINGS -->
@@ -1346,6 +1335,12 @@
                 <option value="offline">Disconnected (errors)</option>
                 <option value="slow">Slow responses</option>
               </select>
+            </div>
+            <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--card-border)">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="mock-fresh-install" onchange="saveMockState()" style="accent-color:var(--emerald)">
+                <span><strong>Fresh Install</strong> — <span style="color:var(--text-muted)">hide all dashboard data</span></span>
+              </label>
             </div>
           </div>
         </div>
