@@ -1989,12 +1989,12 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
     // Mock meetings data with full details — dateStr assigned by week day
     var mockMeetings = [
-      { id: 'm1', title: 'Sprint Daily', time: '09:00-09:15', platform: 'Teams', color: '#7C3AED', creator: 'Marek K.', participants: 5, conflict: false },
-      { id: 'm2', title: 'e-Krew sync', time: '11:00-12:00', platform: 'Zoom', color: '#2563EB', creator: 'Renata L.', participants: 3, conflict: true, conflictWith: 'm3' },
-      { id: 'm3', title: 'Ideamotive screening', time: '11:30-12:30', platform: 'Google Meet', color: '#D97706', creator: 'Ania W.', participants: 4, conflict: true, conflictWith: 'm2' },
-      { id: 'm4', title: 'Teacher Lab UI', time: '09:00-10:00', platform: 'Teams', color: '#7C3AED', creator: 'Renata L.', participants: 2, conflict: false },
-      { id: 'm5', title: 'Project Review', time: '10:30-12:00', platform: 'Zoom', color: '#2563EB', creator: 'Krzysiek P.', participants: 8, conflict: false },
-      { id: 'm6', title: 'Product Sprint', time: '14:00-14:45', platform: 'Teams', color: '#7C3AED', creator: 'Marek K.', participants: 6, conflict: false }
+      { id: 'm1', title: 'Sprint Daily', time: '09:00-09:15', platform: 'Teams', color: '#7C3AED', creator: 'Marek K.', participants: 5, conflict: false, documents: [{ name: 'Sprint_plan.md', visibility: 'all' }] },
+      { id: 'm2', title: 'e-Krew sync', time: '11:00-12:00', platform: 'Zoom', color: '#2563EB', creator: 'Renata L.', participants: 3, conflict: true, conflictWith: 'm3', documents: [] },
+      { id: 'm3', title: 'Ideamotive screening', time: '11:30-12:30', platform: 'Google Meet', color: '#D97706', creator: 'Ania W.', participants: 4, conflict: true, conflictWith: 'm2', documents: [] },
+      { id: 'm4', title: 'Teacher Lab UI', time: '09:00-10:00', platform: 'Teams', color: '#7C3AED', creator: 'Renata L.', participants: 2, conflict: false, documents: [{ name: 'UI_mockups.fig', visibility: 'me' }] },
+      { id: 'm5', title: 'Project Review', time: '10:30-12:00', platform: 'Zoom', color: '#2563EB', creator: 'Krzysiek P.', participants: 8, conflict: false, documents: [] },
+      { id: 'm6', title: 'Product Sprint', time: '14:00-14:45', platform: 'Teams', color: '#7C3AED', creator: 'Marek K.', participants: 6, conflict: false, documents: [] }
     ];
 
     // Limit meetings based on mock setting
@@ -2274,11 +2274,22 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var html = '';
     for (var i = 0; i < filteredMeetings.length; i++) {
       var m = filteredMeetings[i];
+      var hasDocs = m.documents && m.documents.length > 0;
+      var organizer = m.creator || '—';
+      var participants = m.participants || 0;
+      var docsBadge = hasDocs
+        ? '<span style="font-size:9px;color:var(--emerald);display:inline-flex;align-items:center;gap:2px">📄 Docs</span>'
+        : '<span style="font-size:9px;color:#ef4444;display:inline-flex;align-items:center;gap:2px">📄 No docs</span>';
       html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--card-border);cursor:pointer" onclick="openMeetingDetail(\'' + (m.id || '') + '\',\'' + (m.title || '').replace(/'/g,"\\'") + '\',\'' + (m.platform || '') + '\',\'' + (m.creator || '') + '\',\'' + (m.time || '') + '\')">' +
-        '<div style="width:3px;height:24px;border-radius:2px;background:' + m.color + ';flex-shrink:0"></div>' +
+        '<div style="width:3px;height:36px;border-radius:2px;background:' + m.color + ';flex-shrink:0"></div>' +
         '<div style="flex:1;min-width:0">' +
         '<div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m.title + '</div>' +
-        '<div style="font-size:10px;color:var(--text-muted)">' + formatTimeDisplay(m.time) + ' · ' + m.platform + '</div>' +
+        '<div style="font-size:10px;color:var(--text-muted);display:flex;gap:6px;flex-wrap:wrap;margin-top:1px">' +
+          '<span>' + formatTimeDisplay(m.time) + ' · ' + m.platform + '</span>' +
+          '<span>· ' + organizer + '</span>' +
+          '<span>· ' + participants + ' participants</span>' +
+          '<span>' + docsBadge + '</span>' +
+        '</div>' +
         '</div></div>';
     }
     container.innerHTML = html;
