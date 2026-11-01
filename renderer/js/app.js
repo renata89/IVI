@@ -2514,6 +2514,217 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     calNewMeetingOnPage();
   }
 
+  // ---------- Absent Mode ----------
+  var absentMode = 'selected';
+
+  function openAbsentModal() {
+    var today = new Date();
+    var mon = String(today.getMonth()+1).padStart(2,'0');
+    var day = String(today.getDate()).padStart(2,'0');
+    var todayStr = today.getFullYear() + '-' + mon + '-' + day;
+    document.getElementById('absent-date-from').value = todayStr;
+    // Default: 7 days from now
+    var end = new Date(today);
+    end.setDate(end.getDate() + 7);
+    var eMon = String(end.getMonth()+1).padStart(2,'0');
+    var eDay = String(end.getDate()).padStart(2,'0');
+    document.getElementById('absent-date-to').value = end.getFullYear() + '-' + eMon + '-' + eDay;
+    document.getElementById('absent-modal').classList.add('active');
+    absentMode = 'selected';
+    document.querySelector('input[name="absent-mode"][value="selected"]').checked = true;
+    absentRefreshMeetings();
+  }
+
+  function closeAbsentModal() {
+    document.getElementById('absent-modal').classList.remove('active');
+  }
+
+  function absentSelectMode(mode) {
+    absentMode = mode;
+    absentRefreshMeetings();
+  }
+
+  function absentRefreshMeetings() {
+    var from = document.getElementById('absent-date-from').value;
+    var to = document.getElementById('absent-date-to').value;
+    var listEl = document.getElementById('absent-meetings-list');
+    var summaryEl = document.getElementById('absent-summary');
+    var summaryContent = document.getElementById('absent-summary-content');
+    if (!listEl) return;
+
+    if (!from || !to) {
+      listEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:16px">Select a date range</div>';
+      summaryEl.style.display = 'none';
+      return;
+    }
+
+    // Collect all meetings in the date range
+    var allMeetings = [];
+
+    // From current week grid
+    var gridMeetings = calRenderGrid._lastMeetings || [];
+    var startOfWeek = new Date(calCurrentDate);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    for (var gi = 0; gi < gridMeetings.length; gi++) {
+      var gm = gridMeetings[gi];
+      if (!gm.time) continue;
+      // Assign date based on index
+      var md = new Date(startOfWeek);
+      md.setDate(startOfWeek.getDate() + gi);
+      var ds = md.getFullYear() + '-' + String(md.getMonth()+1).padStart(2,'0') + '-' + String(md.getDate()).padStart(2,'0');
+      if (ds >= from && ds <= to) {
+        allMeetings.push({
+          id: gm.id || 'grid_' + gi,
+          title: gm.title,
+          date: ds,
+          time: gm.time,
+          platform: gm.platform,
+          color: gm.color,
+          creator: gm.creator || '—'
+        });
+      }
+    }
+
+    // Also from custom meetings
+    var custom = getCustomMeetings();
+    for (var ci = 0; ci < custom.length; ci++) {
+      var cm = custom[ci];
+      if (cm.date && cm.date >= from && cm.date <= to) {
+        allMeetings.push({
+          id: cm.id,
+          title: cm.title,
+          date: cm.date,
+          time: cm.time || '—',
+          platform: cm.platform || '—',
+          color: '#7C3AED',
+          creator: cm.people || '—'
+        });
+      }
+    }
+
+    // Render based on mode
+    if (absentMode === 'selected') {
+      if (allMeetings.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:16px">No meetings in this date range</div>';
+      } else {
+        var html = '<div style="font-size:12px;font-weight:500;margin-bottom:8px">Meetings in this period (' + allMeetings.length + ')</div>';
+        for (var ai = 0; ai < allMeetings.length; ai++) {
+          var a = allMeetings[ai];
+          var platColor = '#7C3AED';
+          if (a.platform === 'Zoom' || a.platform === 'zoom') platColor = '#2563EB';
+          else if (a.platform === 'Google Meet' || a.platform === 'google-meets') platColor = '#D97706';
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--card-border);border-radius:6px;margin-bottom:4px">' +
+            '<input type="checkbox" class="absent-meeting-cb" data-id="' + a.id + '" checked onchange="absentUpdateSummary()" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0">' +
+            '<div style="width:3px;height:24px;border-radius:2px;background:' + platColor + ';flex-shrink:0"></div>' +
+            '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + a.title + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted)">' + a.date + ' · ' + a.time + '</div></div></div>';
+        }
+        listEl.innerHTML = html;
+      }
+    } else {
+      // 'all' or 'auto' — just show info
+      listEl.innerHTML = '<div style="padding:12px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border);display:flex;align-items:flex-start;gap:8px">' +
+        '<div style="font-size:16px;flex-shrink:0">📋</div>' +
+        '<div><div style="font-size:13px;font-weight:500">' + (allMeetings.length) + ' meeting(s) found</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">' + (absentMode === 'auto' ? 'New meetings added later will also be handled.' : 'All meetings in this range will be handled.') + '</div></div></div>';
+    }
+
+    absentUpdateSummary();
+  }
+
+  function absentUpdateSummary() {
+    var summaryEl = document.getElementById('absent-summary');
+    var summaryContent = document.getElementById('absent-summary-content');
+    if (!summaryEl || !summaryContent) return;
+
+    var from = document.getElementById('absent-date-from').value;
+    var to = document.getElementById('absent-date-to').value;
+    if (!from || !to) { summaryEl.style.display = 'none'; return; }
+
+    // Calculate total hours
+    var totalMinutes = 0;
+    var checkedCount = 0;
+
+    if (absentMode === 'selected') {
+      var checkboxes = document.querySelectorAll('.absent-meeting-cb:checked');
+      checkedCount = checkboxes.length;
+      // Estimate 45 min per checked meeting
+      totalMinutes = checkedCount * 45;
+    } else if (absentMode === 'all') {
+      var allCheckboxes = document.querySelectorAll('.absent-meeting-cb');
+      checkedCount = allCheckboxes.length;
+      totalMinutes = checkedCount * 45;
+    } else {
+      // auto: count current + estimate 50% more
+      var currentCount = document.querySelectorAll('.absent-meeting-cb').length;
+      var estimatedCount = Math.round(currentCount * 1.5);
+      checkedCount = estimatedCount;
+      totalMinutes = estimatedCount * 45;
+    }
+
+    var hoursNeeded = Math.ceil(totalMinutes / 60);
+    var availableHours = 30; // Pro plan
+    var usedHours = 14;
+    var remainingHours = availableHours - usedHours;
+
+    var html = '';
+    if (checkedCount === 0) {
+      html = '<div style="font-size:12px;color:var(--text-muted)">No meetings selected. Estimated hours needed: <strong>0</strong></div>';
+    } else {
+      html = '<div style="font-size:13px;font-weight:500;margin-bottom:6px">📊 Estimated usage</div>' +
+        '<div style="font-size:12px;margin-bottom:4px">Meetings to handle: <strong>' + checkedCount + '</strong> · Est. hours needed: <strong>~' + hoursNeeded + 'h</strong></div>' +
+        '<div style="font-size:12px;margin-bottom:4px">Your plan: <strong>Pro · 30h/month</strong> · Used: <strong>' + usedHours + 'h</strong> · Remaining: <strong>' + remainingHours + 'h</strong></div>';
+
+      if (hoursNeeded <= remainingHours) {
+        html += '<div style="margin-top:6px;font-size:12px;color:var(--emerald);display:flex;align-items:center;gap:4px">✅ You have enough hours for this</div>';
+      } else {
+        var shortBy = hoursNeeded - remainingHours;
+        html += '<div style="margin-top:6px;padding:8px 10px;background:#fef2f2;border-radius:6px;font-size:12px;color:#dc2626;display:flex;align-items:flex-start;gap:6px">' +
+          '⚠️ <span>Not enough hours! <strong>' + shortBy + 'h short</strong>. <span style="color:var(--emerald);cursor:pointer;font-weight:500" onclick="showToast(\'📈 Upgrade — coming soon\')">Upgrade your plan →</span></span></div>';
+      }
+
+      // Auto mode special handling
+      if (absentMode === 'auto') {
+        var plan = 'pro'; // mock
+        if (plan === 'enterprise') {
+          html += '<div style="margin-top:6px;font-size:12px;color:var(--emerald);display:flex;align-items:center;gap:4px">💼 Enterprise plan — don\'t worry, IVI has you covered!</div>';
+        } else {
+          html += '<div style="margin-top:6px;font-size:11px;color:var(--text-muted);display:flex;align-items:flex-start;gap:4px">' +
+            'ℹ️ If new meetings appear that exceed your plan hours, IVI will pause note-taking. <span style="color:var(--emerald);cursor:pointer;font-weight:500" onclick="showToast(\'📈 Upgrade — coming soon\')">Upgrade for peace of mind</span></div>';
+        }
+      }
+    }
+
+    summaryContent.innerHTML = html;
+    summaryEl.style.display = 'block';
+  }
+
+  function activateAbsentMode() {
+    var from = document.getElementById('absent-date-from').value;
+    var to = document.getElementById('absent-date-to').value;
+    if (!from || !to) { showToast('⚠️ Select a date range first'); return; }
+
+    var modeLabels = { selected: 'selected meetings', all: 'all meetings', auto: 'all meetings (auto)' };
+    var label = modeLabels[absentMode] || 'meetings';
+
+    // Save to localStorage
+    var absentConfig = { from: from, to: to, mode: absentMode, active: true };
+    localStorage.setItem('ivi_absent_mode', JSON.stringify(absentConfig));
+
+    closeAbsentModal();
+    showToast('🏖️ Absent mode activated for ' + label + ' (' + from + ' — ' + to + ')');
+  }
+
+  function isAbsentModeActive() {
+    try {
+      var cfg = JSON.parse(localStorage.getItem('ivi_absent_mode'));
+      if (!cfg || !cfg.active) return false;
+      var today = new Date();
+      var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+      return todayStr >= cfg.from && todayStr <= cfg.to;
+    } catch(e) { return false; }
+  }
+
   function calShowMeetingDetail(meetingId) {
     var modal = document.getElementById('meeting-modal');
     var title = document.getElementById('modal-title');

@@ -450,6 +450,7 @@
             <span style="display:flex;gap:4px">
               <span class="btn btn-primary btn-sm" onclick="calNewMeetingOnPage()" style="font-size:12px;padding:5px 14px;font-weight:600">+ New Meeting</span>
               <span class="btn btn-ghost btn-sm" onclick="openCalSearch()" style="font-size:11px;padding:4px 10px" title="Search meetings">Search</span>
+              <span class="btn btn-ghost btn-sm" onclick="openAbsentModal()" style="font-size:11px;padding:4px 10px;color:var(--emerald)" title="Absent mode">🏖️ Absent</span>
             </span>
           </div>
           <div id="cal-grid-container">
@@ -1036,6 +1037,72 @@
 </div>
 
 <!-- Reschedule Modal -->
+
+<!-- ABSENT MODAL -->
+<div class="modal-overlay" id="absent-modal">
+  <div class="modal" style="width:680px;max-width:90vw">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <div style="font-size:18px">🏖️</div>
+        <div style="min-width:0">
+          <div class="modal-title">Absent Mode</div>
+          <div class="modal-meta" style="font-size:12px;color:var(--text-muted)">Let IVI handle your meetings while you're away</div>
+        </div>
+      </div>
+      <span class="modal-close" onclick="closeAbsentModal()"><i data-lucide="x" style="width:18px;height:18px"></i></span>
+    </div>
+    <div class="modal-detail" style="padding:0 24px 20px;max-height:75vh;overflow-y:auto;font-size:13px">
+
+      <!-- Date range -->
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">From</div>
+          <input type="date" id="absent-date-from" onchange="absentRefreshMeetings()" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+        </div>
+        <div style="flex:1;min-width:140px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">To</div>
+          <input type="date" id="absent-date-to" onchange="absentRefreshMeetings()" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit">
+        </div>
+      </div>
+
+      <!-- Mode selection -->
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid var(--card-border);border-radius:8px;cursor:pointer" onclick="absentSelectMode('selected')">
+          <input type="radio" name="absent-mode" value="selected" checked style="accent-color:var(--emerald);margin-top:2px">
+          <div><div style="font-weight:500;font-size:13px">Select specific meetings</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Choose which meetings IVI should handle</div></div>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid var(--card-border);border-radius:8px;cursor:pointer" onclick="absentSelectMode('all')">
+          <input type="radio" name="absent-mode" value="all" style="accent-color:var(--emerald);margin-top:2px">
+          <div><div style="font-weight:500;font-size:13px">All meetings in this period</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px">IVI handles every meeting in the selected date range</div></div>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid var(--card-border);border-radius:8px;cursor:pointer" onclick="absentSelectMode('auto')">
+          <input type="radio" name="absent-mode" value="auto" style="accent-color:var(--emerald);margin-top:2px">
+          <div><div style="font-weight:500;font-size:13px">All meetings (including future ones)</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px">IVI handles current meetings AND any that get scheduled later</div></div>
+        </label>
+      </div>
+
+      <!-- Meetings list with checkboxes (for 'selected' mode) -->
+      <div id="absent-meetings-list" style="margin-bottom:16px">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Summary -->
+      <div id="absent-summary" style="padding:12px;background:var(--emerald-light);border-radius:8px;border:1px solid var(--emerald);margin-bottom:16px;display:none">
+        <div id="absent-summary-content"></div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <span class="btn btn-ghost btn-sm" onclick="closeAbsentModal()" style="font-size:12px;padding:7px 16px">Cancel</span>
+        <span class="btn btn-primary btn-sm" onclick="activateAbsentMode()" style="font-size:12px;padding:7px 16px">🏖️ Activate Absent Mode</span>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- MEETING ROOM -->
 <div class="meeting-room-overlay" id="meeting-room" style="display:none">
