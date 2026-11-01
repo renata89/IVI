@@ -98,7 +98,7 @@
       <div id="doc-reminder-container"></div>
       <div style="display:flex;gap:16px;min-width:0">
 
-        <div class="card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+        <div class="card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;width:0">
           <div class="card-label">Next Meeting</div>
           <div style="display:flex;gap:12px;margin-top:4px">
             <!-- Calendar date block -->
@@ -151,7 +151,7 @@
           </div>
         </div>
 
-        <div class="card" id="conflict-card" style="display:flex;flex-direction:column;gap:14px;padding:20px;flex:1;min-width:0;overflow:hidden">
+        <div class="card" id="conflict-card" style="display:flex;flex-direction:column;gap:14px;padding:20px;flex:1;min-width:0;overflow:hidden;width:0">
 
           <!-- Header -->
           <div>
@@ -186,13 +186,14 @@
             </div>
           </div>
           <div id="conflict-spacer" style="flex:1;min-height:4px"></div>
-          <div id="conflict-footer" style="display:flex;flex-direction:row;align-items:center;font-size:10px;color:#374151;font-weight:500;min-width:100%">
+          <div id="conflict-footer" style="display:flex;flex-direction:row;align-items:center;font-size:10px;color:#374151;font-weight:500">
               <span id="conflict-counter" style="white-space:nowrap">Conflict 1 of 3</span>
-              <span class="btn btn-ghost btn-sm" onclick="openConflictManager('manage')" style="white-space:nowrap;margin-left:auto">Manage conflicts</span>
+              <span style="flex:1"></span>
+              <span class="btn btn-ghost btn-sm" onclick="openConflictManager('manage')" style="white-space:nowrap">Manage conflicts</span>
           </div>
         </div>
 
-        <div class="card" id="ivi-recordings-card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+        <div class="card" id="ivi-recordings-card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;width:0">
           <div class="card-label" style="margin-bottom:8px">IVI Notes</div>
           <div id="recordings-list" style="display:flex;flex-direction:column;gap:6px;flex:1;min-height:0">
           </div>
@@ -201,7 +202,7 @@
           </div>
         </div>
 
-        <div class="card" id="todo-lists-card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+        <div class="card" id="todo-lists-card" style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;width:0">
           <div class="card-label">To-Do Lists</div>
           <div id="todo-lists-summary" style="font-size:12px;color:var(--text-muted);margin-top:4px">
             3 lists · 3 open
