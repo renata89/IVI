@@ -137,7 +137,7 @@ function saveMockState() {
     'mock-recordings','mock-recordings-count','mock-recording-status',
     'mock-todo','mock-todo-count','mock-todo-state',
     'mock-todays-meetings','mock-todays-count','mock-readiness-mix','mock-backend',
-    'mock-fresh-install','mock-cal-connected'];
+    'mock-fresh-install','mock-cal-connected','mock-plan-type','mock-hours-used'];
   const state = {};
   fields.forEach(id => {
     const el = document.getElementById(id);

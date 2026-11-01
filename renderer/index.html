@@ -1615,9 +1615,31 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- TAB: Settings -->
+        <div style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:12px;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:4px">🏖️ Absent Mode</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:#f9fafb;border-radius:8px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Plan type:</span>
+              <select id="mock-plan-type" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="basic">Basic (10h/mo)</option>
+                <option value="pro" selected>Pro (30h/mo)</option>
+                <option value="enterprise">Enterprise (unlimited)</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="color:var(--text-muted);flex-shrink:0">Hours used:</span>
+              <select id="mock-hours-used" onchange="saveMockState()" style="flex:1;padding:2px 4px;border:1px solid var(--card-border);border-radius:4px;font-size:11px;font-family:inherit">
+                <option value="2">2h</option>
+                <option value="8">8h</option>
+                <option value="14" selected>14h</option>
+                <option value="25">25h (nearly out)</option>
+                <option value="30">30h (Pro full)</option>
+              </select>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Changes take effect after closing & reopening the Absent modal</div>
+          </div>
+        </div>
+      </div><!-- /mock-tab-calendar -->
       <div class="mock-tab-content" id="mock-tab-settings" style="display:none">
         <div style="font-size:11px;color:var(--text-muted);padding:12px 0;text-align:center">Settings mock controls coming soon</div>
       </div>

@@ -2547,59 +2547,48 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var from = document.getElementById('absent-date-from').value;
     var to = document.getElementById('absent-date-to').value;
     var listEl = document.getElementById('absent-meetings-list');
-    var summaryEl = document.getElementById('absent-summary');
-    var summaryContent = document.getElementById('absent-summary-content');
     if (!listEl) return;
 
     if (!from || !to) {
       listEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:16px">Select a date range</div>';
-      summaryEl.style.display = 'none';
+      document.getElementById('absent-summary').style.display = 'none';
       return;
     }
 
     // Collect all meetings in the date range
     var allMeetings = [];
-
-    // From current week grid
     var gridMeetings = calRenderGrid._lastMeetings || [];
     var startOfWeek = new Date(calCurrentDate);
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     for (var gi = 0; gi < gridMeetings.length; gi++) {
       var gm = gridMeetings[gi];
       if (!gm.time) continue;
-      // Assign date based on index
       var md = new Date(startOfWeek);
       md.setDate(startOfWeek.getDate() + gi);
       var ds = md.getFullYear() + '-' + String(md.getMonth()+1).padStart(2,'0') + '-' + String(md.getDate()).padStart(2,'0');
       if (ds >= from && ds <= to) {
         allMeetings.push({
           id: gm.id || 'grid_' + gi,
-          title: gm.title,
-          date: ds,
-          time: gm.time,
-          platform: gm.platform,
-          color: gm.color,
-          creator: gm.creator || '—'
+          title: gm.title, date: ds, time: gm.time,
+          platform: gm.platform, color: gm.color, creator: gm.creator || '—',
+          minutes: absentParseMinutes(gm.time)
         });
       }
     }
-
-    // Also from custom meetings
     var custom = getCustomMeetings();
     for (var ci = 0; ci < custom.length; ci++) {
       var cm = custom[ci];
       if (cm.date && cm.date >= from && cm.date <= to) {
         allMeetings.push({
-          id: cm.id,
-          title: cm.title,
-          date: cm.date,
-          time: cm.time || '—',
-          platform: cm.platform || '—',
-          color: '#7C3AED',
-          creator: cm.people || '—'
+          id: cm.id, title: cm.title, date: cm.date, time: cm.time || '—',
+          platform: cm.platform || '—', color: '#7C3AED', creator: cm.people || '—',
+          minutes: cm.time ? absentParseMinutes(cm.time) : 45
         });
       }
     }
+
+    // Store for summary
+    absentRefreshMeetings._allMeetings = allMeetings;
 
     // Render based on mode
     if (absentMode === 'selected') {
@@ -2609,26 +2598,34 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         var html = '<div style="font-size:12px;font-weight:500;margin-bottom:8px">Meetings in this period (' + allMeetings.length + ')</div>';
         for (var ai = 0; ai < allMeetings.length; ai++) {
           var a = allMeetings[ai];
-          var platColor = '#7C3AED';
-          if (a.platform === 'Zoom' || a.platform === 'zoom') platColor = '#2563EB';
-          else if (a.platform === 'Google Meet' || a.platform === 'google-meets') platColor = '#D97706';
+          var platColor = a.platform === 'Zoom' || a.platform === 'zoom' ? '#2563EB' : a.platform === 'Google Meet' || a.platform === 'google-meets' ? '#D97706' : '#7C3AED';
           html += '<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--card-border);border-radius:6px;margin-bottom:4px">' +
             '<input type="checkbox" class="absent-meeting-cb" data-id="' + a.id + '" checked onchange="absentUpdateSummary()" style="accent-color:var(--emerald);width:14px;height:14px;flex-shrink:0">' +
             '<div style="width:3px;height:24px;border-radius:2px;background:' + platColor + ';flex-shrink:0"></div>' +
             '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + a.title + '</div>' +
-            '<div style="font-size:10px;color:var(--text-muted)">' + a.date + ' · ' + a.time + '</div></div></div>';
+            '<div style="font-size:10px;color:var(--text-muted)">' + a.date + ' · ' + a.time + ' · ~' + Math.max(1, Math.round(a.minutes/15)*15/60) + 'h</div></div></div>';
         }
         listEl.innerHTML = html;
       }
     } else {
-      // 'all' or 'auto' — just show info
       listEl.innerHTML = '<div style="padding:12px;background:#f9fafb;border-radius:8px;border:1px solid var(--card-border);display:flex;align-items:flex-start;gap:8px">' +
         '<div style="font-size:16px;flex-shrink:0">📋</div>' +
-        '<div><div style="font-size:13px;font-weight:500">' + (allMeetings.length) + ' meeting(s) found</div>' +
+        '<div><div style="font-size:13px;font-weight:500">' + allMeetings.length + ' meeting(s) found</div>' +
         '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">' + (absentMode === 'auto' ? 'New meetings added later will also be handled.' : 'All meetings in this range will be handled.') + '</div></div></div>';
     }
-
     absentUpdateSummary();
+  }
+
+  function absentParseMinutes(timeStr) {
+    if (!timeStr) return 45;
+    var parts = timeStr.split('-');
+    if (parts.length < 2) return 45;
+    var s = parts[0].split(':'), e = parts[1].split(':');
+    if (s.length < 2 || e.length < 2) return 45;
+    var sh = parseInt(s[0]), sm = parseInt(s[1]);
+    var eh = parseInt(e[0]), em = parseInt(e[1]);
+    if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return 45;
+    return (eh * 60 + em) - (sh * 60 + sm);
   }
 
   function absentUpdateSummary() {
@@ -2640,57 +2637,74 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var to = document.getElementById('absent-date-to').value;
     if (!from || !to) { summaryEl.style.display = 'none'; return; }
 
-    // Calculate total hours
-    var totalMinutes = 0;
+    var allMeetings = absentRefreshMeetings._allMeetings || [];
     var checkedCount = 0;
+    var totalMinutes = 0;
 
     if (absentMode === 'selected') {
       var checkboxes = document.querySelectorAll('.absent-meeting-cb:checked');
       checkedCount = checkboxes.length;
-      // Estimate 45 min per checked meeting
-      totalMinutes = checkedCount * 45;
-    } else if (absentMode === 'all') {
-      var allCheckboxes = document.querySelectorAll('.absent-meeting-cb');
-      checkedCount = allCheckboxes.length;
-      totalMinutes = checkedCount * 45;
+      checkboxes.forEach(function(cb) {
+        var id = cb.getAttribute('data-id');
+        for (var i = 0; i < allMeetings.length; i++) {
+          if (allMeetings[i].id === id) { totalMinutes += allMeetings[i].minutes || 45; break; }
+        }
+      });
     } else {
-      // auto: count current + estimate 50% more
-      var currentCount = document.querySelectorAll('.absent-meeting-cb').length;
-      var estimatedCount = Math.round(currentCount * 1.5);
-      checkedCount = estimatedCount;
-      totalMinutes = estimatedCount * 45;
+      // 'all' or 'auto' — count all meetings
+      checkedCount = allMeetings.length;
+      for (var i = 0; i < allMeetings.length; i++) {
+        totalMinutes += allMeetings[i].minutes || 45;
+      }
+      if (absentMode === 'auto') {
+        // Estimate 50% more for future meetings
+        totalMinutes = Math.round(totalMinutes * 1.5);
+        checkedCount = Math.round(checkedCount * 1.5);
+      }
     }
 
-    var hoursNeeded = Math.ceil(totalMinutes / 60);
-    var availableHours = 30; // Pro plan
+    // Round hours to nearest 0.5
+    var hoursNeeded = Math.max(0.5, Math.round(totalMinutes / 60 * 2) / 2);
+    var planMap = { basic: { name: 'Basic · 10h/month', hours: 10 }, pro: { name: 'Pro · 30h/month', hours: 30 }, enterprise: { name: 'Enterprise · Unlimited', hours: Infinity } };
+    var planKey = 'pro';
+    try {
+      var ms = JSON.parse(localStorage.getItem('ivi_mock_state'));
+      if (ms && ms['mock-plan-type']) planKey = ms['mock-plan-type'];
+    } catch(e) {}
+    var plan = planMap[planKey] || planMap.pro;
     var usedHours = 14;
-    var remainingHours = availableHours - usedHours;
+    try {
+      var ms = JSON.parse(localStorage.getItem('ivi_mock_state'));
+      if (ms && ms['mock-hours-used']) usedHours = parseInt(ms['mock-hours-used']) || 14;
+    } catch(e) {}
+    var remainingHours = plan.hours === Infinity ? Infinity : Math.max(0, plan.hours - usedHours);
+    var hasCapacity = plan.hours === Infinity || hoursNeeded <= remainingHours;
 
-    var html = '';
+    var html = '<div style="font-size:13px;font-weight:500;margin-bottom:6px">📊 Estimated usage</div>';
     if (checkedCount === 0) {
-      html = '<div style="font-size:12px;color:var(--text-muted)">No meetings selected. Estimated hours needed: <strong>0</strong></div>';
+      html += '<div style="font-size:12px;color:var(--text-muted)">No meetings selected. Estimated hours needed: <strong>0</strong></div>';
     } else {
-      html = '<div style="font-size:13px;font-weight:500;margin-bottom:6px">📊 Estimated usage</div>' +
-        '<div style="font-size:12px;margin-bottom:4px">Meetings to handle: <strong>' + checkedCount + '</strong> · Est. hours needed: <strong>~' + hoursNeeded + 'h</strong></div>' +
-        '<div style="font-size:12px;margin-bottom:4px">Your plan: <strong>Pro · 30h/month</strong> · Used: <strong>' + usedHours + 'h</strong> · Remaining: <strong>' + remainingHours + 'h</strong></div>';
+      var minStr = totalMinutes + 'min';
+      html += '<div style="font-size:12px;margin-bottom:4px">Meetings to handle: <strong>' + checkedCount + '</strong> · Total duration: <strong>' + minStr + '</strong> · Est. hours needed: <strong>~' + hoursNeeded + 'h</strong></div>';
+      html += '<div style="font-size:12px;margin-bottom:4px">Your plan: <strong>' + plan.name + '</strong> · Used: <strong>' + usedHours + 'h</strong> · Remaining: <strong>' + (plan.hours === Infinity ? '∞' : remainingHours + 'h') + '</strong></div>';
 
-      if (hoursNeeded <= remainingHours) {
+      if (hasCapacity) {
         html += '<div style="margin-top:6px;font-size:12px;color:var(--emerald);display:flex;align-items:center;gap:4px">✅ You have enough hours for this</div>';
       } else {
-        var shortBy = hoursNeeded - remainingHours;
+        var shortBy = Math.ceil(hoursNeeded - remainingHours);
         html += '<div style="margin-top:6px;padding:8px 10px;background:#fef2f2;border-radius:6px;font-size:12px;color:#dc2626;display:flex;align-items:flex-start;gap:6px">' +
           '⚠️ <span>Not enough hours! <strong>' + shortBy + 'h short</strong>. <span style="color:var(--emerald);cursor:pointer;font-weight:500" onclick="showToast(\'📈 Upgrade — coming soon\')">Upgrade your plan →</span></span></div>';
       }
+    }
 
-      // Auto mode special handling
-      if (absentMode === 'auto') {
-        var plan = 'pro'; // mock
-        if (plan === 'enterprise') {
-          html += '<div style="margin-top:6px;font-size:12px;color:var(--emerald);display:flex;align-items:center;gap:4px">💼 Enterprise plan — don\'t worry, IVI has you covered!</div>';
-        } else {
-          html += '<div style="margin-top:6px;font-size:11px;color:var(--text-muted);display:flex;align-items:flex-start;gap:4px">' +
-            'ℹ️ If new meetings appear that exceed your plan hours, IVI will pause note-taking. <span style="color:var(--emerald);cursor:pointer;font-weight:500" onclick="showToast(\'📈 Upgrade — coming soon\')">Upgrade for peace of mind</span></div>';
-        }
+    // Auto mode special messages
+    if (absentMode === 'auto') {
+      if (planKey === 'enterprise') {
+        html += '<div style="margin-top:8px;padding:8px 10px;background:var(--emerald-light);border-radius:6px;font-size:12px;color:var(--emerald);display:flex;align-items:center;gap:6px">' +
+          '💼 <span><strong>Enterprise plan</strong> — don\'t worry, IVI has you covered! No hour limits.</span></div>';
+      } else {
+        html += '<div style="margin-top:8px;padding:8px 10px;background:#fffbeb;border-radius:6px;font-size:11px;color:#92400e;display:flex;align-items:flex-start;gap:6px">' +
+          'ℹ️ <span>If new meetings appear beyond your plan hours, IVI will pause note-taking when hours run out. <span style="color:var(--emerald);cursor:pointer;font-weight:500" onclick="showToast(\'📈 Upgrade — coming soon\')">Upgrade for peace of mind</span></span></div>';
       }
     }
 
