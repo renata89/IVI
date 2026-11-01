@@ -2237,20 +2237,16 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
   }
 
   function calNewMeetingOnPage() {
-    // Open the Assign to meeting modal in "new meeting" mode
+    // Open the Assign to meeting modal directly in form mode
     calListId = null;
     calCurrentDate = new Date();
     calSelectedDate = calRenderGrid.selectedDate || null;
     document.getElementById('assign-calendar-modal').classList.add('active');
-    // Always start with calendar view
-    document.getElementById('cal-new-meeting-form').style.display = 'none';
-    document.getElementById('cal-actions-bar').style.display = 'flex';
-    document.getElementById('cal-prev-month').parentElement.style.display = 'flex';
-    document.getElementById('cal-day-labels').style.display = 'grid';
-    document.getElementById('cal-grid').style.display = 'grid';
-    document.getElementById('cal-selected-day').style.display = 'block';
-    document.getElementById('cal-meetings-list').style.display = 'block';
-    calRender();
+    // Change header title
+    var modalHeader = document.querySelector('#assign-calendar-modal .modal-title');
+    if (modalHeader) modalHeader.textContent = '➕ New meeting';
+    // Directly show form, hide calendar
+    calNewMeeting();
   }
 
   // ---------- Calendar Search ----------
@@ -4053,6 +4049,9 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     document.getElementById('cal-grid').style.display = 'grid';
     document.getElementById('cal-selected-day').style.display = 'block';
     document.getElementById('cal-meetings-list').style.display = 'block';
+    // Restore header title
+    var modalHeader = document.querySelector('#assign-calendar-modal .modal-title');
+    if (modalHeader) modalHeader.textContent = '📅 Assign to meeting';
   }
 
   function calToggleRepeat() {
