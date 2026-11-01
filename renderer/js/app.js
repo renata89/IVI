@@ -2022,7 +2022,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
       var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       var hours = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
-      var gridHtml = '<div class="cal-week-scroll" style="max-height:445px;overflow-y:auto;border-radius:8px">';
+      var gridHtml = '<div style="position:relative">';  // scrollable positioned wrapper
       gridHtml += '<div style="display:grid;grid-template-columns:60px repeat(7,1fr);gap:1px;background:var(--card-border);font-size:11px">';
 
       // Pre-compute selected day per column
@@ -2119,8 +2119,10 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         dayColumnWrappers += '</div>';
       }
 
-      // Wrap the entire grid in a relative container for absolute overlays
-      container.innerHTML = '<div class="cal-week-scroll" style="position:relative;overflow-x:hidden">' + gridHtml + dayColumnWrappers + '</div>';
+      // Wrap everything in a scrollable container
+      container.innerHTML = '<div class="cal-week-scroll" style="position:relative;overflow-x:hidden;border-radius:8px">' + gridHtml + dayColumnWrappers + '</div></div>';
+      // Close: dayColumnWrappers were inside position:relative, which is inside cal-week-scroll
+      // The inner structure: cal-week-scroll > position:relative > [grid + overlays]
       // Apply saved scroll behavior
       setTimeout(applyCalScrollBehavior, 10);
     } else {
