@@ -426,13 +426,12 @@
               <span class="btn btn-ghost btn-sm" onclick="calNavWeek(-1)" style="font-size:11px;padding:2px 6px" title="Previous week"><i data-lucide="chevron-left" style="width:14px;height:14px"></i></span>
               <span id="cal-grid-header" style="font-size:14px;font-weight:600">Loading...</span>
               <span class="btn btn-ghost btn-sm" onclick="calNavWeek(1)" style="font-size:11px;padding:2px 6px" title="Next week"><i data-lucide="chevron-right" style="width:14px;height:14px"></i></span>
+              <span class="btn btn-primary btn-sm" id="cal-view-week-btn" onclick="calSetView('week')" style="margin-left:4px">Week</span>
+              <span class="btn btn-ghost btn-sm" id="cal-view-month-btn" onclick="calSetView('month')">Month</span>
             </span>
             <span style="display:flex;gap:4px">
-              <span class="btn btn-primary btn-sm" id="cal-view-week-btn" onclick="calSetView('week')">Week</span>
-              <span class="btn btn-ghost btn-sm" id="cal-view-month-btn" onclick="calSetView('month')">Month</span>
-              <span style="width:1px;height:20px;background:var(--card-border);margin:0 2px;align-self:center;display:inline-block"></span>
-              <span class="btn btn-ghost btn-sm" onclick="calNewMeetingOnPage()" style="font-size:11px;color:var(--emerald)">+ New</span>
-              <span class="btn btn-ghost btn-sm" onclick="openCalSearch()" style="font-size:11px;padding:3px 8px" title="Search meetings">🔍</span>
+              <span class="btn btn-primary btn-sm" onclick="calNewMeetingOnPage()" style="font-size:12px;padding:5px 14px;font-weight:600">+ New Meeting</span>
+              <span class="btn btn-ghost btn-sm" onclick="openCalSearch()" style="font-size:11px;padding:4px 10px" title="Search meetings">Search</span>
             </span>
           </div>
           <div id="cal-grid-container">
@@ -1233,7 +1232,6 @@
 
       <!-- New Meeting Form (hidden by default) -->
       <div id="cal-new-meeting-form" style="display:none">
-        <div style="font-size:13px;font-weight:600;margin-bottom:12px">➕ New Meeting</div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
@@ -1250,7 +1248,7 @@
           </div>
           <div>
             <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:3px">Platform *</div>
-            <select id="cal-form-platform" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
+            <select id="cal-form-platform" onchange="calChangePlatformColor(this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff">
               <option value="">— Select —</option>
               <option value="teams">Teams</option>
               <option value="zoom">Zoom</option>
@@ -1313,8 +1311,8 @@
             <!-- Document rows added by JS -->
           </div>
           <div style="margin-top:6px;font-size:10px;color:var(--text-muted)">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-              <input type="checkbox" id="cal-form-docs-ivi" checked style="accent-color:var(--emerald);width:12px;height:12px"> IVI should learn from these documents (prep &amp; live suggestions)
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer" id="cal-form-docs-ivi-label">
+              <input type="checkbox" id="cal-form-docs-ivi" disabled style="accent-color:var(--emerald);width:12px;height:12px"> IVI should learn from these documents (prep &amp; live suggestions)
             </label>
           </div>
         </div>

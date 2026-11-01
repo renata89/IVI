@@ -3770,6 +3770,9 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
 
   function closeAssignCalendar() {
     document.getElementById('assign-calendar-modal').classList.remove('active');
+    // Reset platform color
+    var modalEl = document.getElementById('assign-calendar-modal');
+    if (modalEl) modalEl.style.background = '';
   }
 
   function calNavMonth(delta) {
@@ -4127,7 +4130,8 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     var count = container.querySelectorAll('.cal-doc-row').length;
     var docId = 'doc_' + Date.now() + '_' + count;
     var row = '<div class="cal-doc-row" id="' + docId + '" style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
-      '<input type="text" class="cal-doc-name" placeholder="Document name (e.g. Sprint_plan.md)" style="flex:1;padding:5px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit">' +
+      '<input type="checkbox" class="cal-doc-ivi" checked onchange="calUpdateIVICheckbox()" style="accent-color:var(--emerald);width:12px;height:12px;flex-shrink:0" title="Include in IVI prep">' +
+      '<input type="text" class="cal-doc-name" oninput="calUpdateIVICheckbox()" placeholder="Document name (e.g. Sprint_plan.md)" style="flex:1;padding:5px 8px;border:1px solid var(--card-border);border-radius:6px;font-size:11px;font-family:inherit">' +
       '<select class="cal-doc-vis" style="padding:5px 4px;border:1px solid var(--card-border);border-radius:6px;font-size:10px;font-family:inherit;background:#fff">' +
         '<option value="me">👤 Only me</option>' +
         '<option value="all">👥 All participants</option>' +
@@ -4135,11 +4139,56 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       '<span class="btn btn-ghost btn-sm" onclick="calRemoveDocumentField(\'' + docId + '\')" style="font-size:10px;padding:2px 6px;color:#ef4444">✕</span>' +
     '</div>';
     container.insertAdjacentHTML('beforeend', row);
+    calUpdateIVICheckbox();
   }
 
   function calRemoveDocumentField(docId) {
     var el = document.getElementById(docId);
     if (el) el.remove();
+    calUpdateIVICheckbox();
+  }
+
+  function calUpdateIVICheckbox() {
+    var docRows = document.querySelectorAll('.cal-doc-row');
+    var docCheckboxes = document.querySelectorAll('.cal-doc-ivi');
+    var docInputs = document.querySelectorAll('.cal-doc-name');
+    var mainCheckbox = document.getElementById('cal-form-docs-ivi');
+    var mainLabel = document.getElementById('cal-form-docs-ivi-label');
+    if (!mainCheckbox || !mainLabel) return;
+
+    // Count docs that have names and are checked
+    var hasActiveDoc = false;
+    for (var i = 0; i < docCheckboxes.length; i++) {
+      var nameVal = docInputs[i] ? docInputs[i].value.trim() : '';
+      if (nameVal && docCheckboxes[i].checked) { hasActiveDoc = true; break; }
+    }
+
+    if (hasActiveDoc) {
+      mainCheckbox.disabled = false;
+      mainCheckbox.checked = true;
+      mainLabel.style.opacity = '1';
+      mainLabel.style.cursor = 'pointer';
+    } else {
+      mainCheckbox.disabled = true;
+      mainCheckbox.checked = false;
+      mainLabel.style.opacity = '0.5';
+      mainLabel.style.cursor = 'default';
+    }
+  }
+
+  function calChangePlatformColor(platform) {
+    var modalEl = document.getElementById('assign-calendar-modal');
+    if (!modalEl) return;
+    // Reset
+    modalEl.style.background = '';
+    // Set pastel background based on platform
+    if (platform === 'teams') {
+      modalEl.style.background = 'rgba(139,92,246,0.06)';
+    } else if (platform === 'zoom') {
+      modalEl.style.background = 'rgba(59,130,246,0.06)';
+    } else if (platform === 'google-meets') {
+      modalEl.style.background = 'rgba(234,179,8,0.06)';
+    }
   }
 
   function calCheckRepeatInterval() {
@@ -4181,6 +4230,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     // Collect documents
     var docNames = document.querySelectorAll('.cal-doc-name');
     var docVisibilities = document.querySelectorAll('.cal-doc-vis');
+    var docCheckboxes = document.querySelectorAll('.cal-doc-ivi');
     var documents = [];
     for (var di = 0; di < docNames.length; di++) {
       var dName = docNames[di].value.trim();
@@ -4188,7 +4238,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
         documents.push({
           name: dName,
           visibility: docVisibilities[di] ? docVisibilities[di].value : 'me',
-          iviLearn: document.getElementById('cal-form-docs-ivi').checked
+          iviLearn: docCheckboxes[di] ? docCheckboxes[di].checked : false
         });
       }
     }
