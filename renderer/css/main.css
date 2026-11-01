@@ -32,7 +32,7 @@ body {
 
 .sidebar {
   width: var(--sidebar-w);
-  background: rgba(255,255,255,0.88);
+  background: linear-gradient(180deg, rgba(240,248,245,0.92), rgba(248,250,252,0.95));
   backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
@@ -119,7 +119,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--card);
+  background: linear-gradient(135deg, rgba(248,250,252,0.92), rgba(235,245,240,0.92));
   backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
