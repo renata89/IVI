@@ -2067,7 +2067,9 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       // Now overlay meetings on top — one absolute-positioned wrapper per day column
       var dayColumnWrappers = '';
       for (var d = 0; d < 7; d++) {
-        dayColumnWrappers += '<div class="cal-day-col" data-day="' + d + '" style="position:absolute;top:0;left:' + (60 + d * (100/7)) + '%;width:' + (100/7) + '%;height:' + totalGridHeight + 'px;pointer-events:none">';
+        var colLeft = 'calc(60px + ' + d + ' * ((100% - 60px) / 7))';
+        var colWidth = 'calc((100% - 60px) / 7)';
+        dayColumnWrappers += '<div class="cal-day-col" data-day="' + d + '" style="position:absolute;top:0;left:' + colLeft + ';width:' + colWidth + ';height:' + totalGridHeight + 'px;pointer-events:none">';
         var dayDate = new Date(startOfWeek);
         dayDate.setDate(startOfWeek.getDate() + d);
 
