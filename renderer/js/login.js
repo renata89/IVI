@@ -39,9 +39,18 @@
       const nameEl = document.getElementById('topbar-username');
       const avatarEl = document.getElementById('topbar-avatar');
       const menuEmail = document.getElementById('user-menu-email');
-      if (nameEl) nameEl.textContent = userEmail.split('@')[0] || 'User';
-      if (avatarEl) avatarEl.textContent = (userEmail[0] || 'U').toUpperCase();
+      const userName = userEmail.split('@')[0] || 'User';
+      const avatarLetter = (userEmail[0] || 'U').toUpperCase();
+      if (nameEl) nameEl.textContent = userName;
+      if (avatarEl) avatarEl.textContent = avatarLetter;
       if (menuEmail) menuEmail.textContent = userEmail;
+      // Sync profile panel in Settings
+      const profileAvatar = document.getElementById('profile-avatar');
+      const profileName = document.getElementById('profile-name');
+      const profileEmail = document.getElementById('profile-email');
+      if (profileAvatar) profileAvatar.textContent = avatarLetter;
+      if (profileName) profileName.textContent = userName;
+      if (profileEmail) profileEmail.textContent = userEmail;
     }
 
 

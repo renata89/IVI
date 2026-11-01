@@ -532,6 +532,28 @@
         <!-- === GENERAL TAB === -->
         <div class="settings-tab-content" id="settings-tab-general">
 
+        <!-- SUBSCRIPTION — first -->
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="font-size:14px;font-weight:600">Subscription</h3>
+            <span class="badge">Pro Plan</span>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">Monthly usage: 14h / 30h</div>
+            <div style="height:6px;background:rgba(16,185,129,0.15);border-radius:6px;overflow:hidden"><div style="width:46%;height:100%;background:var(--emerald);border-radius:6px"></div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+            <div style="padding:16px;border:1px solid var(--card-border);border-radius:12px;text-align:center;opacity:0.5"><div style="font-size:13px;font-weight:500;margin-bottom:4px">Basic</div><div style="font-size:22px;font-weight:700">$19</div><div style="font-size:11px;color:var(--text-muted)">/ month · 10h</div></div>
+            <div style="padding:16px;border:2px solid var(--emerald);border-radius:12px;text-align:center;background:var(--emerald-light)"><div style="font-size:13px;font-weight:500;color:var(--emerald);margin-bottom:4px">Pro</div><div style="font-size:22px;font-weight:700">$39</div><div style="font-size:11px;color:var(--text-muted)">/ month · 30h</div></div>
+            <div style="padding:16px;border:1px solid var(--card-border);border-radius:12px;text-align:center"><div style="font-size:13px;font-weight:500;margin-bottom:4px">Enterprise</div><div style="font-size:22px;font-weight:700">$99</div><div style="font-size:11px;color:var(--text-muted)">/ month · Unlimited</div></div>
+          </div>
+          <div style="display:flex;gap:8px;border-top:1px solid var(--card-border);padding-top:14px">
+            <span class="btn btn-primary btn-sm" onclick="showToast('📈 Upgrade — coming soon')" style="font-size:12px;padding:7px 16px">⬆ Change plan</span>
+            <span class="btn btn-ghost btn-sm" onclick="showToast('🚫 Cancel subscription — coming soon')" style="font-size:12px;padding:7px 16px;color:#ef4444">Cancel subscription</span>
+          </div>
+        </div>
+
+        <!-- INTEGRATIONS — second -->
         <div class="card">
           <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
             <h3 style="font-size:14px;font-weight:600">Integrations</h3>
@@ -573,22 +595,6 @@
               </div>
               <span class="btn btn-ghost btn-sm" style="min-width:100px;justify-content:center">Connect</span>
             </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h3 style="font-size:14px;font-weight:600">Subscription</h3>
-            <span class="badge">Pro Plan</span>
-          </div>
-          <div style="margin-bottom:16px">
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">Monthly usage: 14h / 30h</div>
-            <div style="height:6px;background:rgba(16,185,129,0.15);border-radius:6px;overflow:hidden"><div style="width:46%;height:100%;background:var(--emerald);border-radius:6px"></div></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-            <div style="padding:16px;border:1px solid var(--card-border);border-radius:12px;text-align:center;opacity:0.5"><div style="font-size:13px;font-weight:500;margin-bottom:4px">Basic</div><div style="font-size:22px;font-weight:700">$19</div><div style="font-size:11px;color:var(--text-muted)">/ month · 10h</div></div>
-            <div style="padding:16px;border:2px solid var(--emerald);border-radius:12px;text-align:center;background:var(--emerald-light)"><div style="font-size:13px;font-weight:500;color:var(--emerald);margin-bottom:4px">Pro</div><div style="font-size:22px;font-weight:700">$39</div><div style="font-size:11px;color:var(--text-muted)">/ month · 30h</div></div>
-            <div style="padding:16px;border:1px solid var(--card-border);border-radius:12px;text-align:center"><div style="font-size:13px;font-weight:500;margin-bottom:4px">Enterprise</div><div style="font-size:22px;font-weight:700">$99</div><div style="font-size:11px;color:var(--text-muted)">/ month · Unlimited</div></div>
           </div>
         </div>
 
@@ -845,17 +851,8 @@
 
         </div> <!-- /settings-tab-storage -->
 
-        <!-- Remaining General content (Profile, AI) -->
+        <!-- Remaining General content (AI first, Profile last) -->
         <div class="settings-tab-content" id="settings-tab-general-extra">
-
-        <div class="card">
-          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:14px;font-weight:600">Profile</h3></div>
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-            <div class="avatar" style="width:48px;height:48px;font-size:18px">AK</div>
-            <div><div style="font-weight:600;font-size:15px">Alex Kowalski</div><div style="font-size:13px;color:var(--text-muted)">alex@example.com</div></div>
-          </div>
-          <div style="font-size:13px;color:var(--text-muted)">App version: 0.1.0 · macOS</div>
-        </div>
 
         <!-- AI Suggestions Toggle -->
         <div class="card">
@@ -879,6 +876,16 @@
               <span style="font-size:10px;color:var(--text-muted)">Upload documents in the <span style="color:var(--emerald);cursor:pointer" onclick="document.querySelector('.nav-item[data-page=library]').click()">Library</span> tab.</span>
             </div>
           </div>
+        </div>
+
+        <!-- PROFILE — last -->
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:14px;font-weight:600">Profile</h3></div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+            <div class="profile-avatar" id="profile-avatar" style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--emerald),#34D399);border-radius:50%;color:#fff;font-weight:700;font-size:18px;flex-shrink:0">AK</div>
+            <div><div style="font-weight:600;font-size:15px" id="profile-name">Alex Kowalski</div><div style="font-size:13px;color:var(--text-muted)" id="profile-email">alex@example.com</div></div>
+          </div>
+          <div style="font-size:9px;color:var(--text-muted)" id="profile-version">App version: 0.1.0 · macOS</div>
         </div>
 
         </div>
