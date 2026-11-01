@@ -447,6 +447,12 @@ body {
 .cal-week-scroll::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
 .cal-week-scroll::-webkit-scrollbar-track { background: transparent; }
 
+.settings-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
 /* LOGIN */
 .login-overlay {
   position: fixed; inset: 0; z-index: 1000;
