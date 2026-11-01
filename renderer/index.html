@@ -972,6 +972,11 @@
         <div class="mo-content"><div class="mo-title">Absent Mode</div><div class="mo-desc">You won't be there? IVI will attend and make notes</div></div>
         <i data-lucide="chevron-right" class="mo-arrow"></i>
       </div>
+      <div class="modal-option" onclick="showAction('view')" style="border-top:1px solid var(--card-border);margin-top:8px;padding-top:12px">
+        <div class="mo-icon" style="background:rgba(16,185,129,0.1);color:var(--emerald)"><i data-lucide="eye"></i></div>
+        <div class="mo-content"><div class="mo-title">See details</div><div class="mo-desc">View or edit meeting details, documents, and participants</div></div>
+        <i data-lucide="chevron-right" class="mo-arrow"></i>
+      </div>
     </div>
     <div class="modal-detail" id="modal-detail" style="display:none">
       <div class="md-header" style="display:none">
@@ -1019,6 +1024,11 @@
             <div style="padding:10px;background:rgba(245,158,11,0.08);border-radius:8px;font-size:13px"><strong> Risks identified:</strong> Test plan review still pending (overdue)</div>
           </div>
           <div style="margin-top:12px"><span class="btn btn-primary" style="justify-content:center;width:100%"><i data-lucide="sparkles" style="width:14px;height:14px"></i> Generate Full Briefing</span></div>
+        </div>
+      </div>
+      <div id="detail-view" class="detail-content" style="display:none">
+        <div id="detail-view-body" style="padding:8px 0;font-size:13px;max-height:60vh;overflow-y:auto">
+          <!-- Rendered by renderMeetingDetailView() -->
         </div>
       </div>
     </div>

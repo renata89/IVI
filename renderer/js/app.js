@@ -549,16 +549,76 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
     document.getElementById('meeting-modal').classList.remove('active');
   }
 
+  function renderMeetingDetailView(title) {
+    var container = document.getElementById('detail-view-body');
+    if (!container) return;
+    var custom = getCustomMeetings();
+    var meetingData = null;
+    for (var i = 0; i < custom.length; i++) {
+      if (custom[i].title === title) { meetingData = custom[i]; break; }
+    }
+    var isCustom = !!meetingData;
+    var metaText = document.getElementById('modal-meta').textContent;
+    var html = '<div style="margin-bottom:16px">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
+        '<div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Title</div>' +
+          '<div style="font-size:13px;font-weight:600' + (isCustom ? ';padding:6px 8px;border:1px solid var(--card-border);border-radius:6px' : '') + '">' + title + '</div></div>' +
+        '<div><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Meta</div>' +
+          '<div style="font-size:13px">' + metaText + '</div></div>' +
+      '</div>';
+    if (meetingData) {
+      var fields = [
+        { label: 'Date', value: meetingData.date },
+        { label: 'Time', value: meetingData.time },
+        { label: 'Platform', value: meetingData.platform },
+        { label: 'People', value: meetingData.people },
+        { label: 'Link', value: meetingData.link },
+        { label: 'Notes', value: meetingData.notes }
+      ];
+      for (var fi = 0; fi < fields.length; fi++) {
+        if (fields[fi].value) {
+          html += '<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">' + fields[fi].label + '</div>' +
+            '<div style="font-size:13px;padding:6px 8px;background:#f9fafb;border-radius:6px;border:1px solid var(--card-border)">' + fields[fi].value + '</div></div>';
+        }
+      }
+      if (meetingData.documents && meetingData.documents.length > 0) {
+        html += '<div style="margin-top:12px"><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;font-weight:600">Documents (' + meetingData.documents.length + ')</div>';
+        for (var di = 0; di < meetingData.documents.length; di++) {
+          var d = meetingData.documents[di];
+          html += '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:#f9fafb;border-radius:6px;border:1px solid var(--card-border);margin-bottom:4px">' +
+            '<span>📄</span><span style="flex:1;font-size:12px">' + (d.name || 'Document') + '</span>' +
+            '<span style="font-size:10px;color:var(--text-muted)">' + (d.visibility === 'all' ? '👥 All' : '👤 Only me') + '</span></div>';
+        }
+        html += '</div>';
+      }
+      html += '<div style="margin-top:16px;display:flex;gap:8px">' +
+        '<span class="btn btn-primary btn-sm" onclick="editMeetingFromDetail()" style="font-size:12px">✏️ Edit meeting</span>' +
+        '<span class="btn btn-ghost btn-sm" onclick="calNewMeetingOnPageFromDetail()" style="font-size:12px">📝 Join</span>' +
+      '</div>';
+    } else {
+      html += '<div style="color:var(--text-muted);text-align:center;padding:20px">' +
+        '<div style="font-size:36px;margin-bottom:8px;opacity:0.3">📅</div>' +
+        '<div style="font-size:13px">This is a scheduled meeting from your calendar</div>' +
+        '<div style="font-size:11px;margin-top:4px">' + metaText + '</div></div>';
+    }
+    container.innerHTML = html;
+  }
+
   function showAction(action) {
-    const titles = { join: 'Join Meeting', docs: 'Add Documentation', absent: 'Absent Mode', transcript: 'Generate Notes & Transcript', ai: 'AI Suggestions' };
+    const titles = { join: 'Join Meeting', docs: 'Add Documentation', absent: 'Absent Mode', transcript: 'Generate Notes & Transcript', ai: 'AI Suggestions', view: 'Meeting Details' };
     document.querySelectorAll('#meeting-modal .modal-options').forEach(o => o.style.display = 'none');
     document.getElementById('modal-detail').style.display = 'block';
     document.getElementById('md-title').textContent = titles[action] || action;
     document.getElementById('modal-back').style.display = 'flex';
-    ['join','docs','absent','transcript','ai'].forEach(a => {
+    ['join','docs','absent','transcript','ai','view'].forEach(a => {
       const el = document.getElementById('detail-' + a);
       if (el) el.style.display = a === action ? 'block' : 'none';
     });
+    // Handle view action - render meeting detail
+    if (action === 'view') {
+      var title = document.getElementById('modal-title').textContent;
+      renderMeetingDetailView(title);
+    }
     lucide.createIcons();
   }
 
