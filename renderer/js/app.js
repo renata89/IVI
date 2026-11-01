@@ -2007,7 +2007,11 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
       var endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(endOfWeek.getDate() + 6);
-      header.textContent = monthNames[startOfWeek.getMonth()] + ' ' + startOfWeek.getDate() + ' – ' + monthNames[endOfWeek.getMonth()] + ' ' + endOfWeek.getDate() + ', ' + endOfWeek.getFullYear();
+      if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+        header.textContent = startOfWeek.getDate() + '-' + endOfWeek.getDate() + ' ' + monthNames[startOfWeek.getMonth()] + ', ' + endOfWeek.getFullYear();
+      } else {
+        header.textContent = startOfWeek.getDate() + ' ' + monthNames[startOfWeek.getMonth()] + ' – ' + endOfWeek.getDate() + ' ' + monthNames[endOfWeek.getMonth()] + ', ' + endOfWeek.getFullYear();
+      }
 
       // Assign actual dates to mock meetings based on week day column
       for (var mi = 0; mi < displayMeetings.length; mi++) {
@@ -2116,7 +2120,7 @@ document.querySelectorAll('.nav-item[data-page=settings]').forEach(function(el) 
       }
 
       // Wrap the entire grid in a relative container for absolute overlays
-      container.innerHTML = '<div class="cal-week-scroll" style="position:relative">' + gridHtml + dayColumnWrappers + '</div>';
+      container.innerHTML = '<div class="cal-week-scroll" style="position:relative;overflow-x:hidden">' + gridHtml + dayColumnWrappers + '</div>';
       // Apply saved scroll behavior
       setTimeout(applyCalScrollBehavior, 10);
     } else {
